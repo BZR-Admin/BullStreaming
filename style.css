@@ -1,0 +1,109 @@
+/* Reset de margenes y padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body general */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+/* Contenedor principal */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Cabecera */
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Logo */
+.logo {
+    width: 80px;
+    margin-bottom: 20px;
+}
+
+/* Nombre del sitio */
+h1 {
+    font-size: 3rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+/* Banner */
+.banner {
+    background: url('https://via.placeholder.com/1920x600') no-repeat center center/cover;
+    width: 100%;
+    height: 300px;
+    color: white;
+    text-align: center;
+    padding: 80px 20px;
+    margin-bottom: 40px;
+}
+
+.banner h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.banner p {
+    font-size: 1.2rem;
+}
+
+/* Botones */
+.buttons {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    max-width: 600px;
+}
+
+.button {
+    background-color: #009688;
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    font-size: 1.1rem;
+    border-radius: 5px;
+    margin: 5px;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.button:hover {
+    background-color: #00796b;
+}
+
+/* Botón de información */
+.info {
+    background-color: #0288d1;
+}
+
+.info:hover {
+    background-color: #0277bd;
+}
+
+/* Diseño adaptativo */
+@media screen and (max-width: 768px) {
+    .banner {
+        height: 200px;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    .button {
+        width: 100%;
+        margin: 10px 0;
+    }
+}
