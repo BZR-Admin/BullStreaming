@@ -219,3 +219,85 @@ textarea:focus {
         flex: 1 1 100%; 
     }
 }
+
+/* ---------------------------------------------------------------- */
+/* ESTILOS ESPECÍFICOS PARA EL ACORDEÓN (FAQ) en info.html */
+/* ---------------------------------------------------------------- */
+
+.info-section {
+    padding: 50px 5%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.faq-container {
+    margin-top: 30px;
+}
+
+.faq-item {
+    margin-bottom: 20px;
+    border: 2px solid #ff006e; /* Borde neón rosa */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(255, 0, 110, 0.4);
+    background-color: #0a0a0a;
+}
+
+.faq-question {
+    background-color: #1a0a1a;
+    color: #fce803; /* Título neón amarillo */
+    padding: 18px 25px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1.1em;
+    transition: background-color 0.3s;
+}
+
+.faq-question:hover {
+    background-color: #2a0a2a;
+}
+
+.faq-question .icon {
+    transition: transform 0.3s;
+}
+
+.faq-answer {
+    background-color: #050505;
+    padding: 0 25px;
+    max-height: 0; /* Oculta por defecto */
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    color: #f7f7f7;
+}
+
+.faq-answer p {
+    padding: 15px 0;
+    margin: 0;
+}
+
+/* Estilo para cuando la respuesta está activa/abierta */
+.faq-item.active .faq-answer {
+    max-height: 500px; /* Suficientemente grande para el contenido */
+    padding: 15px 25px;
+    border-top: 1px solid #ff006e;
+}
+
+.faq-item.active .faq-question .icon {
+    transform: rotate(180deg);
+}
+
+.footer {
+    text-align: center;
+    padding: 20px 5%;
+    border-top: 1px solid rgba(255, 0, 110, 0.3);
+    margin-top: 50px;
+    font-size: 0.9em;
+}
+
+.footer a {
+    color: #fce803;
+    text-decoration: none;
+}
