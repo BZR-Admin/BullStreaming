@@ -1,7 +1,7 @@
 // js/data.js
 
 // Importante: Reemplaza XXXXXXXXXX con tu número de WhatsApp
-const WHATSAPP_NUMBER = '0963908286'; 
+const WHATSAPP_NUMBER = '5930963908286'; 
 
 const productos = [
     {
