@@ -123,7 +123,7 @@ body {
 
 /* Ajuste del Logo para que se vea GRANDE */
 .logo {
-    height: 80px; /* Tamaño grande para desktop */
+    height: 200px; /* Tamaño grande para desktop */
     min-width: 80px;
     /* Efecto para que el logo brille un poco */
     filter: drop-shadow(0 0 5px var(--color-neon-red)) drop-shadow(0 0 10px rgba(255, 51, 102, 0.3));
