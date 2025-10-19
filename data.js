@@ -48,7 +48,7 @@ const productos = [
         logo: 'prime.png',
         nombre: 'Pr1me V1deo',
         plan: '1 Dispositivo',
-        precio: '2,50,
+        precio: '2,50',
         descripcion: 'Películas y series actuales, Acción, Comedia y mucha diversión',
         cta_mensaje: 'Hola, me interesa el Plan de Prime Video ($2.50/mes).'
     },
