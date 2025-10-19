@@ -1,135 +1,106 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contacto - Bull Streaming</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Estilos específicos de la página de contacto -->
-    <link rel="stylesheet" href="styleinf.css">
-    <!-- Fuente Poppins desde Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700;900&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome 5 para íconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" xintegrity="sha512-1yOQoM9v8D/tF9p9wA13sBv/xM3Hq6pD/4s2eA5f5j5zTjK1L2M7Z2p8n8Q4v2K4Q5kY9l4z9b2O5sF7yP+w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bull Streaming - Contacto</title>
+    
+    <!-- Enlace a la hoja de estilos maestra que ahora incluye TODOS los estilos -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Fuente 'Poppins' para un look moderno y legible -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+    <!-- Opcional: Iconos de redes sociales (se recomienda usar Font Awesome) -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> -->
+
 </head>
 <body>
-    
-    <!-- HEADER -->
-    <header class="header">
-        <div class="container">
-            <div class="logo-container">
-                <!-- Logo: Usa la imagen del bull -->
-                <img src="logo-bull-streaming.png" alt="Bull Streaming Logo" class="logo">
-            </div>
-            <nav class="nav">
-                <a href="index.html">Inicio</a>
-                <a href="precios.html">Servicios y Precios</a>
-                <a href="revendedores.html">Revendedores</a>
-                <a href="contacto.html" class="current">Contacto</a>
-                <a href="faq.html">Info</a>
-            </nav>
-        </div>
-    </header>
 
-    <!-- PÁGINA DE CONTACTO -->
-    <main class="page-content">
-        <div class="container">
-            
-            <h1 class="section-title neon-yellow">
-                Contáctanos
-            </h1>
-            <p class="subtitle">
-                ¿Tienes preguntas, dudas o necesitas soporte? Estamos listos para ayudarte.
-            </p>
+    <!-- INICIO DE LA CABECERA (Alineación corregida por style.css) -->
+    <header class="header">
+        
+        <!-- CONTENEDOR DEL LOGO (Izquierda) -->
+        <div class="logo-container">
+            <a href="index.html">
+                <!-- Reemplaza "path/to/tu-logo-bull.png" con la ubicación de tu imagen de logo -->
+                <img src="path/to/tu-logo-bull.png" alt="Bull Streaming Logo">
+            </a>
+        </div>
 
-            <div class="contact-grid">
-                
-                <!-- Columna 1: Formulario de Contacto -->
-                <section class="form-section">
-                    <h2 class="form-title">Envíanos un Mensaje</h2>
-                    <!-- Nota: El action="#" y method="POST" son placeholders, el envío real requiere un backend. -->
-                    <form action="#" method="POST" class="contact-form">
-                        <div class="input-group">
-                            <label for="nombre">Nombre Completo</label>
-                            <input type="text" id="nombre" name="nombre" required placeholder="Ej: Juan Pérez">
-                        </div>
-                        <div class="input-group">
-                            <label for="email">Correo Electrónico</label>
-                            <input type="email" id="email" name="email" required placeholder="ejemplo@correo.com">
-                        </div>
-                        <div class="input-group">
-                            <label for="asunto">Asunto</label>
-                            <input type="text" id="asunto" name="asunto" required placeholder="Soporte, Venta, Información">
-                        </div>
-                        <div class="input-group">
-                            <label for="mensaje">Mensaje</label>
-                            <textarea id="mensaje" name="mensaje" rows="6" required placeholder="Describe tu consulta..."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary cta-form">
-                            Enviar Mensaje
-                        </button>
-                    </form>
-                </section>
+        <!-- CONTENEDOR DE LA NAVEGACIÓN (Derecha) -->
+        <nav class="main-nav">
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="servicios.html">Servicios y Precios</a></li>
+                <li><a href="revendedores.html">Revendedores</a></li>
+                <!-- CLASE 'active' para resaltar esta página -->
+                <li><a href="contacto.html" class="active">Contacto</a></li>
+            </ul>
+        </nav>
 
-                <!-- Columna 2: Información Directa y Redes -->
-                <section class="info-section">
-                    <h2 class="info-title">Datos Directos y Redes</h2>
-                    
-                    <!-- Correo Electrónico -->
-                    <div class="contact-item">
-                        <i class="fas fa-envelope neon-cyan icon-large"></i>
-                        <p class="label">Correo Electrónico:</p>
-                        <a href="mailto:bullstreaming12@gmail.com" class="neon-yellow">bullstreaming12@gmail.com</a>
-                    </div>
-                    
-                    <!-- WhatsApp -->
-                    <div class="contact-item">
-                        <i class="fab fa-whatsapp neon-cyan icon-large"></i>
-                        <p class="label">WhatsApp:</p>
-                        <!-- Enlace directo a WhatsApp usando el formato internacional -->
-                        <a href="https://wa.me/593963908286" target="_blank" class="neon-yellow">+593 96 390 8286</a>
-                    </div>
+    </header>
+    <!-- FIN DE LA CABECERA -->
 
-                    <!-- Bloque UNIFICADO de Redes Sociales (Ahora con 3 íconos) -->
-                    <div class="social-links">
-                        <h3 class="social-title">Síguenos en:</h3>
-                        
-                        <!-- WhatsApp Link -->
-                        <a href="https://wa.me/593963908286" target="_blank" class="social-icon" aria-label="WhatsApp Bull Streaming">
-                            <i class="fab fa-whatsapp neon-cyan"></i>
-                        </a>
+    <!-- CONTENIDO PRINCIPAL DE LA PÁGINA DE CONTACTO -->
+    <main>
+        
+        <section class="contact-section">
+            
+            <div class="form-container">
+                <h1>Contacto</h1>
+                <h2>Envíanos un Mensaje</h2>
+                <form action="#" method="POST">
+                    <label for="nombre">Nombre Completo</label>
+                    <input type="text" id="nombre" name="nombre" placeholder="Ej: Juan Pérez" required>
+                    
+                    <label for="email">Correo Electrónico</label>
+                    <input type="email" id="email" name="email" placeholder="ejemplo@correo.com" required>
 
-                        <!-- Facebook Link -->
-                        <a href="https://www.facebook.com/share/1BPkZSGgo4/" target="_blank" class="social-icon" aria-label="Facebook Bull Streaming">
-                            <i class="fab fa-facebook-f neon-cyan"></i>
-                        </a>
-                        
-                        <!-- Instagram Link -->
-                        <a href="https://www.instagram.com/bullstreaming_ec" target="_blank" class="social-icon" aria-label="Instagram Bull Streaming">
-                            <i class="fab fa-instagram neon-cyan"></i>
-                        </a>
-                    </div>
+                    <label for="asunto">Asunto</label>
+                    <select id="asunto" name="asunto" required>
+                        <option value="" disabled selected>Selecciona un asunto</option>
+                        <option value="soporte">Soporte Técnico</option>
+                        <option value="ventas">Ventas / Adquisición</option>
+                        <option value="informacion">Información General</option>
+                        <option value="revendedor">Quiero ser Revendedor</option>
+                    </select>
+                    
+                    <label for="mensaje">Mensaje</label>
+                    <textarea id="mensaje" name="mensaje" placeholder="Describe tu consulta, problema o solicitud..." required></textarea>
+                    
+                    <button type="submit" class="send-button">Enviar Mensaje</button>
+                </form>
+            </div>
 
-                </section>
+            <div class="data-container">
+                <h2>Datos Directos y Redes</h2>
+                <p>Si prefieres una comunicación más directa, contáctanos a través de:</p>
+                <p>
+                    <strong>Email:</strong> 
+                    <a href="mailto:bullstreaming12@gmail.com">bullstreaming12@gmail.com</a>
+                </p>
+                <p>
+                    <strong>WhatsApp:</strong> 
+                    <a href="https://wa.me/593963908286" target="_blank">+593 96 390 8286</a>
+                </p>
+                
+                <h3>Síguenos en Redes:</h3>
+                <div class="social-icons">
+                    <!-- Los iconos de Font Awesome o SVGs deberían ir aquí para el toque neón -->
+                    <a href="#" target="_blank" aria-label="Instagram">
+                        <!-- Reemplaza el texto con un icono (por ejemplo, <i class="fab fa-instagram icon"></i>) -->
+                        <span class="icon" style="color: #ff006e;">Instagram</span>
+                    </a>
+                    <a href="#" target="_blank" aria-label="Facebook">
+                        <span class="icon" style="color: #fce803;">Facebook</span>
+                    </a>
+                    <!-- Añade más redes según necesites -->
+                </div>
+            </div>
 
-            </div>
+        </section>
 
-        </div>
-    </main>
-    
-
-    <!-- FOOTER -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 Bull Streaming. Todos los derechos reservados.</p>
-            <div class="footer-links">
-                <a href="contacto.html">Contacto</a>
-                <a href="#">Términos y Condiciones</a>
-                <a href="#">Política de Privacidad</a>
-            </div>
-        </div>
-    </footer>
-
+    </main>
+    
 </body>
 </html>
