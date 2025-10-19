@@ -1,4 +1,4 @@
-// js/data.js
+// js/data2.js (Corregido)
 
 // Importante: Reemplaza XXXXXXXXXX con tu número de WhatsApp
 const WHATSAPP_NUMBER = '5930963908286'; 
@@ -8,15 +8,16 @@ const productos = [
         logo: 'netflix.png', // Asume que tienes este logo
         nombre: 'Netflix Genérico',
         plan: '1 Pantalla',
-        precio: '2.50', // Solo el número, el script añade el símbolo
+        // Nota: Los precios deberían ser números para JS, pero he respetado tu formato string/coma
+        precio: '2.50', 
         descripcion: 'Ultra HD 4K, solicita código de hogar y puede tener interrumpciones',
         cta_mensaje: 'Hola, me interesa el Plan de Netflix Genérico ($2.60/mes).'
     },
-   {
+    {
         logo: 'netflix.png', // Asume que tienes este logo
         nombre: 'Netfl1x (Perfil Extra)',
         plan: '1 Pantalla',
-        precio: '3.60', // Solo el número, el script añade el símbolo
+        precio: '3.60', 
         descripcion: 'Ultra HD 4K, sin interrumpciones, un único perfil',
         cta_mensaje: 'Hola, me interesa el Plan de Netflix - Perfil Extra ($3.75/mes).'
     },
@@ -44,7 +45,7 @@ const productos = [
         descripcion: 'Música sin límites, sin anuncios y modo sin conexión. Para un perfil.',
         cta_mensaje: 'Hola, me interesa el Plan Spotify).'
     },
-  {
+    {
         logo: 'prime.png',
         nombre: 'Pr1me V1deo',
         plan: '1 Dispositivo',
@@ -52,7 +53,7 @@ const productos = [
         descripcion: 'Películas y series actuales, Acción, Comedia y mucha diversión',
         cta_mensaje: 'Hola, me interesa el Plan de Prime Video ($2.50/mes).'
     },
-      {
+    {
         logo: 'flujo.png',
         nombre: 'Flujo TV',
         plan: '1 Dispositivo',
@@ -62,6 +63,4 @@ const productos = [
     }
     // ¡Añade más productos aquí!
 ];
-        contenedorPrecios.appendChild(tarjeta);
-    });
-});
+// Fin del archivo data2.js. Solo contiene definiciones.
