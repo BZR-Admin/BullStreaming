@@ -587,11 +587,11 @@ body {
     }
     
     .tarjeta-servicio h3 {
-        font-size: 1.3em;
+        font-size: 1.1em;
     }
 
     .precio-valor {
-        font-size: 3em; /* Reducción clave para que quepa bien en móvil */
+        font-size: 2.5em; /* Reducción clave para que quepa bien en móvil */
     }
 
     .moneda, .periodo {
@@ -604,7 +604,7 @@ body {
     
     .btn {
         padding: 10px 15px;
-        font-size: 0.8em;
+        font-size: 0.6em;
     }
 }
 
@@ -612,7 +612,7 @@ body {
 @media (min-width: 769px) and (max-width: 1024px) {
     
     .hero-title {
-        font-size: 2.8em;
+        font-size: 2.5em;
     }
 
     .valor-grid {
@@ -622,10 +622,10 @@ body {
     /* AJUSTES DE PRECIOS PARA TABLETA (2 COLUMNAS) */
     .servicios-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 25px;
+        gap: 21px;
     }
     
     .precio-valor {
-        font-size: 3.5em; /* Ligeramente más pequeño que desktop, más grande que móvil */
+        font-size: 3em; /* Ligeramente más pequeño que desktop, más grande que móvil */
     }
 }
