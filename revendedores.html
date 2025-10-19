@@ -30,7 +30,7 @@
     </header>
 
     <!-- ======================== -->
-    <!-- CONTENIDO PRINCIPAL -->
+    <!-- CONTENIDO PRINCIPAL (ÚNICA ETIQUETA MAIN) -->
     <!-- ======================== -->
     <main class="page-content">
         <div class="container">
@@ -42,8 +42,8 @@
             </p>
 
             <!-- SECCIÓN 1: BENEFICIOS Y VENTAJAS -->
-            <section class="propuesta-valor" style="background-color: transparent; padding-bottom: 50px;">
-                <h2 class="section-title" style="font-size: 1.8em; margin-bottom: 40px; color: var(--color-neon-yellow); text-shadow: var(--shadow-neon-yellow);">
+            <section class="propuesta-valor">
+                <h2 class="section-title neon-yellow" style="font-size: 1.8em; margin-bottom: 40px;">
                     Beneficios de Ser un Bull Revendedor
                 </h2>
                 <div class="valor-grid">
@@ -75,11 +75,12 @@
             </section>
             
             <!-- SECCIÓN 2: REQUISITO Y LLAMADA A LA ACCIÓN -->
-            <section class="ofertas-destacadas" style="background-color: var(--color-secondary-bg); border-top: 2px solid var(--color-neon-cyan); padding-top: 50px;">
+            <section class="ofertas-destacadas">
                 <h2 class="section-title" style="font-size: 2em; margin-bottom: 20px;">
                     ¡Únete y Empieza a Ganar!
                 </h2>
                 
+                <!-- He mantenido los estilos inline que tenías para el card CTA, ya que son específicos de esa sección -->
                 <div class="oferta-card" style="max-width: 600px; border-color: var(--color-neon-cyan); box-shadow: 0 0 25px rgba(51, 255, 255, 0.7); background-color: #051a1a;">
                     <p class="etiqueta-ahorro" style="color: var(--color-neon-cyan); font-size: 1.2em;">
                         Requisito Mínimo de Ventas
@@ -100,20 +101,18 @@
                 </p>
             </section>
             
-        </div>
-    </main>
-
-    <main class="page-content">
-        <div class="container">
-            <h1 class="section-title neon-yellow">
+            <!-- SECCIÓN DE PLANES DE REVENDEDORES (Movida aquí) -->
+            <h1 class="section-title neon-yellow" style="margin-top: 80px;">
                 Nuestros Planes de Streaming al por mayor (Revendedores)
             </h1>
             <p class="subtitle">
                 Cuentas 100% confiables, con garantía y soporte durante toda tu suscripción.
             </p>
 
+            <!-- Este es el contenedor donde precios.js pintará las tarjetas -->
             <section id="contenedor-precios" class="servicios-grid">
-                </section>
+            </section>
+            
         </div>
     </main>
     
@@ -133,6 +132,7 @@
 
     <!-- ======================== -->
     <!-- INCLUSIÓN DE SCRIPTS -->
+    <!-- ORDEN CORRECTO: 1. Data, 2. Lógica de Precios, 3. Lógica de Botones -->
     <!-- ======================== -->
     <script src="data2.js"></script> 
     <script src="precios.js"></script> 
