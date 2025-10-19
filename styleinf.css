@@ -1,152 +1,134 @@
-/* --------------------
-   VARIABLES, RESET Y UTILIDADES ESENCIALES
-   (Necesarias para que los colores y efectos neón funcionen)
--------------------- */
+/* ---------------------------------------------------------------- */
+/* ESTILOS DE PÁGINA ESPECÍFICOS DE CONTACTO */
+/* ---------------------------------------------------------------- */
+
+/* Asumiendo que estas variables de color están definidas en style.css, 
+   pero las redefinimos aquí para que el archivo sea autónomo si es necesario */
 :root {
-    /* Colores basados en el logo de Bull Streaming */
-    --color-bg-dark: #000;
-    --color-text-light: #fff;
-    --color-neon-red: #ff3366;
-    --color-neon-cyan: #33ffff;
-    --color-neon-yellow: #ffcc33;
-    --color-secondary-bg: #111;
+    --color-bg-dark: #0f172a;          /* Azul Oscuro (fondo principal) */
+    --color-bg-dark-secondary: #1e293b; /* Azul más claro (para tarjetas/inputs) */
+    --color-text-light: #f1f5f9;      /* Texto principal blanco/claro */
     
-    /* Sombras para el efecto neón */
-    --shadow-neon-red: 0 0 5px var(--color-neon-red), 0 0 15px var(--color-neon-red);
-    --shadow-neon-cyan: 0 0 5px var(--color-neon-cyan), 0 0 15px var(--color-neon-cyan);
-    --shadow-neon-yellow: 0 0 5px var(--color-neon-yellow), 0 0 10px rgba(255, 204, 51, 0.7);
+    /* Colores Neón */
+    --color-neon-cyan: #00ffff;
+    --color-neon-pink: #ff0099;
+    --color-neon-yellow: #fff000;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    /* Se asume que el font-family se define en el CSS principal */
-    font-family: 'Poppins', sans-serif;
-    color: var(--color-text-light);
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* Clases de Neón (esenciales para los títulos y enlaces) */
-.neon-yellow {
-    color: var(--color-neon-yellow);
-    text-shadow: var(--shadow-neon-yellow);
-}
-
-.neon-red {
-    color: var(--color-neon-red);
-    text-shadow: var(--shadow-neon-red);
-}
-
-.neon-cyan {
-    color: var(--color-neon-cyan);
-    text-shadow: var(--shadow-neon-cyan);
-}
-
-/* Estilos de Botón (para el botón de enviar del formulario) */
-.btn {
-    display: inline-block;
-    padding: 12px 25px;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    transition: all 0.3s ease;
-    border: none;
-    cursor: pointer;
+.section-title {
+    /* Asegurar que el título no interfiera */
     text-align: center;
-    letter-spacing: 0.5px;
-    width: 100%; /* Asegura que ocupe todo el ancho en el formulario */
+    margin-bottom: 10px;
 }
 
-.btn-primary {
-    background-color: var(--color-neon-red);
-    color: var(--color-bg-dark);
+.subtitle {
+    text-align: center;
+    margin-bottom: 40px;
 }
 
-.btn-primary:hover {
-    box-shadow: var(--shadow-neon-red);
-    transform: translateY(-2px);
-}
-
-
-/* ====================================
-   ESTILOS ESPECÍFICOS DE CONTACTO
-   ==================================== */
-
-.page-content {
-    padding: 60px 0 100px;
-}
-
+/* Contenedor principal de 2 columnas */
 .contact-grid {
+    /* FIX CRÍTICO: Define la disposición en dos columnas iguales */
     display: grid;
-    grid-template-columns: 2fr 1fr; /* Formulario más grande que info lateral */
-    gap: 50px;
-    align-items: start;
+    grid-template-columns: 1fr 1fr; /* 50% / 50% */
+    gap: 40px; /* Espacio entre las columnas */
     margin-top: 40px;
 }
 
-.form-title, .info-title {
-    font-size: 1.8em;
-    font-weight: 700;
-    color: var(--color-neon-red);
-    text-shadow: var(--shadow-neon-red);
-    margin-bottom: 30px;
+/* Responsividad: En móvil (pantallas menores a 768px), las columnas se apilan */
+@media (max-width: 768px) {
+    .contact-grid {
+        grid-template-columns: 1fr; /* Una sola columna */
+    }
 }
 
-.input-group {
-    margin-bottom: 20px;
+
+/* ---------------------------------------------------------------- */
+/* ESTILOS DEL FORMULARIO (Columna Izquierda) */
+/* ---------------------------------------------------------------- */
+
+.form-section {
+    padding: 30px;
+    background-color: var(--color-bg-dark-secondary);
+    border-radius: 12px;
+    /* Sombras sutiles usando el color neón pink */
+    box-shadow: 0 0 15px rgba(255, 0, 150, 0.2); 
+    border: 1px solid var(--color-neon-pink);
+}
+
+.form-title {
+    font-size: 2rem;
+    color: var(--color-neon-yellow);
+    text-shadow: 0 0 10px var(--color-neon-yellow);
+    margin-bottom: 25px;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .input-group label {
     display: block;
     margin-bottom: 5px;
-    font-weight: 500;
+    font-weight: 700;
     color: var(--color-neon-cyan);
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
 }
 
-.contact-form input[type="text"],
-.contact-form input[type="email"],
-.contact-form textarea {
+.input-group input,
+.input-group textarea {
     width: 100%;
-    padding: 12px;
-    background-color: var(--color-secondary-bg);
-    border: 1px solid #444;
-    border-radius: 5px;
+    padding: 15px;
+    /* Uso del color secundario para los inputs */
+    background-color: var(--color-bg-dark-secondary);
+    border: 1px solid var(--color-neon-pink);
+    border-radius: 8px;
     color: var(--color-text-light);
-    font-family: 'Poppins', sans-serif;
-    font-size: 1em;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    font-size: 1rem;
+    box-shadow: inset 0 0 5px rgba(255, 0, 150, 0.2);
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.contact-form input:focus,
-.contact-form textarea:focus {
-    border-color: var(--color-neon-cyan);
+.input-group input:focus,
+.input-group textarea:focus {
     outline: none;
-    box-shadow: 0 0 5px rgba(51, 255, 255, 0.5);
+    border-color: var(--color-neon-cyan);
+    box-shadow: 0 0 10px var(--color-neon-cyan);
 }
 
 .cta-form {
     width: 100%;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: 900;
     margin-top: 10px;
 }
 
+
+/* ---------------------------------------------------------------- */
+/* ESTILOS DE INFO-SECTION (Columna Derecha/Tarjeta) */
+/* ---------------------------------------------------------------- */
+
 .info-section {
-    padding: 20px;
-    border: 2px solid var(--color-neon-cyan);
-    border-radius: 10px;
-    background-color: #0d0d0d;
-    box-shadow: var(--shadow-neon-cyan);
+    /* La tarjeta de información directa */
+    padding: 30px;
+    border-radius: 12px;
+    border: 2px solid var(--color-neon-cyan); 
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4); 
 }
 
+.info-title {
+    font-size: 2rem;
+    color: var(--color-neon-pink);
+    text-shadow: 0 0 10px var(--color-neon-pink);
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--color-neon-yellow);
+    padding-bottom: 10px;
+}
+
+/* Estilo para cada ítem (Correo y WhatsApp) */
 .contact-item {
     display: flex;
     align-items: center;
@@ -155,90 +137,76 @@ body {
 
 .contact-item .label {
     font-weight: 700;
-    color: var(--color-text-light);
-    margin-right: 10px;
-    min-width: 120px;
+    color: var(--color-neon-cyan);
+    margin-right: 15px;
+    min-width: 140px; 
 }
 
 .contact-item a {
-    color: var(--color-neon-yellow);
     text-decoration: none;
-    font-weight: 500;
-    transition: color 0.3s ease;
+    font-size: 1.1rem;
+    font-weight: 400;
 }
 
-.contact-item a:hover {
-    color: #fff;
-    text-shadow: none;
+.icon-large {
+    font-size: 1.5rem;
+    margin-right: 15px;
+    text-shadow: 0 0 5px var(--color-neon-cyan);
 }
 
-/* Estilos de Redes Sociales (El arreglo para que se vean) */
+
+/* ---------------------------------------------------------------- */
+/* ESTILOS DE REDES SOCIALES (Íconos) */
+/* ---------------------------------------------------------------- */
+
 .social-links {
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 1px solid #333;
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+    /* Alinea el título y los iconos horizontalmente */
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    /* Ajuste para que se vea mejor en móviles pequeños si se envuelve */
+    flex-wrap: wrap; 
 }
 
 .social-title {
-    font-size: 1.3em;
-    font-weight: 700;
     color: var(--color-neon-yellow);
-    margin-bottom: 15px;
+    font-size: 1.2rem;
+    margin-right: 10px;
 }
 
 .social-icon {
-    display: inline-flex; /* Esenciales para centrar el icono y darle tamaño */
+    /* El contenedor del ícono (el círculo neón) */
+    display: flex;
     justify-content: center;
     align-items: center;
-    width: 50px;
-    height: 50px;
-    background-color: var(--color-bg-dark);
-    border: 2px solid var(--color-neon-cyan);
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
-    margin-right: 15px;
+    
+    /* Efecto Neón del Borde */
+    border: 2px solid var(--color-neon-cyan);
+    box-shadow: 0 0 8px var(--color-neon-cyan);
+    
     transition: all 0.3s ease;
-    text-decoration: none;
 }
 
 .social-icon i {
-    font-size: 1.8em;
-    color: var(--color-neon-cyan); /* Color inicial del icono */
-    text-shadow: 0 0 5px rgba(51, 255, 255, 0.7); /* Sombra neón */
+    /* El ícono de Font Awesome dentro del círculo */
+    font-size: 1.5rem; 
+    color: var(--color-neon-cyan);
+    transition: transform 0.3s ease;
 }
 
 .social-icon:hover {
     background-color: var(--color-neon-cyan);
-    transform: scale(1.1);
-    box-shadow: var(--shadow-neon-cyan);
+    box-shadow: 0 0 15px var(--color-neon-cyan);
 }
 
 .social-icon:hover i {
-    color: var(--color-bg-dark); /* Icono oscuro sobre fondo neón */
-    text-shadow: none;
-}
-
-
-/* ====================================
-   MEDIA QUERIES ESPECÍFICAS DE CONTACTO
-   ==================================== */
-
-@media (max-width: 768px) {
-    /* AJUSTES ESPECÍFICOS DE CONTACTO (MÓVIL) */
-    .contact-grid {
-        grid-template-columns: 1fr; /* Una sola columna en móvil */
-        gap: 40px;
-    }
-    
-    .info-section {
-        order: -1; /* Mueve la información de contacto y redes arriba del formulario */
-        margin-bottom: 20px;
-    }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-    /* AJUSTES DE CONTACTO PARA TABLETA */
-    .contact-grid {
-        grid-template-columns: 1.5fr 1fr; /* Se mantiene en dos columnas, pero ajustada */
-        gap: 30px;
-    }
+    /* El ícono se oscurece al hacer hover */
+    color: var(--color-bg-dark); 
+    transform: scale(1.1);
 }
