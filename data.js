@@ -56,7 +56,7 @@ const productos = [
         logo: 'flujo.png',
         nombre: 'Flujo TV',
         plan: '1 Dispositivo',
-        precio: '2,75,
+        precio: '2,75',
         descripcion: 'Canales de TV, Series, Películas y más',
         cta_mensaje: 'Hola, me interesa el Plan de Flujo TV.'
     }
