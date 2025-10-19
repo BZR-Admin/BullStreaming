@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bull Streaming - Información y FAQ</title>
+    
+    <!-- Enlace a la hoja de estilos maestra -->
+    <link rel="stylesheet" href="styleinf.css">
+    
+    <!-- Fuente 'Poppins' -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+    
+    <!-- Iconos de Font Awesome (para el menú y el acordeón) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+<body>
+
+    <!-- INICIO DE LA CABECERA (Sección de navegación) -->
+    <header class="header">
+        
+        <div class="logo-container">
+            <a href="index.html">
+                <img src="path/to/tu-logo-bull.png" alt="Bull Streaming Logo">
+            </a>
+        </div>
+
+        <div class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <nav class="main-nav" id="main-nav">
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="servicios.html">Servicios y Precios</a></li>
+                <!-- ASUMIMOS que esta es la pestaña de información, por lo que lleva 'active' -->
+                <li><a href="info.html" class="active">Info / FAQ</a></li>
+                <li><a href="revendedores.html">Revendedores</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+            </ul>
+        </nav>
+
+    </header>
+    <!-- FIN DE LA CABECERA -->
+
+    <!-- CONTENIDO PRINCIPAL: PREGUNTAS FRECUENTES -->
+    <main>
+        
+        <section class="info-section">
+            
+            <h1>Preguntas Frecuentes (FAQ)</h1>
+            <p>Encuentra respuestas rápidas a las consultas más comunes sobre nuestros servicios de streaming y revendedores.</p>
+
+            <div class="faq-container">
+                
+                <!-- Ítem 1 del Acordeón -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>¿Qué tipo de planes ofrecen?</span>
+                        <i class="fas fa-chevron-down icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Ofrecemos planes individuales para usuarios finales y planes especiales para revendedores. Nuestros planes incluyen acceso a una amplia variedad de canales, películas y series en calidad HD y FHD.</p>
+                    </div>
+                </div>
+
+                <!-- Ítem 2 del Acordeón -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>¿Cómo puedo convertirme en revendedor?</span>
+                        <i class="fas fa-chevron-down icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Visita nuestra sección de Revendedores o contáctanos directamente a través del formulario de contacto para recibir toda la información sobre las tarifas, márgenes de ganancia y el panel de administración.</p>
+                    </div>
+                </div>
+                
+                <!-- Ítem 3 del Acordeón -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>¿En qué dispositivos puedo usar el servicio?</span>
+                        <i class="fas fa-chevron-down icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Nuestro servicio es compatible con Smart TVs, dispositivos Android, iOS (iPhone/iPad), PC/Mac y cajas decodificadoras (set-top boxes).</p>
+                    </div>
+                </div>
+
+                <!-- Ítem 4 del Acordeón -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>¿Tienen garantía de servicio o de devolución?</span>
+                        <i class="fas fa-chevron-down icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Ofrecemos pruebas gratuitas (demos) para que puedas verificar la calidad del servicio antes de contratar. Consulta nuestros términos y condiciones para detalles sobre políticas de reembolso en casos específicos.</p>
+                    </div>
+                </div>
+
+            </div>
+            
+            <br><br>
+
+            <!-- INFORMACIÓN ADICIONAL -->
+            <h2>Aviso Legal Importante</h2>
+            <p style="color: #ff006e;">Bull Streaming no aloja, almacena ni transmite ningún tipo de contenido multimedia. Somos un intermediario de servicios de conexión y listas. El usuario final es responsable de la legalidad de su uso. Al utilizar nuestro servicio, aceptas esta condición.</p>
+
+        </section>
+
+    </main>
+    
+    <!-- FOOTER BÁSICO -->
+    <footer class="footer">
+        &copy; 2024 Bull Streaming. Todos los derechos reservados. | <a href="contacto.html">Contáctanos</a>
+    </footer>
+    
+    <!-- JAVASCRIPT para el menú hamburguesa y el acordeón FAQ -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Script para el Menú Hamburguesa (Adaptabilidad) ---
+            const menuToggle = document.getElementById('menu-toggle');
+            const mainNav = document.getElementById('main-nav');
+            
+            menuToggle.addEventListener('click', () => {
+                mainNav.classList.toggle('open');
+                const icon = menuToggle.querySelector('i');
+                if (mainNav.classList.contains('open')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times'); 
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
+
+            mainNav.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        mainNav.classList.remove('open');
+                        document.getElementById('menu-toggle').querySelector('i').classList.remove('fa-times');
+                        document.getElementById('menu-toggle').querySelector('i').classList.add('fa-bars');
+                    }
+                });
+            });
+
+            // --- Script para el Acordeón FAQ ---
+            const faqItems = document.querySelectorAll('.faq-item');
+
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                
+                question.addEventListener('click', () => {
+                    // Cierra todos los otros ítems abiertos
+                    faqItems.forEach(i => {
+                        if (i !== item && i.classList.contains('active')) {
+                            i.classList.remove('active');
+                        }
+                    });
+
+                    // Abre o cierra el ítem actual
+                    item.classList.toggle('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
