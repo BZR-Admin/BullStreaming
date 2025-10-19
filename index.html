@@ -1,233 +1,825 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bull Streaming - Tu Centro de Entretenimiento</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- Íconos Font Awesome (Requerido para la sección "Por qué elegirnos") -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- 1. Carga de bibliotecas de Firebase (Necesario para el contador) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, runTransaction, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Establecer nivel de log para depuración de Firestore
-        setLogLevel('Debug');
-
-        // Variables globales de Canvas (se proporcionan en tiempo de ejecución)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        let db, auth;
-
-        // Función de inicialización y autenticación
-        async function initializeFirebase() {
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Autenticación con token personalizada exitosa.");
-                } else {
-                    await signInAnonymously(auth);
-                    console.log("Autenticación anónima exitosa.");
-                }
-                
-                // Una vez autenticado, inicializa el contador
-                if(auth.currentUser) {
-                    await updateDailyPageViewCount();
-                }
-
-            } catch (error) {
-                console.error("Error al inicializar o autenticar Firebase:", error);
-            }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bull Streaming | Tu Socio en Cuentas Compartidas</title>
+    <!-- Incluimos la fuente Poppins desde Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Iconos de Font Awesome -->
+    <script src="https://kit.fontawesome.com/c154388301.js" crossorigin="anonymous"></script>
+    <style>
+        /* --------------------
+            VARIABLES Y RESET
+        -------------------- */
+        :root {
+            /* Colores basados en el logo de Bull Streaming */
+            --color-bg-dark: #000;
+            --color-text-light: #fff;
+            --color-neon-red: #ff3366;      /* El rojo brillante/magenta */
+            --color-neon-cyan: #33ffff;      /* El cian eléctrico */
+            --color-neon-yellow: #ffcc33;    /* El amarillo del texto del logo */
+            --color-secondary-bg: #111;      /* Fondo sutilmente más claro que el negro */
+            
+            /* Sombras para el efecto neón */
+            --shadow-neon-red: 0 0 5px var(--color-neon-red), 0 0 15px var(--color-neon-red);
+            --shadow-neon-cyan: 0 0 5px var(--color-neon-cyan), 0 0 15px var(--color-neon-cyan);
+            --shadow-neon-yellow: 0 0 5px var(--color-neon-yellow), 0 0 10px rgba(255, 204, 51, 0.7);
         }
 
-        /**
-         * Lógica para obtener la fecha actual en formato YYYY-MM-DD
-         * @returns {string} Fecha actual.
-         */
-        function getCurrentDateString() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --------------------
+            ESTILOS GENERALES Y NEON
+        -------------------- */
+        .section-title {
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        /* Clases para aplicar el efecto neón al texto */
+        .neon-yellow {
+            color: var(--color-neon-yellow);
+            text-shadow: var(--shadow-neon-yellow);
+        }
+
+        .neon-red {
+            color: var(--color-neon-red);
+            text-shadow: var(--shadow-neon-red);
+        }
+
+        .neon-cyan {
+            color: var(--color-neon-cyan);
+            text-shadow: var(--shadow-neon-cyan);
+        }
+
+
+        /* --------------------
+            BOTONES (CTA)
+        -------------------- */
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background-color: var(--color-neon-red);
+            color: var(--color-bg-dark);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 2px solid var(--color-neon-cyan);
+            color: var(--color-neon-cyan);
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--shadow-neon-red);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--color-neon-cyan);
+            color: var(--color-bg-dark);
+            box-shadow: var(--shadow-neon-cyan);
+        }
+
+
+        /* --------------------
+            HEADER Y NAVEGACIÓN (Ajustes de Logo y Espacio)
+        -------------------- */
+        .header {
+            background-color: rgba(0, 0, 0, 0.9);
+            /* AJUSTE CRÍTICO: Reducción del padding vertical a 3px */
+            padding: 3px 0;
+            border-bottom: 3px solid var(--color-neon-red);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Ajuste del Logo: Mayor tamaño y eliminación de espacio debajo */
+        .logo {
+            height: 120px; /* Tamaño grande para desktop */
+            min-width: 120px;
+            /* CRÍTICO: Elimina el espacio fantasma debajo de la imagen */
+            display: block;
+            
+            /* Efecto neón */
+            filter: drop-shadow(0 0 5px var(--color-neon-red)) drop-shadow(0 0 10px rgba(255, 51, 102, 0.3));
+        }
+
+        .nav a {
+            color: var(--color-text-light);
+            text-decoration: none;
+            margin-left: 25px;
+            padding: 5px 0;
+            border-bottom: 2px solid transparent;
+            transition: border-bottom 0.3s ease, color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav a:hover,
+        .nav a.current {
+            color: var(--color-neon-cyan);
+            border-bottom: 2px solid var(--color-neon-cyan);
+            text-shadow: 0 0 3px var(--color-neon-cyan);
+        }
+
+
+        /* --------------------
+            HERO SECTION
+        -------------------- */
+        .hero-section {
+            padding: 120px 0;
+            text-align: center;
+            border-bottom: 5px solid var(--color-neon-yellow);
+        }
+
+        .hero-title {
+            font-size: 3.5em;
+            margin-bottom: 30px;
+            line-height: 1.1;
+            font-weight: 900;
+        }
+
+        .hero-cta-group {
+            margin-top: 50px;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        /* --------------------
+            CONTADOR DE VISITAS
+        -------------------- */
+
+        .visits-counter-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            margin-top: 30px;
+            background-color: #1a1a1a;
+            border: 2px solid var(--color-neon-cyan);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(51, 255, 255, 0.5); /* Sombra de neón cian */
+            font-size: 1.2em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .counter-label {
+            color: var(--color-text-light);
+            margin-right: 15px;
+            font-weight: 400;
+        }
+
+        .counter-value {
+            font-size: 1.8em;
+            font-weight: 900;
+            line-height: 1;
+            /* Las clases .neon-yellow ya aplicarán color y text-shadow */
+        }
+
+
+        /* --------------------
+            PROPUESTA DE VALOR
+        -------------------- */
+        .propuesta-valor {
+            padding: 80px 0;
+            background-color: var(--color-secondary-bg);
+        }
+
+        .valor-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            text-align: center;
+        }
+
+        .valor-item {
+            padding: 30px 20px;
+            border: 1px solid var(--color-neon-red);
+            border-radius: 10px;
+            background-color: #0d0d0d;
+            transition: all 0.3s ease;
+        }
+
+        .valor-item:hover {
+            border-color: var(--color-neon-cyan);
+            box-shadow: var(--shadow-neon-cyan);
+        }
+
+        .valor-item h3 {
+            margin: 15px 0 10px;
+            font-weight: 700;
+            color: var(--color-neon-yellow);
+        }
+
+        .valor-item .icon {
+            font-size: 3em;
+            display: block;
+            line-height: 1;
+        }
+
+        /* --------------------
+            PLATAFORMAS POPULARES
+        -------------------- */
+        .plataformas-populares {
+            padding: 80px 0;
+        }
+
+        .logos-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .logos-grid img {
+            height: 55px;
+            max-width: 100%;
+            filter: brightness(0.9) drop-shadow(0 0 5px rgba(51, 255, 255, 0.5));
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .logos-grid img:hover {
+            transform: scale(1.1);
+            filter: brightness(1) drop-shadow(0 0 10px var(--color-neon-red));
+        }
+
+        /* --------------------
+            OFERTAS DESTACADAS
+        -------------------- */
+        .ofertas-destacadas {
+            padding: 60px 0 80px;
+            text-align: center;
+            background-color: var(--color-secondary-bg);
+            border-top: 1px solid var(--color-neon-red);
+        }
+
+        .oferta-card {
+            background-color: #1a0000;
+            border: 2px solid var(--color-neon-red);
+            border-radius: 15px;
+            padding: 40px 30px;
+            max-width: 500px;
+            margin: 30px auto;
+            box-shadow: 0 0 25px rgba(255, 51, 102, 0.7);
+        }
+
+        .etiqueta-ahorro {
+            font-weight: 700;
+            color: var(--color-neon-yellow);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .precio-oferta {
+            font-size: 3.5em;
+            font-weight: 900;
+            margin: 15px 0;
+        }
+
+        .precio-antes {
+            text-decoration: line-through;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        /* --------------------
+            FOOTER
+        -------------------- */
+        .footer {
+            background-color: #050505;
+            padding: 25px 0;
+            border-top: 2px solid var(--color-neon-cyan);
+            font-size: 0.9em;
+        }
+
+        .footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #888;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        .footer-links a:hover {
+            color: var(--color-neon-cyan);
+        }
+
+
+        /* ====================================
+            ESTILOS PARA LA PÁGINA DE PRECIOS
+            (Necesario para el nav y footer)
+            ==================================== */
+
+        .page-content {
+            padding: 60px 0 100px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #ccc;
+            margin-bottom: 50px;
+            font-size: 1.1em;
+        }
+
+        .servicios-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .tarjeta-servicio {
+            background-color: var(--color-secondary-bg);
+            border: 2px solid #222;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .tarjeta-servicio:hover {
+            border-color: var(--color-neon-cyan);
+            box-shadow: 0 0 15px rgba(51, 255, 255, 0.4);
+            transform: translateY(-5px);
+        }
+
+        .logo-plataforma {
+            height: 60px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 3px var(--color-neon-cyan));
+        }
+
+        .precio-valor {
+            font-size: 4em;
+            font-weight: 900;
+            line-height: 1;
         }
         
-        /**
-         * Actualiza el contador de visitas diarias en Firestore.
-         */
-        async function updateDailyPageViewCount() {
-            const today = getCurrentDateString();
-            // Ruta del documento para el contador de visitas diarias públicas
-            const counterRef = doc(db, 'artifacts', appId, 'public', 'data', 'counters', 'daily_visits');
-            const counterElement = document.getElementById('contador-visitas');
+        /* ====================================
+            MEDIA QUERIES (RESPONSIVE DESIGN)
+            ==================================== */
+
+        /* Dispositivos Pequeños (Móviles) - Max 768px */
+        @media (max-width: 768px) {
             
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const counterDoc = await transaction.get(counterRef);
+            /* HEADER */
+            .header .container {
+                flex-direction: column;
+                align-items: center;
+            }
 
-                    let currentCount = 0;
-                    let lastDate = null;
-                    
-                    // Si el documento existe, obtenemos los datos
-                    if (counterDoc.exists()) {
-                        const data = counterDoc.data();
-                        currentCount = data.count || 0;
-                        lastDate = data.date;
-                    }
+            .header {
+                padding: 5px 0; 
+            }
 
-                    // 1. Lógica de Reinicio Diario
-                    if (lastDate === today) {
-                        // Mismo día: solo incrementamos el contador
-                        currentCount += 1;
-                        transaction.update(counterRef, { count: currentCount });
-                    } else {
-                        // Nuevo día: reiniciamos el contador a 1 y actualizamos la fecha
-                        currentCount = 1;
-                        transaction.set(counterRef, { count: currentCount, date: today }, { merge: true });
-                    }
+            /* Reducir el logo en móvil */
+            .logo {
+                height: 65px; 
+                min-width: 65px;
+                display: block;
+            }
 
-                    // 2. Actualizar el DOM
-                    if (counterElement) {
-                        counterElement.textContent = currentCount.toLocaleString('es-ES');
-                    }
-                });
-                console.log("Contador de visitas actualizado con éxito.");
-            } catch (error) {
-                console.error("Error en la transacción del contador de visitas:", error);
-                if (counterElement) {
-                    counterElement.textContent = "N/A";
-                }
+            .nav {
+                margin-top: 15px;
+                text-align: center;
+                width: 100%;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .nav a {
+                margin: 0 10px;
+                display: inline-block;
+                font-size: 0.85em;
+            }
+
+            /* HERO SECTION */
+            .hero-section {
+                padding: 80px 0 60px;
+            }
+
+            .hero-title {
+                font-size: 1.8em;
+            }
+            
+            /* Contador de visitas en móvil */
+            .visits-counter-box {
+                font-size: 0.9em;
+                padding: 8px 15px;
+            }
+            .counter-value {
+                font-size: 1.5em;
+            }
+
+            .hero-cta-group {
+                flex-direction: column;
+                gap: 15px;
+                width: 80%;
+                margin: 30px auto 0;
+            }
+
+            .btn {
+                width: 100%;
+                font-size: 0.85em;
+            }
+
+            /* PROPUESTA DE VALOR */
+            .valor-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            /* PLATAFORMAS POPULARES */
+            .plataformas-populares {
+                padding: 40px 0;
+            }
+
+            .logos-grid img {
+                height: 40px;
+            }
+            
+            /* OFERTAS */
+            .oferta-card {
+                padding: 30px 20px;
+            }
+            
+            .precio-oferta {
+                font-size: 2.8em;
+            }
+
+            /* FOOTER */
+            .footer .container {
+                text-align: center;
+                flex-direction: column;
+            }
+
+            .footer-links {
+                margin-top: 10px;
+                width: 100%;
+            }
+            
+            .footer-links a {
+                margin: 0 8px;
+                display: inline-block;
+                font-size: 0.8em;
+            }
+
+            .footer p {
+                margin-bottom: 10px;
+            }
+
+            /* ************************************** */
+            /* AJUSTES ESPECÍFICOS DE TARJETAS (PRECIOS) */
+            /* ************************************** */
+            
+            .servicios-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .tarjeta-servicio {
+                padding: 20px; /* Comprimimos el padding interno */
+            }
+
+            .logo-plataforma {
+                height: 45px; /* Reducción de logo en tarjeta */
+            }
+            
+            .tarjeta-servicio h3 {
+                font-size: 1.3em;
+            }
+
+            .precio-valor {
+                font-size: 2.2em; /* Reducción clave para que quepa bien en móvil */
+            }
+
+            .moneda, .periodo {
+                font-size: 0.8em;
+            }
+
+            .descripcion {
+                min-height: auto;
+            }
+            
+            .btn {
+                padding: 10px 15px;
+                font-size: 0.7em;
             }
         }
 
-        // Iniciar todo al cargar la página
-        window.onload = initializeFirebase;
-    </script>
+        /* Tabletas (Max 1024px) - Ajustes intermedios */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            
+            .hero-title {
+                font-size: 2.5em;
+            }
+
+            .valor-grid {
+                gap: 12px;
+            }
+            
+            /* AJUSTES DE PRECIOS PARA TABLETA (2 COLUMNAS) */
+            .servicios-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 25px;
+            }
+            
+            .precio-valor {
+                font-size: 3em; /* Ligeramente más pequeño que desktop, más grande que móvil */
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <header class="header">
-        <div class="container">
-            <div class="logo-container">
-                <img src="logo-bull-streaming.png" alt="Bull Streaming Logo" class="logo">
-            </div>
-            <nav class="nav">
-                <a href="index.html" class="nav-link current">Inicio</a>
-                <a href="precios.html" class="nav-link">Precios</a>
-                <a href="revendedores.html" class="nav-link">Revendedores</a>
-                <a href="contacto.html" class="nav-link">Contacto</a>
-                </nav>
-        </div>
-    </header>
+    <!-- ======================== -->
+    <!-- HEADER Y NAVEGACIÓN -->
+    <!-- ======================== -->
+    <header class="header">
+        <div class="container">
+            <div class="logo-container">
+                <!-- Imagen Placeholder para el Logo de Bull Streaming (Toro Neón) -->
+                <img src="https://placehold.co/120x120/000/ff3366?text=BULL" alt="Bull Streaming Logo" class="logo">
+            </div>
+            <nav class="nav">
+                <a href="#" class="current">Inicio</a>
+                <a href="#precios">Precios</a>
+                <a href="#contacto">Contacto</a>
+                <a href="#faq">FAQ</a>
+            </nav>
+        </div>
+    </header>
 
-    <main class="hero-section">
-        <div class="container">
-            <div class="hero-content">
-                <h1 class="hero-title neon-yellow">
-                    El mejor centro de entretenimiento. <br>
-                    Todas las plataformas de streaming, 100% confiables y al mejor precio.
-                </h1>
-                
-                <div class="hero-cta-group">
-                    <a href="precios.html" class="btn btn-primary btn-neon-red">
-                        Ver Planes y Precios ⚡
-                    </a>
-                    <a href="revendedores.html" class="btn btn-secondary btn-neon-cyan">
-                        Conviértete en Revendedor 📈
-                    </a>
-                </div>
-                
-                <!-- NUEVO ELEMENTO: Recuadro del Contador de Visitas -->
-                <div class="visits-counter-box" style="margin-top: 30px;">
-                    <p class="counter-label">Visitas de Hoy:</p>
-                    <!-- El ID "contador-visitas" es donde el script inyectará el número -->
-                    <span id="contador-visitas" class="counter-value neon-yellow">...</span>
+    <main>
+        <!-- ======================== -->
+        <!-- SECCIÓN HERO -->
+        <!-- ======================== -->
+        <section class="hero-section">
+            <div class="container">
+                <h1 class="hero-title">
+                    <span class="neon-red">Potencia tu Entretenimiento.</span> <br>
+                    <span class="neon-cyan">Ahorra con Cuentas Compartidas.</span>
+                </h1>
+                <p style="font-size: 1.2em; max-width: 800px; margin: 0 auto; color: #ccc;">
+                    Accede a tus plataformas de streaming favoritas a una fracción del costo. Bull Streaming gestiona tu cuenta compartida con total seguridad y estabilidad.
+                </p>
+
+                <!-- Contador de Visitas -->
+                <div class="visits-counter-box">
+                    <span class="counter-label">Visitas Totales:</span>
+                    <span id="counterValue" class="counter-value neon-yellow">0</span>
                 </div>
-                <!-- FIN NUEVO ELEMENTO -->
 
-            </div>
-        </div>
-    </main>
+                <div class="hero-cta-group">
+                    <a href="#precios" class="btn btn-primary">Ver Planes Ahora</a>
+                    <a href="#contacto" class="btn btn-secondary">Hablar por WhatsApp</a>
+                </div>
+            </div>
+        </section>
 
-    <section class="propuesta-valor">
-        <div class="container">
-            <h2 class="section-title neon-cyan">¿Por Qué Elegir Bull Streaming?</h2>
-            <div class="valor-grid">
-                
-                <div class="valor-item">
-                    <i class="icon fas fa-check-circle neon-red"></i> <!-- Usando Font Awesome -->
-                    <h3>Activación Inmediata</h3>
-                    <p>Recibe tu cuenta y empieza a ver contenido en cuestión de minutos.</p>
-                </div>
-                
-                <div class="valor-item">
-                    <i class="icon fas fa-shield-alt neon-red"></i> <!-- Usando Font Awesome -->
-                    <h3>Soporte Garantizado</h3>
-                    <p>Te ayudamos con cualquier duda o problema durante toda tu suscripción. Soporte técnico 24/7.</p>
-                </div>
+        <!-- ======================== -->
+        <!-- SECCIÓN DE PROPUESTA DE VALOR -->
+        <!-- ======================== -->
+        <section class="propuesta-valor">
+            <div class="container">
+                <h2 class="section-title neon-yellow">¿Por Qué Bull Streaming?</h2>
+                <div class="valor-grid">
+                    <div class="valor-item">
+                        <i class="fas fa-lock icon neon-cyan"></i>
+                        <h3>Seguridad Garantizada</h3>
+                        <p>Tus datos y accesos están protegidos. Gestionamos los perfiles para evitar cualquier interrupción.</p>
+                    </div>
+                    <div class="valor-item">
+                        <i class="fas fa-sack-dollar icon neon-cyan"></i>
+                        <h3>Ahorro Máximo</h3>
+                        <p>Reduce tu gasto mensual hasta en un 70% comparado con la suscripción individual.</p>
+                    </div>
+                    <div class="valor-item">
+                        <i class="fas fa-bolt icon neon-cyan"></i>
+                        <h3>Estabilidad 24/7</h3>
+                        <p>Monitoreamos las cuentas para asegurar que siempre tengas acceso a tu contenido favorito.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                <div class="valor-item">
-                    <i class="icon fas fa-credit-card neon-red"></i> <!-- Usando Font Awesome -->
-                    <h3>Pagos Fáciles y Seguros</h3>
-                    <p>Aceptamos múltiples métodos de pago, simplificando tu experiencia de compra.</p>
-                </div>
+        <!-- ======================== -->
+        <!-- SECCIÓN PLATAFORMAS POPULARES -->
+        <!-- ======================== -->
+        <section class="plataformas-populares">
+            <div class="container">
+                <h2 class="section-title neon-red">Trabajamos con tus Favoritas</h2>
+                <div class="logos-grid">
+                    <!-- Logos Placeholder. En una web real, usarías SVGs o imágenes reales de los logos -->
+                    <img src="https://placehold.co/100x55/000/fff?text=NETFLIX" alt="Netflix Logo">
+                    <img src="https://placehold.co/100x55/000/fff?text=HBO+MAX" alt="HBO Max Logo">
+                    <img src="https://placehold.co/100x55/000/fff?text=DISNEY" alt="Disney Plus Logo">
+                    <img src="https://placehold.co/100x55/000/fff?text=PRIME" alt="Prime Video Logo">
+                    <img src="https://placehold.co/100x55/000/fff?text=STAR+" alt="Star Plus Logo">
+                </div>
+            </div>
+        </section>
 
-            </div>
-        </div>
-    </section>
+        <!-- ======================== -->
+        <!-- SECCIÓN OFERTAS DESTACADAS -->
+        <!-- ======================== -->
+        <section class="ofertas-destacadas">
+            <div class="container">
+                <h2 class="section-title neon-cyan">¡Oferta Flash Destacada!</h2>
+                <div class="oferta-card">
+                    <p class="etiqueta-ahorro">Ahorra $20</p>
+                    <p class="precio-antes">Precio regular: $15.99/mes</p>
+                    <p class="precio-oferta neon-yellow">$9.99<span style="font-size: 0.5em;">/mes</span></p>
+                    <p style="color: #bbb; margin-bottom: 25px;">Plan Combo ULTRA (Netflix + HBO Max + Disney+)</p>
+                    <a href="#precios" class="btn btn-primary" style="width: 100%;">¡Activar Ahorro Ahora!</a>
+                </div>
+            </div>
+        </section>
+    </main>
 
-    <section class="plataformas-populares">
-        <div class="container">
-            <h2 class="section-title neon-yellow">Plataformas Populares</h2>
-            <div class="logos-grid">
-                <img src="netflix.png" alt="N3tflix">
-                <img src="disney.png" alt="Dlsney+">
-                <img src="hbo.png" alt="HB0 Max">
-                <img src="spotify.png" alt="Spot1fy">
-                <img src="prime.png" alt="Amazon Pr1me V1deo">
-                <img src="flujo.png" alt="Flujo TV">
-                </div>
-        </div>
-    </section>
+    <!-- ======================== -->
+    <!-- FOOTER -->
+    <!-- ======================== -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Bull Streaming. Todos los derechos reservados.</p>
+            <div class="footer-links">
+                <a href="#">Términos de Servicio</a>
+                <a href="#">Política de Privacidad</a>
+            </div>
+        </div>
+    </footer>
 
-    <section class="ofertas-destacadas">
-        <div class="container">
-            <h2 class="section-title neon-red">¡Oferta Destacada del Mes!</h2>
-            
-            <div class="oferta-card">
-                <p class="etiqueta-ahorro">💥 PLATAFORMA MÁS VENDIDA 💥</p>
-                <h3>PRIME VIDEO</h3>
-                <p class="precio-antes">Precio regular: $2.50</p>
-                <p class="precio-oferta neon-yellow">$2.00 / mes</p>
-                <a href="precios.html" class="btn btn-principal btn-neon-cyan">
-                    ¡Lo Quiero! Ver Detalles
-                </a>
-            </div>
+    <!-- ======================== -->
+    <!-- FIREBASE AND JAVASCRIPT LOGIC -->
+    <!-- ======================== -->
+    <script type="module">
+        // Importaciones de Firebase (CDN)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-            <p class="small-text">Válido hasta fin de mes.</p>
-        </div>
-    </section>
+        // 1. CONFIGURACIÓN Y AUTENTICACIÓN
+        setLogLevel('debug'); // Habilitar logs para depuración
 
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 Bull Streaming. Todos los derechos reservados.</p>
-            <div class="footer-links">
-                <a href="contacto.html" class="footer-link">Contacto</a>
-                <a href="#" class="footer-link">Términos y Condiciones</a>
-                <a href="#" class="footer-link">Política de Privacidad</a>
-            </div>
-        </div>
-    </footer>
+        // Variables globales (MANDATORIAS)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
+        let firebaseConfig = {};
+        try {
+            firebaseConfig = JSON.parse(firebaseConfigString);
+        } catch (e) {
+            console.error("Error parsing __firebase_config. Using empty config.", e);
+        }
+
+        // Si la configuración está vacía o falta projectId, el error se dispara aquí.
+        // Lo resolvemos envolviendo initializeApp en un try/catch robusto.
+        let app;
+        let db;
+        let auth;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            console.log("Firebase App Initialized successfully.");
+        } catch (e) {
+            console.error("Firebase Initialization Error (check __firebase_config):", e);
+            // Si la inicialización falla, detenemos la ejecución de Firestore
+            db = null;
+        }
+
+        // Función de autenticación
+        async function authenticateUser() {
+            if (!auth) {
+                console.error("Authentication skipped: Firebase Auth not initialized.");
+                return;
+            }
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Signed in with custom token.");
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously.");
+                }
+            } catch (e) {
+                console.error("Authentication Error:", e);
+                // Si la autenticación falla, el usuario permanece no autenticado, pero la app continúa.
+            }
+        }
+
+        // 2. LÓGICA DEL CONTADOR DE VISITAS
+
+        const counterValueElement = document.getElementById('counterValue');
+        
+        async function incrementVisitCounter() {
+            if (!db) {
+                console.warn("Firestore not available. Cannot update visit counter.");
+                // Si Firestore no está disponible, mostramos un valor predeterminado en el UI
+                counterValueElement.textContent = '---'; 
+                return;
+            }
+
+            // Ruta pública para el contador: /artifacts/{appId}/public/data/site_stats/main_counter
+            const counterRef = doc(db, `artifacts/${appId}/public/data/site_stats`, 'main_counter');
+
+            try {
+                // Usamos una transacción para asegurar que la lectura y escritura sean atómicas (seguras)
+                await runTransaction(db, async (transaction) => {
+                    const docSnapshot = await transaction.get(counterRef);
+                    let currentCount = 0;
+                    
+                    if (docSnapshot.exists()) {
+                        currentCount = docSnapshot.data().visits || 0;
+                    }
+                    
+                    const newCount = currentCount + 1;
+                    
+                    // Escribimos el nuevo valor
+                    transaction.set(counterRef, { visits: newCount }, { merge: true });
+                    
+                    // Actualizamos la UI
+                    counterValueElement.textContent = newCount.toLocaleString();
+                });
+                console.log("Visit counter incremented successfully.");
+
+            } catch (e) {
+                console.error("Transaction failed to update visit counter. Displaying last known value.", e);
+                // Si la transacción falla (ej. problemas de red/permisos), intentamos al menos mostrar el valor actual si existía.
+                if (counterValueElement.textContent === '0') {
+                    counterValueElement.textContent = 'ERROR';
+                }
+            }
+        }
+
+        // 3. EJECUCIÓN AL CARGAR LA PÁGINA
+        window.onload = async function() {
+            await authenticateUser();
+            incrementVisitCounter();
+        };
+
+    </script>
 </body>
 </html>
