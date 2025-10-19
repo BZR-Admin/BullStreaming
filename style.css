@@ -117,8 +117,8 @@ body {
 }
 
 .logo {
-    height: 45px;
-    min-width: 45px; /* Para que no se encoja en móviles */
+    height: 100px;
+    min-width: 100px; /* Para que no se encoja en móviles */
 }
 
 .nav a {
