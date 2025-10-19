@@ -17,7 +17,7 @@ body {
 }
 
 /* ---------------------------------------------------------------- */
-/* ESTILOS DE LA NAVEGACIÓN (HEADER) */
+/* ESTILOS DE LA NAVEGACIÓN (HEADER) - ADAPTATIVOS */
 /* ---------------------------------------------------------------- */
 
 .header {
@@ -45,8 +45,9 @@ body {
     display: block;
 }
 
+/* Menú de navegación principal (escritorio) */
 .main-nav ul {
-    display: flex; 
+    display: flex; /* Mantiene la barra horizontal en escritorio */
     gap: 30px; 
     list-style: none;
     padding: 0;
@@ -73,11 +74,66 @@ body {
     color: #ff006e; 
 }
 
+/* Ocultar botón de menú hamburguesa por defecto en escritorio */
+.menu-toggle {
+    display: none;
+    cursor: pointer;
+    font-size: 24px;
+    color: #fce803; /* Color neón amarillo para el icono */
+    z-index: 1001; /* Asegura que esté por encima del menú */
+}
+
 /* ---------------------------------------------------------------- */
-/* ESTILOS ESPECÍFICOS PARA LA PÁGINA DE CONTACTO */
+/* MEDIA QUERY: Adaptación a Móviles (Menú Hamburguesa) */
 /* ---------------------------------------------------------------- */
 
-/* Contenedor principal de la sección de contacto */
+@media (max-width: 768px) {
+    /* Mostrar el botón del menú hamburguesa */
+    .menu-toggle {
+        display: block;
+    }
+
+    /* Ocultar el menú horizontal por defecto en móvil */
+    .main-nav {
+        /* Posicionar el menú fuera de la pantalla (derecha) */
+        position: fixed;
+        top: 0;
+        right: -300px; /* Esconde el menú a la derecha */
+        width: 250px;
+        height: 100%;
+        background-color: #000000; 
+        box-shadow: -4px 0 10px rgba(255, 0, 110, 0.5); /* Sombra neón lateral */
+        transition: right 0.3s ease-in-out; /* Transición suave */
+        padding-top: 80px;
+    }
+
+    /* Estilo para cuando el menú está abierto (añadir esta clase con JavaScript) */
+    .main-nav.open {
+        right: 0; /* Desliza el menú a la vista */
+    }
+    
+    .main-nav ul {
+        flex-direction: column; /* Apila los enlaces verticalmente */
+        text-align: center;
+        gap: 0; 
+    }
+
+    .main-nav li {
+        border-bottom: 1px solid rgba(255, 0, 110, 0.2); /* Separador sutil */
+    }
+
+    .main-nav a {
+        display: block;
+        padding: 15px 20px;
+        font-size: 1.2em;
+    }
+}
+
+
+/* ---------------------------------------------------------------- */
+/* ESTILOS ESPECÍFICOS PARA LA PÁGINA DE CONTACTO (Responsividad) */
+/* ---------------------------------------------------------------- */
+
 .contact-section {
     padding: 50px 5%;
     max-width: 1200px;
@@ -153,8 +209,9 @@ textarea:focus {
     text-decoration: none;
 }
 
-/* Media Query para responsividad de Contacto */
+/* Media Query para responsividad de la sección de Contacto */
 @media (max-width: 768px) {
+    /* La sección de contacto ya era responsiva, pero la mantenemos */
     .contact-section {
         flex-direction: column;
     }
@@ -162,4 +219,3 @@ textarea:focus {
         flex: 1 1 100%; 
     }
 }
-
