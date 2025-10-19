@@ -1,631 +1,592 @@
 /* --------------------
-    VARIABLES Y RESET
+    VARIABLES Y RESET
 -------------------- */
 :root {
-    /* Colores basados en el logo de Bull Streaming */
-    --color-bg-dark: #000;
-    --color-text-light: #fff;
-    --color-neon-red: #ff3366;      /* El rojo brillante/magenta */
-    --color-neon-cyan: #33ffff;     /* El cian eléctrico */
-    --color-neon-yellow: #ffcc33;   /* El amarillo del texto del logo */
-    --color-secondary-bg: #111;     /* Fondo sutilmente más claro que el negro */
-    
-    /* Sombras para el efecto neón */
-    --shadow-neon-red: 0 0 5px var(--color-neon-red), 0 0 15px var(--color-neon-red);
-    --shadow-neon-cyan: 0 0 5px var(--color-neon-cyan), 0 0 15px var(--color-neon-cyan);
-    --shadow-neon-yellow: 0 0 5px var(--color-neon-yellow), 0 0 10px rgba(255, 204, 51, 0.7);
+    /* Colores basados en el logo de Bull Streaming */
+    --color-bg-dark: #000;
+    --color-text-light: #fff;
+    --color-neon-red: #ff3366;      /* El rojo brillante/magenta */
+    --color-neon-cyan: #33ffff;     /* El cian eléctrico */
+    --color-neon-yellow: #ffcc33;   /* El amarillo del texto del logo */
+    --color-secondary-bg: #111;     /* Fondo sutilmente más claro que el negro */
+    
+    /* Sombras para el efecto neón */
+    --shadow-neon-red: 0 0 5px var(--color-neon-red), 0 0 15px var(--color-neon-red);
+    --shadow-neon-cyan: 0 0 5px var(--color-neon-cyan), 0 0 15px var(--color-neon-cyan);
+    --shadow-neon-yellow: 0 0 5px var(--color-neon-yellow), 0 0 10px rgba(255, 204, 51, 0.7);
 }
 
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
-    background-color: var(--color-bg-dark);
-    color: var(--color-text-light);
-    line-height: 1.6;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-light);
+    line-height: 1.6;
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 /* --------------------
-    ESTILOS GENERALES Y NEON
+    ESTILOS GENERALES Y NEON
 -------------------- */
 .section-title {
-    font-size: 2.5em;
-    text-align: center;
-    margin-bottom: 40px;
-    font-weight: 900;
-    text-transform: uppercase;
+    font-size: 2.5em;
+    text-align: center;
+    margin-bottom: 40px;
+    font-weight: 900;
+    text-transform: uppercase;
 }
 
 /* Clases para aplicar el efecto neón al texto */
 .neon-yellow {
-    color: var(--color-neon-yellow);
-    text-shadow: var(--shadow-neon-yellow);
+    color: var(--color-neon-yellow);
+    text-shadow: var(--shadow-neon-yellow);
 }
 
 .neon-red {
-    color: var(--color-neon-red);
-    text-shadow: var(--shadow-neon-red);
+    color: var(--color-neon-red);
+    text-shadow: var(--shadow-neon-red);
 }
 
 .neon-cyan {
-    color: var(--color-neon-cyan);
-    text-shadow: var(--shadow-neon-cyan);
+    color: var(--color-neon-cyan);
+    text-shadow: var(--shadow-neon-cyan);
 }
 
 
 /* --------------------
-    BOTONES (CTA)
+    BOTONES (CTA)
 -------------------- */
 .btn {
-    display: inline-block;
-    padding: 12px 25px;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    transition: all 0.3s ease;
-    border: none;
-    cursor: pointer;
-    text-align: center;
-    letter-spacing: 0.5px;
+    display: inline-block;
+    padding: 12px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.5px;
 }
 
 .btn-primary {
-    background-color: var(--color-neon-red);
-    color: var(--color-bg-dark);
+    background-color: var(--color-neon-red);
+    color: var(--color-bg-dark);
 }
 
 .btn-secondary {
-    background-color: transparent;
-    border: 2px solid var(--color-neon-cyan);
-    color: var(--color-neon-cyan);
+    background-color: transparent;
+    border: 2px solid var(--color-neon-cyan);
+    color: var(--color-neon-cyan);
 }
 
 .btn-primary:hover {
-    box-shadow: var(--shadow-neon-red);
-    transform: translateY(-2px);
+    box-shadow: var(--shadow-neon-red);
+    transform: translateY(-2px);
 }
 
 .btn-secondary:hover {
-    background-color: var(--color-neon-cyan);
-    color: var(--color-bg-dark);
-    box-shadow: var(--shadow-neon-cyan);
+    background-color: var(--color-neon-cyan);
+    color: var(--color-bg-dark);
+    box-shadow: var(--shadow-neon-cyan);
 }
 
 
 /* --------------------
-    HEADER Y NAVEGACIÓN (Ajustes de Logo y Espacio)
+    HEADER Y NAVEGACIÓN (Ajustes de Logo y Espacio)
 -------------------- */
 .header {
-    background-color: rgba(0, 0, 0, 0.9);
-    /* AJUSTE CRÍTICO: Reducción del padding vertical a 3px */
-    padding: 3px 0; 
-    border-bottom: 3px solid var(--color-neon-red);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.9);
+    /* AJUSTE CRÍTICO: Reducción del padding vertical a 3px */
+    padding: 3px 0; 
+    border-bottom: 3px solid var(--color-neon-red);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .header .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .logo-container {
-    display: flex;
-    align-items: center;
-    padding: 0; 
-    margin: 0;
+    display: flex;
+    align-items: center;
+    padding: 0; 
+    margin: 0;
 }
 
 /* Ajuste del Logo: Mayor tamaño y eliminación de espacio debajo */
 .logo {
-    height: 120px; /* Tamaño grande para desktop */
-    min-width: 120px;
-    /* CRÍTICO: Elimina el espacio fantasma debajo de la imagen */
-    display: block; 
-    
-    /* Efecto neón */
-    filter: drop-shadow(0 0 5px var(--color-neon-red)) drop-shadow(0 0 10px rgba(255, 51, 102, 0.3));
+    height: 120px; /* Tamaño grande para desktop */
+    min-width: 120px;
+    /* CRÍTICO: Elimina el espacio fantasma debajo de la imagen */
+    display: block; 
+    
+    /* Efecto neón */
+    filter: drop-shadow(0 0 5px var(--color-neon-red)) drop-shadow(0 0 10px rgba(255, 51, 102, 0.3));
 }
 
 .nav a {
-    color: var(--color-text-light);
-    text-decoration: none;
-    margin-left: 25px;
-    padding: 5px 0;
-    border-bottom: 2px solid transparent;
-    transition: border-bottom 0.3s ease, color 0.3s ease;
-    font-weight: 500;
+    color: var(--color-text-light);
+    text-decoration: none;
+    margin-left: 25px;
+    padding: 5px 0;
+    border-bottom: 2px solid transparent;
+    transition: border-bottom 0.3s ease, color 0.3s ease;
+    font-weight: 500;
 }
 
 .nav a:hover,
 .nav a.current {
-    color: var(--color-neon-cyan);
-    border-bottom: 2px solid var(--color-neon-cyan);
-    text-shadow: 0 0 3px var(--color-neon-cyan);
+    color: var(--color-neon-cyan);
+    border-bottom: 2px solid var(--color-neon-cyan);
+    text-shadow: 0 0 3px var(--color-neon-cyan);
 }
 
 
 /* --------------------
-    HERO SECTION
+    HERO SECTION
 -------------------- */
 .hero-section {
-    padding: 120px 0;
-    text-align: center;
-    border-bottom: 5px solid var(--color-neon-yellow);
+    padding: 120px 0;
+    text-align: center;
+    border-bottom: 5px solid var(--color-neon-yellow);
 }
 
 .hero-title {
-    font-size: 3.5em;
-    margin-bottom: 30px;
-    line-height: 1.1;
-    font-weight: 900;
+    font-size: 3.5em;
+    margin-bottom: 30px;
+    line-height: 1.1;
+    font-weight: 900;
 }
 
 .hero-cta-group {
-    margin-top: 50px;
-    display: flex;
-    justify-content: center;
-    gap: 25px;
+    margin-top: 50px;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
 }
 
 
 /* --------------------
-    CONTADOR DE VISITAS (NUEVO ESTILO)
--------------------- */
-.visits-counter-box {
-    margin-top: 40px;
-    padding: 15px 30px;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: var(--color-secondary-bg);
-    border: 2px solid var(--color-neon-cyan);
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(51, 255, 255, 0.5); /* Sombra neón azul */
-}
-
-.counter-label {
-    font-size: 0.9em;
-    font-weight: 500;
-    color: #999;
-    margin-bottom: 5px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.counter-value {
-    font-size: 2.5em;
-    font-weight: 900;
-    line-height: 1;
-    /* Los colores neón ya vienen de la clase neon-yellow en index.html */
-}
-
-/* --------------------
-    PROPUESTA DE VALOR
+    PROPUESTA DE VALOR
 -------------------- */
 .propuesta-valor {
-    padding: 80px 0;
-    background-color: var(--color-secondary-bg);
+    padding: 80px 0;
+    background-color: var(--color-secondary-bg);
 }
 
 .valor-grid {
-    display: grid; 
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
-    text-align: center;
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    text-align: center;
 }
 
 .valor-item {
-    padding: 30px 20px;
-    border: 1px solid var(--color-neon-red);
-    border-radius: 10px;
-    background-color: #0d0d0d;
-    transition: all 0.3s ease;
+    padding: 30px 20px;
+    border: 1px solid var(--color-neon-red);
+    border-radius: 10px;
+    background-color: #0d0d0d;
+    transition: all 0.3s ease;
 }
 
 .valor-item:hover {
-    border-color: var(--color-neon-cyan);
-    box-shadow: var(--shadow-neon-cyan);
+    border-color: var(--color-neon-cyan);
+    box-shadow: var(--shadow-neon-cyan);
 }
 
 .valor-item h3 {
-    margin: 15px 0 10px;
-    font-weight: 700;
-    color: var(--color-neon-yellow);
+    margin: 15px 0 10px;
+    font-weight: 700;
+    color: var(--color-neon-yellow);
 }
 
 .valor-item .icon {
-    font-size: 3em;
-    display: block;
-    line-height: 1;
+    font-size: 3em;
+    display: block;
+    line-height: 1;
 }
 
 /* --------------------
-    PLATAFORMAS POPULARES
+    PLATAFORMAS POPULARES
 -------------------- */
 .plataformas-populares {
-    padding: 80px 0;
+    padding: 80px 0;
 }
 
 .logos-grid {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 30px;
 }
 
 .logos-grid img {
-    height: 55px; 
-    max-width: 100%;
-    filter: brightness(0.9) drop-shadow(0 0 5px rgba(51, 255, 255, 0.5)); 
-    transition: transform 0.3s ease, filter 0.3s ease;
+    height: 55px; 
+    max-width: 100%;
+    filter: brightness(0.9) drop-shadow(0 0 5px rgba(51, 255, 255, 0.5)); 
+    transition: transform 0.3s ease, filter 0.3s ease;
 }
 
 .logos-grid img:hover {
-    transform: scale(1.1);
-    filter: brightness(1) drop-shadow(0 0 10px var(--color-neon-red));
+    transform: scale(1.1);
+    filter: brightness(1) drop-shadow(0 0 10px var(--color-neon-red));
 }
 
 /* --------------------
-    OFERTAS DESTACADAS
+    OFERTAS DESTACADAS
 -------------------- */
 .ofertas-destacadas {
-    padding: 60px 0 80px;
-    text-align: center;
-    background-color: var(--color-secondary-bg);
-    border-top: 1px solid var(--color-neon-red);
+    padding: 60px 0 80px;
+    text-align: center;
+    background-color: var(--color-secondary-bg);
+    border-top: 1px solid var(--color-neon-red);
 }
 
 .oferta-card {
-    background-color: #1a0000;
-    border: 2px solid var(--color-neon-red);
-    border-radius: 15px;
-    padding: 40px 30px;
-    max-width: 500px;
-    margin: 30px auto;
-    box-shadow: 0 0 25px rgba(255, 51, 102, 0.7);
+    background-color: #1a0000;
+    border: 2px solid var(--color-neon-red);
+    border-radius: 15px;
+    padding: 40px 30px;
+    max-width: 500px;
+    margin: 30px auto;
+    box-shadow: 0 0 25px rgba(255, 51, 102, 0.7);
 }
 
 .etiqueta-ahorro {
-    font-weight: 700;
-    color: var(--color-neon-yellow);
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-weight: 700;
+    color: var(--color-neon-yellow);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .precio-oferta {
-    font-size: 3.5em;
-    font-weight: 900;
-    margin: 15px 0;
+    font-size: 3.5em;
+    font-weight: 900;
+    margin: 15px 0;
 }
 
 .precio-antes {
-    text-decoration: line-through;
-    color: #888;
-    margin-bottom: 5px;
+    text-decoration: line-through;
+    color: #888;
+    margin-bottom: 5px;
 }
 
 /* --------------------
-    FOOTER
+    FOOTER
 -------------------- */
 .footer {
-    background-color: #050505;
-    padding: 25px 0;
-    border-top: 2px solid var(--color-neon-cyan);
-    font-size: 0.9em;
+    background-color: #050505;
+    padding: 25px 0;
+    border-top: 2px solid var(--color-neon-cyan);
+    font-size: 0.9em;
 }
 
 .footer .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .footer-links a {
-    color: #888;
-    text-decoration: none;
-    margin-left: 20px;
+    color: #888;
+    text-decoration: none;
+    margin-left: 20px;
 }
 
 .footer-links a:hover {
-    color: var(--color-neon-cyan);
+    color: var(--color-neon-cyan);
 }
 
 
 /* ====================================
-    ESTILOS PARA LA PÁGINA DE PRECIOS
-   ==================================== */
+    ESTILOS PARA LA PÁGINA DE PRECIOS
+   ==================================== */
 
 .page-content {
-    padding: 60px 0 100px;
+    padding: 60px 0 100px;
 }
 
 .subtitle {
-    text-align: center;
-    color: #ccc;
-    margin-bottom: 50px;
-    font-size: 1.1em;
+    text-align: center;
+    color: #ccc;
+    margin-bottom: 50px;
+    font-size: 1.1em;
 }
 
 /* Estilos de Grid: 3 columnas en desktop, responsivo */
 .servicios-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 tarjetas por fila en desktop */
-    gap: 30px;
-    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 tarjetas por fila en desktop */
+    gap: 30px;
+    margin-top: 40px;
 }
 
 /* Estilo de la Tarjeta Individual */
 .tarjeta-servicio {
-    background-color: var(--color-secondary-bg);
-    border: 2px solid #222;
-    border-radius: 10px;
-    padding: 25px;
-    text-align: center;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    background-color: var(--color-secondary-bg);
+    border: 2px solid #222;
+    border-radius: 10px;
+    padding: 25px;
+    text-align: center;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .tarjeta-servicio:hover {
-    border-color: var(--color-neon-cyan);
-    box-shadow: 0 0 15px rgba(51, 255, 255, 0.4);
-    transform: translateY(-5px);
+    border-color: var(--color-neon-cyan);
+    box-shadow: 0 0 15px rgba(51, 255, 255, 0.4);
+    transform: translateY(-5px);
 }
 
 .tarjeta-encabezado {
-    margin-bottom: 15px;
+    margin-bottom: 15px;
 }
 
 .logo-plataforma {
-    height: 60px; /* Tamaño del logo dentro de la tarjeta */
-    margin-bottom: 10px;
-    /* Efecto neón sutil en el logo de la plataforma */
-    filter: drop-shadow(0 0 3px var(--color-neon-cyan)); 
+    height: 60px; /* Tamaño del logo dentro de la tarjeta */
+    margin-bottom: 10px;
+    /* Efecto neón sutil en el logo de la plataforma */
+    filter: drop-shadow(0 0 3px var(--color-neon-cyan)); 
 }
 
 .tarjeta-servicio h3 {
-    font-size: 1.5em;
-    font-weight: 700;
-    color: var(--color-text-light);
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--color-text-light);
 }
 
 .plan-nombre {
-    color: var(--color-neon-red);
-    font-weight: 600;
-    margin-bottom: 15px;
+    color: var(--color-neon-red);
+    font-weight: 600;
+    margin-bottom: 15px;
 }
 
 .precio-box {
-    margin: 20px 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
 }
 
 .moneda {
-    font-size: 1.5em;
-    font-weight: 700;
-    align-self: flex-start;
-    margin-top: 5px;
-    color: var(--color-neon-yellow);
+    font-size: 1.5em;
+    font-weight: 700;
+    align-self: flex-start;
+    margin-top: 5px;
+    color: var(--color-neon-yellow);
 }
 
 .precio-valor {
-    font-size: 4em;
-    font-weight: 900;
-    line-height: 1;
+    font-size: 4em;
+    font-weight: 900;
+    line-height: 1;
 }
 
 .periodo {
-    font-size: 1.2em;
-    font-weight: 500;
-    color: #aaa;
-    margin-bottom: 10px;
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #aaa;
+    margin-bottom: 10px;
 }
 
 .descripcion {
-    font-size: 0.9em;
-    color: #bbb;
-    min-height: 40px; /* Asegura que todas las tarjetas tengan una altura mínima similar */
-    margin-bottom: 25px;
+    font-size: 0.9em;
+    color: #bbb;
+    min-height: 40px; /* Asegura que todas las tarjetas tengan una altura mínima similar */
+    margin-bottom: 25px;
 }
 
 /* CTA - Botón de WhatsApp */
 .cta-whatsapp {
-    margin-top: auto; /* Empuja el botón a la parte inferior de la tarjeta */
-    width: 100%;
+    margin-top: auto; /* Empuja el botón a la parte inferior de la tarjeta */
+    width: 100%;
 }
 
 
 /* ====================================
-    MEDIA QUERIES (RESPONSIVE DESIGN)
-   ==================================== */
+    MEDIA QUERIES (RESPONSIVE DESIGN)
+   ==================================== */
 
 /* Dispositivos Pequeños (Móviles) - Max 768px */
 @media (max-width: 768px) {
-    
-    /* HEADER */
-    .header .container {
-        flex-direction: column;
-        align-items: center;
-    }
+    
+    /* HEADER */
+    .header .container {
+        flex-direction: column;
+        align-items: center;
+    }
 
-    .header {
-        padding: 5px 0; /* Padding en móvil (se mantiene ligeramente mayor) */
-    }
+    .header {
+        padding: 5px 0; /* Padding en móvil (se mantiene ligeramente mayor) */
+    }
 
-    /* Reducir el logo en móvil */
-    .logo {
-        height: 65px; /* Altura ajustada para móvil */
-        min-width: 65px;
-        display: block; 
-    }
+    /* Reducir el logo en móvil */
+    .logo {
+        height: 65px; /* Altura ajustada para móvil */
+        min-width: 65px;
+        display: block; 
+    }
 
-    .nav {
-        margin-top: 15px;
-        text-align: center;
-        width: 100%;
-        overflow-x: auto; 
-        white-space: nowrap; 
-    }
+    .nav {
+        margin-top: 15px;
+        text-align: center;
+        width: 100%;
+        overflow-x: auto; 
+        white-space: nowrap; 
+    }
 
-    .nav a {
-        margin: 0 10px;
-        display: inline-block;
-        font-size: 0.85em;
-    }
+    .nav a {
+        margin: 0 10px;
+        display: inline-block;
+        font-size: 0.85em;
+    }
 
-    /* HERO SECTION */
-    .hero-section {
-        padding: 80px 0 60px;
-    }
+    /* HERO SECTION */
+    .hero-section {
+        padding: 80px 0 60px;
+    }
 
-    .hero-title {
-        font-size: 1.8em; 
-    }
+    .hero-title {
+        font-size: 1.8em; 
+    }
 
-    .hero-cta-group {
-        flex-direction: column; 
-        gap: 15px;
-        width: 80%;
-        margin: 30px auto 0;
-    }
+    .hero-cta-group {
+        flex-direction: column; 
+        gap: 15px;
+        width: 80%;
+        margin: 30px auto 0;
+    }
 
-    .btn {
-        width: 100%;
-        font-size: 0.85em;
-    }
-    
-    /* CONTADOR EN MÓVIL */
-    .visits-counter-box {
-        margin-top: 30px;
-        padding: 10px 20px;
-    }
-    .counter-value {
-        font-size: 2em;
-    }
+    .btn {
+        width: 100%;
+        font-size: 0.85em;
+    }
 
+    /* PROPUESTA DE VALOR */
+    .valor-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    /* PLATAFORMAS POPULARES */
+    .plataformas-populares {
+        padding: 40px 0;
+    }
 
-    /* PROPUESTA DE VALOR */
-    .valor-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    /* PLATAFORMAS POPULARES */
-    .plataformas-populares {
-        padding: 40px 0;
-    }
+    .logos-grid img {
+        height: 40px;
+    }
+    
+    /* OFERTAS */
+    .oferta-card {
+        padding: 30px 20px;
+    }
+    
+    .precio-oferta {
+        font-size: 2.8em;
+    }
 
-    .logos-grid img {
-        height: 40px;
-    }
-    
-    /* OFERTAS */
-    .oferta-card {
-        padding: 30px 20px;
-    }
-    
-    .precio-oferta {
-        font-size: 2.8em;
-    }
+    /* FOOTER */
+    .footer .container {
+        text-align: center;
+        flex-direction: column;
+    }
 
-    /* FOOTER */
-    .footer .container {
-        text-align: center;
-        flex-direction: column;
-    }
+    .footer-links {
+        margin-top: 10px;
+        width: 100%;
+    }
+    
+    .footer-links a {
+        margin: 0 8px;
+        display: inline-block;
+        font-size: 0.8em;
+    }
 
-    .footer-links {
-        margin-top: 10px;
-        width: 100%;
-    }
-    
-    .footer-links a {
-        margin: 0 8px;
-        display: inline-block;
-        font-size: 0.8em;
-    }
+    .footer p {
+        margin-bottom: 10px;
+    }
 
-    .footer p {
-        margin-bottom: 10px;
-    }
+    /* ************************************** */
+    /* AJUSTES ESPECÍFICOS DE TARJETAS (PRECIOS) */
+    /* ************************************** */
+    
+    .servicios-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .tarjeta-servicio {
+        padding: 20px; /* Comprimimos el padding interno */
+    }
 
-    /* ************************************** */
-    /* AJUSTES ESPECÍFICOS DE TARJETAS (PRECIOS) */
-    /* ************************************** */
-    
-    .servicios-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    .tarjeta-servicio {
-        padding: 20px; /* Comprimimos el padding interno */
-    }
+    .logo-plataforma {
+        height: 45px; /* Reducción de logo en tarjeta */
+    }
+    
+    .tarjeta-servicio h3 {
+        font-size: 1.3em;
+    }
 
-    .logo-plataforma {
-        height: 45px; /* Reducción de logo en tarjeta */
-    }
-    
-    .tarjeta-servicio h3 {
-        font-size: 1.3em;
-    }
+    .precio-valor {
+        font-size: 2.2em; /* Reducción clave para que quepa bien en móvil */
+    }
 
-    .precio-valor {
-        font-size: 3em; /* Reducción clave para que quepa bien en móvil */
-    }
+    .moneda, .periodo {
+        font-size: 0.8em;
+    }
 
-    .moneda, .periodo {
-        font-size: 1em;
-    }
-
-    .descripcion {
-        min-height: auto; 
-    }
-    
-    .btn {
-        padding: 10px 15px;
-        font-size: 0.8em;
-    }
+    .descripcion {
+        min-height: auto; 
+    }
+    
+    .btn {
+        padding: 10px 15px;
+        font-size: 0.7em;
+    }
 }
 
 /* Tabletas (Max 1024px) - Ajustes intermedios */
 @media (min-width: 769px) and (max-width: 1024px) {
-    
-    .hero-title {
-        font-size: 2.8em;
-    }
+    
+    .hero-title {
+        font-size: 2.5em;
+    }
 
-    .valor-grid {
-        gap: 15px;
-    }
-    
-    /* AJUSTES DE PRECIOS PARA TABLETA (2 COLUMNAS) */
-    .servicios-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 25px;
-    }
-    
-    .precio-valor {
-        font-size: 3.5em; /* Ligeramente más pequeño que desktop, más grande que móvil */
-    }
+    .valor-grid {
+        gap: 12px;
+    }
+    
+    /* AJUSTES DE PRECIOS PARA TABLETA (2 COLUMNAS) */
+    .servicios-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+    }
+    
+    .precio-valor {
+        font-size: 3em; /* Ligeramente más pequeño que desktop, más grande que móvil */
+    }
 }
+
+Ese es el css
