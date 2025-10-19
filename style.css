@@ -318,123 +318,6 @@ body {
 
 
 /* ====================================
-    MEDIA QUERIES (RESPONSIVE DESIGN)
-   ==================================== */
-
-/* Dispositivos Pequeños (Móviles) - Max 768px */
-@media (max-width: 768px) {
-    
-    /* HEADER */
-    .header .container {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .header {
-        padding: 5px 0; /* Padding en móvil (se mantiene ligeramente mayor) */
-    }
-
-    /* Reducir el logo en móvil */
-    .logo {
-        height: 55px; 
-        min-width: 55px;
-        display: block; 
-    }
-
-    .nav {
-        margin-top: 15px;
-        text-align: center;
-        width: 100%;
-        overflow-x: auto; 
-        white-space: nowrap; 
-    }
-
-    .nav a {
-        margin: 0 10px;
-        display: inline-block;
-        font-size: 0.85em;
-    }
-
-    /* HERO SECTION */
-    .hero-section {
-        padding: 80px 0 60px;
-    }
-
-    .hero-title {
-        font-size: 1.8em; 
-    }
-
-    .hero-cta-group {
-        flex-direction: column; 
-        gap: 15px;
-        width: 80%;
-        margin: 30px auto 0;
-    }
-
-    .btn {
-        width: 100%;
-        font-size: 0.85em;
-    }
-
-    /* PROPUESTA DE VALOR */
-    .valor-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    /* PLATAFORMAS POPULARES */
-    .plataformas-populares {
-        padding: 40px 0;
-    }
-
-    .logos-grid img {
-        height: 40px;
-    }
-    
-    /* OFERTAS */
-    .oferta-card {
-        padding: 30px 20px;
-    }
-    
-    .precio-oferta {
-        font-size: 2.8em;
-    }
-
-    /* FOOTER */
-    .footer .container {
-        text-align: center;
-        flex-direction: column;
-    }
-
-    .footer-links {
-        margin-top: 10px;
-        width: 100%;
-    }
-    
-    .footer-links a {
-        margin: 0 8px;
-        display: inline-block;
-        font-size: 0.8em;
-    }
-
-    .footer p {
-        margin-bottom: 10px;
-    }
-}
-
-/* Tabletas (Max 1024px) - Ajustes intermedios */
-@media (min-width: 769px) and (max-width: 1024px) {
-    
-    .hero-title {
-        font-size: 2.8em;
-    }
-
-    .valor-grid {
-        gap: 15px;
-    }
-}
-
-/* ====================================
     ESTILOS PARA LA PÁGINA DE PRECIOS
    ==================================== */
 
@@ -541,29 +424,167 @@ body {
 }
 
 
-/* MEDIA QUERIES para la página de precios (Añadir al final del bloque @media (max-width: 768px)) */
+/* ====================================
+    MEDIA QUERIES (RESPONSIVE DESIGN)
+   ==================================== */
 
+/* Dispositivos Pequeños (Móviles) - Max 768px */
 @media (max-width: 768px) {
     
-    /* Pasa de 3 columnas a 1 en móvil */
+    /* HEADER */
+    .header .container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .header {
+        padding: 5px 0; /* Padding en móvil (se mantiene ligeramente mayor) */
+    }
+
+    /* Reducir el logo en móvil */
+    .logo {
+        height: 65px; /* Altura ajustada para móvil */
+        min-width: 65px;
+        display: block; 
+    }
+
+    .nav {
+        margin-top: 15px;
+        text-align: center;
+        width: 100%;
+        overflow-x: auto; 
+        white-space: nowrap; 
+    }
+
+    .nav a {
+        margin: 0 10px;
+        display: inline-block;
+        font-size: 0.85em;
+    }
+
+    /* HERO SECTION */
+    .hero-section {
+        padding: 80px 0 60px;
+    }
+
+    .hero-title {
+        font-size: 1.8em; 
+    }
+
+    .hero-cta-group {
+        flex-direction: column; 
+        gap: 15px;
+        width: 80%;
+        margin: 30px auto 0;
+    }
+
+    .btn {
+        width: 100%;
+        font-size: 0.85em;
+    }
+
+    /* PROPUESTA DE VALOR */
+    .valor-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    /* PLATAFORMAS POPULARES */
+    .plataformas-populares {
+        padding: 40px 0;
+    }
+
+    .logos-grid img {
+        height: 40px;
+    }
+    
+    /* OFERTAS */
+    .oferta-card {
+        padding: 30px 20px;
+    }
+    
+    .precio-oferta {
+        font-size: 2.8em;
+    }
+
+    /* FOOTER */
+    .footer .container {
+        text-align: center;
+        flex-direction: column;
+    }
+
+    .footer-links {
+        margin-top: 10px;
+        width: 100%;
+    }
+    
+    .footer-links a {
+        margin: 0 8px;
+        display: inline-block;
+        font-size: 0.8em;
+    }
+
+    .footer p {
+        margin-bottom: 10px;
+    }
+
+    /* ************************************** */
+    /* AJUSTES ESPECÍFICOS DE TARJETAS (PRECIOS) */
+    /* ************************************** */
+    
     .servicios-grid {
         grid-template-columns: 1fr;
         gap: 20px;
     }
     
+    .tarjeta-servicio {
+        padding: 20px; /* Comprimimos el padding interno */
+    }
+
     .logo-plataforma {
-        height: 50px;
+        height: 45px; /* Reducción de logo en tarjeta */
+    }
+    
+    .tarjeta-servicio h3 {
+        font-size: 1.3em;
     }
 
     .precio-valor {
-        font-size: 3.5em;
+        font-size: 3em; /* Reducción clave para que quepa bien en móvil */
+    }
+
+    .moneda, .periodo {
+        font-size: 1em;
+    }
+
+    .descripcion {
+        min-height: auto; 
+    }
+    
+    .btn {
+        padding: 10px 15px;
+        font-size: 0.8em;
     }
 }
 
+/* Tabletas (Max 1024px) - Ajustes intermedios */
 @media (min-width: 769px) and (max-width: 1024px) {
-    /* Pasa de 3 columnas a 2 en tabletas */
+    
+    .hero-title {
+        font-size: 2.8em;
+    }
+
+    .valor-grid {
+        gap: 15px;
+    }
+    
+    /* AJUSTES DE PRECIOS PARA TABLETA (2 COLUMNAS) */
     .servicios-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 25px;
+    }
+    
+    .precio-valor {
+        font-size: 3.5em; /* Ligeramente más pequeño que desktop, más grande que móvil */
     }
 }
