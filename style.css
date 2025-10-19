@@ -5,10 +5,10 @@
     /* Colores basados en el logo de Bull Streaming */
     --color-bg-dark: #000;
     --color-text-light: #fff;
-    --color-neon-red: #ff3366;      /* El rojo brillante/magenta */
-    --color-neon-cyan: #33ffff;     /* El cian eléctrico */
+    --color-neon-red: #ff3366;     /* El rojo brillante/magenta */
+    --color-neon-cyan: #33ffff;    /* El cian eléctrico */
     --color-neon-yellow: #ffcc33;   /* El amarillo del texto del logo */
-    --color-secondary-bg: #111;     /* Fondo sutilmente más claro que el negro */
+    --color-secondary-bg: #111;    /* Fondo sutilmente más claro que el negro */
     
     /* Sombras para el efecto neón */
     --shadow-neon-red: 0 0 5px var(--color-neon-red), 0 0 15px var(--color-neon-red);
@@ -321,6 +321,41 @@ body {
 }
 
 /* --------------------
+    VIDEO SECTION (INTEGRADO)
+-------------------- */
+.video-section {
+    padding: 60px 0;
+    text-align: center;
+    background-color: var(--color-bg-dark); /* Fondo negro principal */
+}
+
+.video-title {
+    font-size: 2em;
+    margin-bottom: 25px;
+    /* La clase .neon-red en el HTML aplicará el color y la sombra */
+}
+
+.video-container {
+    max-width: 800px;
+    margin: 0 auto;
+    border: 3px solid var(--color-neon-yellow); /* Borde Neón */
+    border-radius: 12px;
+    overflow: hidden;
+    /* Un resplandor fuerte para destacar el video */
+    box-shadow: 0 0 15px var(--color-neon-yellow), 0 0 30px rgba(255, 204, 51, 0.5); 
+    transition: transform 0.3s ease;
+}
+
+.video-container:hover {
+    transform: scale(1.02);
+}
+
+.video-container video {
+    width: 100%;
+    display: block;
+}
+
+/* --------------------
     FOOTER
 -------------------- */
 .footer {
@@ -350,7 +385,7 @@ body {
 
 /* ====================================
     ESTILOS PARA LA PÁGINA DE PRECIOS
-   ==================================== */
+    ==================================== */
 
 .page-content {
     padding: 60px 0 100px;
@@ -457,7 +492,7 @@ body {
 
 /* ====================================
     MEDIA QUERIES (RESPONSIVE DESIGN)
-   ==================================== */
+    ==================================== */
 
 /* Dispositivos Pequeños (Móviles) - Max 768px */
 @media (max-width: 768px) {
@@ -547,7 +582,12 @@ body {
     .precio-oferta {
         font-size: 2.8em;
     }
-
+    
+    /* VIDEO SECTION (Ajuste para móvil) */
+    .video-section {
+        padding: 40px 0;
+    }
+    
     /* FOOTER */
     .footer .container {
         text-align: center;
