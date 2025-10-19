@@ -1,109 +1,292 @@
-/* Reset de margenes y padding */
+/* --------------------
+    VARIABLES Y RESET
+-------------------- */
+:root {
+    --color-bg-dark: #000;
+    --color-text-light: #fff;
+    --color-neon-red: #ff3366; /* El rojo brillante del logo */
+    --color-neon-cyan: #33ffff; /* El cian eléctrico */
+    --color-neon-yellow: #ffcc33; /* El amarillo del texto del logo */
+    --color-secondary-bg: #111;
+    --shadow-neon-red: 0 0 5px var(--color-neon-red), 0 0 10px var(--color-neon-red);
+    --shadow-neon-cyan: 0 0 5px var(--color-neon-cyan), 0 0 10px var(--color-neon-cyan);
+}
+
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
 }
 
-/* Body general */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-light);
+    line-height: 1.6;
 }
 
-/* Contenedor principal */
 .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
-/* Cabecera */
-header {
+/* --------------------
+    ESTILOS GENERALES Y NEON
+-------------------- */
+.section-title {
+    font-size: 2.5em;
     text-align: center;
-    margin-bottom: 20px;
-}
-
-/* Logo */
-.logo {
-    width: 80px;
-    margin-bottom: 20px;
-}
-
-/* Nombre del sitio */
-h1 {
-    font-size: 3rem;
-    color: #333;
-    margin-bottom: 10px;
-}
-
-/* Banner */
-.banner {
-    background: url('https://via.placeholder.com/1920x600') no-repeat center center/cover;
-    width: 100%;
-    height: 300px;
-    color: white;
-    text-align: center;
-    padding: 80px 20px;
     margin-bottom: 40px;
+    font-weight: 900;
+    text-transform: uppercase;
 }
 
-.banner h2 {
-    font-size: 2rem;
-    margin-bottom: 10px;
+/* Clases para aplicar el efecto neón al texto */
+.neon-yellow {
+    color: var(--color-neon-yellow);
+    text-shadow: 0 0 5px rgba(255, 204, 51, 0.7);
 }
 
-.banner p {
-    font-size: 1.2rem;
+.neon-red {
+    color: var(--color-neon-red);
+    text-shadow: var(--shadow-neon-red);
 }
 
-/* Botones */
-.buttons {
+.neon-cyan {
+    color: var(--color-neon-cyan);
+    text-shadow: var(--shadow-neon-cyan);
+}
+
+
+/* --------------------
+    BOTONES (CTA)
+-------------------- */
+.btn {
+    display: inline-block;
+    padding: 12px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: var(--color-neon-red);
+    color: var(--color-bg-dark); /* Texto negro sobre fondo rojo */
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border: 2px solid var(--color-neon-cyan);
+    color: var(--color-neon-cyan);
+}
+
+.btn-primary:hover {
+    box-shadow: var(--shadow-neon-red);
+    transform: translateY(-2px);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-neon-cyan);
+    color: var(--color-bg-dark);
+    box-shadow: var(--shadow-neon-cyan);
+}
+
+
+/* --------------------
+    HEADER Y NAVEGACIÓN
+-------------------- */
+.header {
+    background-color: rgba(0, 0, 0, 0.8); /* Fondo semi-transparente */
+    padding: 15px 0;
+    border-bottom: 1px solid var(--color-neon-red);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    height: 45px; /* Ajusta según el tamaño de tu logo */
+}
+
+.nav a {
+    color: var(--color-text-light);
+    text-decoration: none;
+    margin-left: 25px;
+    padding: 5px 0;
+    border-bottom: 2px solid transparent;
+    transition: border-bottom 0.3s ease, color 0.3s ease;
+}
+
+.nav a:hover,
+.nav a.current {
+    color: var(--color-neon-cyan);
+    border-bottom: 2px solid var(--color-neon-cyan);
+}
+
+
+/* --------------------
+    HERO SECTION
+-------------------- */
+.hero-section {
+    padding: 100px 0;
+    text-align: center;
+    background: url('../img/hero-background-dark.jpg') no-repeat center center/cover; /* Puedes usar un fondo oscuro sutil */
+    border-bottom: 5px solid var(--color-neon-yellow);
+}
+
+.hero-title {
+    font-size: 3.5em;
+    margin-bottom: 30px;
+    line-height: 1.1;
+    font-weight: 900;
+}
+
+.hero-cta-group {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+
+/* --------------------
+    PROPUESTA DE VALOR
+-------------------- */
+.propuesta-valor {
+    padding: 80px 0;
+    background-color: var(--color-secondary-bg);
+}
+
+.valor-grid {
     display: flex;
     justify-content: space-around;
-    width: 100%;
-    max-width: 600px;
-}
-
-.button {
-    background-color: #009688;
-    color: white;
-    padding: 15px 30px;
-    text-decoration: none;
-    font-size: 1.1rem;
-    border-radius: 5px;
-    margin: 5px;
+    gap: 30px;
     text-align: center;
-    transition: background-color 0.3s;
 }
 
-.button:hover {
-    background-color: #00796b;
+.valor-item {
+    flex: 1;
+    padding: 20px;
+    border: 1px solid var(--color-neon-red);
+    border-radius: 10px;
+    background-color: #0d0d0d;
+    transition: all 0.3s ease;
 }
 
-/* Botón de información */
-.info {
-    background-color: #0288d1;
+.valor-item:hover {
+    border-color: var(--color-neon-cyan);
+    box-shadow: 0 0 15px rgba(51, 255, 255, 0.5);
 }
 
-.info:hover {
-    background-color: #0277bd;
+.valor-item h3 {
+    margin: 15px 0 10px;
+    font-weight: 700;
+    color: var(--color-neon-yellow);
 }
 
-/* Diseño adaptativo */
-@media screen and (max-width: 768px) {
-    .banner {
-        height: 200px;
-    }
+.valor-item .icon {
+    font-size: 2.5em;
+    display: block;
+}
 
-    h1 {
-        font-size: 2.5rem;
-    }
+/* --------------------
+    PLATAFORMAS POPULARES
+-------------------- */
+.plataformas-populares {
+    padding: 80px 0;
+}
 
-    .button {
-        width: 100%;
-        margin: 10px 0;
-    }
+.logos-grid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.logos-grid img {
+    height: 50px; /* Ajusta el tamaño de los logos */
+    filter: brightness(0.9) drop-shadow(0 0 5px var(--color-neon-cyan)); /* Efecto sutil de brillo */
+    transition: transform 0.3s ease;
+}
+
+.logos-grid img:hover {
+    transform: scale(1.1);
+    filter: brightness(1) drop-shadow(0 0 10px var(--color-neon-red));
+}
+
+/* --------------------
+    OFERTAS DESTACADAS
+-------------------- */
+.ofertas-destacadas {
+    padding: 60px 0 80px;
+    text-align: center;
+    background-color: var(--color-secondary-bg);
+    border-top: 1px solid var(--color-neon-red);
+}
+
+.oferta-card {
+    background-color: #220000;
+    border: 2px solid var(--color-neon-red);
+    border-radius: 15px;
+    padding: 40px 30px;
+    max-width: 500px;
+    margin: 30px auto;
+    box-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+}
+
+.etiqueta-ahorro {
+    font-weight: 700;
+    color: var(--color-neon-yellow);
+    margin-bottom: 15px;
+}
+
+.precio-oferta {
+    font-size: 3em;
+    font-weight: 900;
+    margin: 15px 0;
+}
+
+.precio-antes {
+    text-decoration: line-through;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+/* --------------------
+    FOOTER
+-------------------- */
+.footer {
+    background-color: #050505;
+    padding: 25px 0;
+    border-top: 2px solid var(--color-neon-cyan);
+    font-size: 0.9em;
+}
+
+.footer .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    color: #888;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+.footer-links a:hover {
+    color: var(--color-neon-cyan);
 }
