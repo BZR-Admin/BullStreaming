@@ -29,6 +29,14 @@ const productos = [
         cta_mensaje: 'Hola, me interesa el Plan D1sney ($2.75/mes).'
     },
     {
+        logo: 'flujo.png',
+        nombre: 'Flujo TV',
+        plan: '1 Dispositivo',
+        precio: '2,75',
+        descripcion: 'Canales de TV, Series, Películas y más',
+        cta_mensaje: 'Hola, me interesa el Plan de Flujo TV.'
+    },
+    {
         logo: 'hbo.png',
         nombre: 'HBO Max',
         plan: '1 Dispositivo',
@@ -44,7 +52,7 @@ const productos = [
         descripcion: 'Música sin límites, sin anuncios y modo sin conexión. Para un perfil.',
         cta_mensaje: 'Hola, me interesa el Plan Spotify).'
     },
-  {
+    {
         logo: 'prime.png',
         nombre: 'Pr1me V1deo',
         plan: '1 Dispositivo',
@@ -52,13 +60,53 @@ const productos = [
         descripcion: 'Películas y series actuales, Acción, Comedia y mucha diversión',
         cta_mensaje: 'Hola, me interesa el Plan de Prime Video ($2.50/mes).'
     },
-      {
-        logo: 'flujo.png',
-        nombre: 'Flujo TV',
-        plan: '1 Dispositivo',
+    {
+        logo: 'canva.png',
+        nombre: 'Canva Premium',
+        plan: 'Anual',
+        precio: '7.50',
+        descripcion: 'Herramienta de diseño educativo y profesional',
+        cta_mensaje: 'Hola, me interesa el Plan de Canva.'
+    },
+    {
+        logo: 'Pornhub.png',
+        nombre: 'P0rn Hub +18',
+        plan: 'Mensual',
         precio: '2,75',
-        descripcion: 'Canales de TV, Series, Películas y más',
-        cta_mensaje: 'Hola, me interesa el Plan de Flujo TV.'
+        descripcion: 'Servicio para adultos, contenido +18',
+        cta_mensaje: 'Hola, me interesa el Plan de +18.'
+    },
+    {
+        logo: 'iptv.png',
+        nombre: 'IPTV',
+        plan: '1 Dispositivo Mensual',
+        precio: '2,75',
+        descripcion: 'Servicio de canales nacionales e internacionales',
+        cta_mensaje: 'Hola, me interesa el Plan de IPTV.'
+    },
+    {
+        logo: 'vix.png',
+        nombre: 'VIX',
+        plan: 'Mensual',
+        precio: '2,75',
+        descripcion: 'Servicio de streaming: Películas y series',
+        cta_mensaje: 'Hola, me interesa el Plan de VIX.'
+    },
+    {
+        logo: 'telelatino.png',
+        nombre: 'Telelatino',
+        plan: 'Mensual',
+        precio: '2,75',
+        descripcion: 'Servicio de tv, series y películas',
+        cta_mensaje: 'Hola, me interesa el Plan de Telelatino.'
+    },
+    {
+        logo: 'zapping.png',
+        nombre: 'Zapping',
+        plan: 'Mensual',
+        precio: '2,75',
+        descripcion: 'Servicio de tv nacional e internacional',
+        cta_mensaje: 'Hola, me interesa el Plan de Zapping.'
     }
     // ¡Añade más productos aquí!
 ];
