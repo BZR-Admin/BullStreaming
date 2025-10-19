@@ -1,224 +1,165 @@
 /* ---------------------------------------------------------------- */
-/* ESTILOS DE PÁGINA ESPECÍFICOS DE CONTACTO (styleinf.css) */
+/* ESTILOS MAESTROS (APLICABLES A TODA LA WEB) */
 /* ---------------------------------------------------------------- */
 
-/* NOTA IMPORTANTE: Este archivo NO redefine las variables globales de :root
-   para evitar conflictos con el style.css principal. Usa las variables
-   existentes: --color-secondary-bg, --color-neon-cyan, --color-neon-red, etc. */
-
-
-.section-title {
-    /* Sobrescribir margin-bottom del style.css principal para darle espacio al subtítulo */
-    margin-bottom: 10px;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-.subtitle {
-    text-align: center;
-    margin-bottom: 40px;
+body {
+    background-color: #000000; /* Fondo negro profundo */
+    color: #f7f7f7; /* Color de texto base */
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    padding-top: 80px; /* Espacio para el header fijo */
 }
-
-/* Contenedor principal de 2 columnas */
-.contact-grid {
-    /* FIX CRÍTICO: Define la disposición en dos columnas iguales */
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* 50% / 50% */
-    gap: 40px; /* Espacio entre las columnas */
-    margin-top: 40px;
-}
-
-/* Responsividad: En móvil (pantallas menores a 768px), las columnas se apilan */
-@media (max-width: 768px) {
-    .contact-grid {
-        grid-template-columns: 1fr; /* Una sola columna */
-    }
-}
-
 
 /* ---------------------------------------------------------------- */
-/* ESTILOS DEL FORMULARIO (Columna Izquierda) */
+/* ESTILOS DE LA NAVEGACIÓN (HEADER) */
 /* ---------------------------------------------------------------- */
 
-.form-section {
-    padding: 30px;
-    /* Usa el fondo secundario de style.css (#111) */
-    background-color: var(--color-secondary-bg); 
-    border-radius: 12px;
-    /* Usa --color-neon-red para el borde y la sombra (tu color "pink" principal) */
-    box-shadow: 0 0 15px rgba(255, 51, 102, 0.4); 
-    border: 1px solid var(--color-neon-red);
-}
-
-.form-title {
-    font-size: 2rem;
-    /* Usa tu color amarillo neón de style.css */
-    text-shadow: var(--shadow-neon-yellow);
-    margin-bottom: 25px;
-}
-
-.contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 700;
-    /* Usa tu color cian neón de style.css */
-    color: var(--color-neon-cyan);
-    text-shadow: 0 0 5px rgba(51, 255, 255, 0.4);
-}
-
-.input-group input,
-.input-group textarea {
+.header {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 15px 5%; 
+    position: fixed; 
+    top: 0;
+    left: 0;
     width: 100%;
-    padding: 15px;
-    /* Fondo muy oscuro para contraste con el card */
+    z-index: 1000;
     background-color: #050505; 
-    /* Usa tu color rojo neón */
-    border: 1px solid var(--color-neon-red);
-    border-radius: 8px;
-    color: var(--color-text-light);
-    font-size: 1rem;
-    box-shadow: inset 0 0 5px rgba(255, 51, 102, 0.2);
-    transition: border-color 0.3s, box-shadow 0.3s;
+    border-bottom: 2px solid #ff006e; /* Línea neón rosa */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); 
 }
 
-.input-group input:focus,
-.input-group textarea:focus {
-    outline: none;
-    /* Usa tu color cian neón */
-    border-color: var(--color-neon-cyan);
-    box-shadow: 0 0 10px var(--color-neon-cyan);
+.logo-container {
+    max-width: 150px; 
 }
 
-.cta-form {
+.logo-container img {
+    height: auto;
     width: 100%;
-    padding: 15px 30px;
-    font-size: 1.2rem;
-    font-weight: 900;
-    margin-top: 10px;
+    display: block;
 }
 
-
-/* ---------------------------------------------------------------- */
-/* ESTILOS DE INFO-SECTION (Columna Derecha/Tarjeta) */
-/* ---------------------------------------------------------------- */
-
-.info-section {
-    /* La tarjeta de información directa */
-    padding: 30px;
-    border-radius: 12px;
-    /* Usa tu fondo secundario de style.css (#111) */
-    background-color: var(--color-secondary-bg); 
-    /* Borde cian neón */
-    border: 2px solid var(--color-neon-cyan); 
-    box-shadow: var(--shadow-neon-cyan); 
+.main-nav ul {
+    display: flex; 
+    gap: 30px; 
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-.info-title {
-    font-size: 2rem;
-    /* Usa tu color rojo neón */
-    color: var(--color-neon-red);
-    text-shadow: var(--shadow-neon-red);
-    margin-bottom: 25px;
-    /* Usa tu color amarillo neón */
-    border-bottom: 2px solid var(--color-neon-yellow);
-    padding-bottom: 10px;
-}
-
-/* Estilo para cada ítem (Correo y WhatsApp) */
-.contact-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-.contact-item .label {
-    font-weight: 700;
-    color: var(--color-neon-cyan);
-    margin-right: 15px;
-    /* Asegura el ancho mínimo para alinear */
-    min-width: 140px; 
-}
-
-.contact-item a {
+.main-nav a {
+    color: #f7f7f7;
     text-decoration: none;
-    font-size: 1.1rem;
-    font-weight: 400;
+    font-size: 1.1em;
+    font-weight: 500;
+    padding: 5px 0;
+    transition: color 0.3s, border-bottom 0.3s;
 }
 
-.icon-large {
-    font-size: 1.5rem;
-    margin-right: 15px;
-    text-shadow: 0 0 5px var(--color-neon-cyan);
+/* Pestaña activa (Neón Amarillo) */
+.main-nav a.active {
+    color: #fce803; 
+    border-bottom: 2px solid #fce803; 
 }
 
+/* Efecto hover (Neón Rosa) */
+.main-nav a:hover {
+    color: #ff006e; 
+}
 
 /* ---------------------------------------------------------------- */
-/* ESTILOS DE REDES SOCIALES (Íconos) */
+/* ESTILOS ESPECÍFICOS PARA LA PÁGINA DE CONTACTO */
 /* ---------------------------------------------------------------- */
 
-.social-links {
-    margin-top: 25px;
-    padding-top: 15px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.2);
-    /* Alinea el título y los iconos horizontalmente */
+/* Contenedor principal de la sección de contacto */
+.contact-section {
+    padding: 50px 5%;
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
-    align-items: center;
-    gap: 20px;
     flex-wrap: wrap; 
+    gap: 40px;
 }
 
-.social-title {
-    color: var(--color-neon-yellow);
-    font-size: 1.2rem;
-    margin-right: 10px;
+h1, h2 {
+    color: #fce803; 
+    text-shadow: 0 0 10px rgba(252, 232, 3, 0.5);
+    font-weight: 700;
+    margin-bottom: 25px;
 }
 
-.social-icon {
-    /* El contenedor del ícono (el círculo neón) */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    
-    /* Efecto Neón del Borde */
-    border: 2px solid var(--color-neon-cyan);
-    box-shadow: 0 0 8px var(--color-neon-cyan);
-    
-    transition: all 0.3s ease;
+.form-container {
+    flex: 2; 
+    min-width: 300px; 
 }
 
-.social-icon i {
-    /* El ícono de Font Awesome dentro del círculo */
-    font-size: 1.5rem; 
-    color: var(--color-neon-cyan);
-    transition: transform 0.3s ease;
+/* Caja de datos con borde neón */
+.data-container {
+    flex: 1; 
+    min-width: 250px;
+    border: 2px solid #ff006e; 
+    box-shadow: 0 0 15px #ff006e, 0 0 25px #ff006e inset; 
+    padding: 30px;
+    border-radius: 10px;
+    background-color: rgba(10, 0, 15, 0.4); 
 }
 
-.social-icon:hover {
-    background-color: var(--color-neon-cyan);
-    box-shadow: 0 0 15px var(--color-neon-cyan);
+/* Estilos de inputs y textarea */
+input[type="text"], 
+input[type="email"], 
+select, 
+textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: 1px solid #ff006e; 
+    background-color: #1a001a; 
+    color: #fce803; 
+    border-radius: 6px;
+    font-size: 1em;
+    box-shadow: 0 0 5px #ff006e; 
+    transition: all 0.3s;
 }
 
-.social-icon:hover i {
-    /* El ícono se oscurece al hacer hover (usando el color del fondo principal) */
-    color: var(--color-bg-dark); 
-    transform: scale(1.1);
+input:focus, 
+textarea:focus {
+    border-color: #fce803; 
+    box-shadow: 0 0 10px #fce803;
+    outline: none;
 }
 
-/* Media Query específico de contacto para tabletas (mantener el grid en 2 columnas si es posible) */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .contact-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
+.send-button {
+    background-color: #ff006e; 
+    color: #000000;
+    font-weight: bold;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 30px;
+    text-transform: uppercase;
+    box-shadow: 0 0 15px #ff006e; 
+}
+
+/* Estilos de enlaces dentro de la caja de datos */
+.data-container a {
+    color: #fce803; 
+    text-decoration: none;
+}
+
+/* Media Query para responsividad de Contacto */
+@media (max-width: 768px) {
+    .contact-section {
+        flex-direction: column;
     }
-    
-    .contact-item .label {
-        min-width: 100px;
+    .form-container, .data-container {
+        flex: 1 1 100%; 
     }
 }
+
