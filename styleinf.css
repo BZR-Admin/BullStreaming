@@ -1,23 +1,14 @@
 /* ---------------------------------------------------------------- */
-/* ESTILOS DE PÁGINA ESPECÍFICOS DE CONTACTO */
+/* ESTILOS DE PÁGINA ESPECÍFICOS DE CONTACTO (styleinf.css) */
 /* ---------------------------------------------------------------- */
 
-/* Asumiendo que estas variables de color están definidas en style.css, 
-   pero las redefinimos aquí para que el archivo sea autónomo si es necesario */
-:root {
-    --color-bg-dark: #0f172a;          /* Azul Oscuro (fondo principal) */
-    --color-bg-dark-secondary: #1e293b; /* Azul más claro (para tarjetas/inputs) */
-    --color-text-light: #f1f5f9;      /* Texto principal blanco/claro */
-    
-    /* Colores Neón */
-    --color-neon-cyan: #00ffff;
-    --color-neon-pink: #ff0099;
-    --color-neon-yellow: #fff000;
-}
+/* NOTA IMPORTANTE: Este archivo NO redefine las variables globales de :root
+   para evitar conflictos con el style.css principal. Usa las variables
+   existentes: --color-secondary-bg, --color-neon-cyan, --color-neon-red, etc. */
+
 
 .section-title {
-    /* Asegurar que el título no interfiera */
-    text-align: center;
+    /* Sobrescribir margin-bottom del style.css principal para darle espacio al subtítulo */
     margin-bottom: 10px;
 }
 
@@ -49,17 +40,18 @@
 
 .form-section {
     padding: 30px;
-    background-color: var(--color-bg-dark-secondary);
+    /* Usa el fondo secundario de style.css (#111) */
+    background-color: var(--color-secondary-bg); 
     border-radius: 12px;
-    /* Sombras sutiles usando el color neón pink */
-    box-shadow: 0 0 15px rgba(255, 0, 150, 0.2); 
-    border: 1px solid var(--color-neon-pink);
+    /* Usa --color-neon-red para el borde y la sombra (tu color "pink" principal) */
+    box-shadow: 0 0 15px rgba(255, 51, 102, 0.4); 
+    border: 1px solid var(--color-neon-red);
 }
 
 .form-title {
     font-size: 2rem;
-    color: var(--color-neon-yellow);
-    text-shadow: 0 0 10px var(--color-neon-yellow);
+    /* Usa tu color amarillo neón de style.css */
+    text-shadow: var(--shadow-neon-yellow);
     margin-bottom: 25px;
 }
 
@@ -73,27 +65,30 @@
     display: block;
     margin-bottom: 5px;
     font-weight: 700;
+    /* Usa tu color cian neón de style.css */
     color: var(--color-neon-cyan);
-    text-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
+    text-shadow: 0 0 5px rgba(51, 255, 255, 0.4);
 }
 
 .input-group input,
 .input-group textarea {
     width: 100%;
     padding: 15px;
-    /* Uso del color secundario para los inputs */
-    background-color: var(--color-bg-dark-secondary);
-    border: 1px solid var(--color-neon-pink);
+    /* Fondo muy oscuro para contraste con el card */
+    background-color: #050505; 
+    /* Usa tu color rojo neón */
+    border: 1px solid var(--color-neon-red);
     border-radius: 8px;
     color: var(--color-text-light);
     font-size: 1rem;
-    box-shadow: inset 0 0 5px rgba(255, 0, 150, 0.2);
+    box-shadow: inset 0 0 5px rgba(255, 51, 102, 0.2);
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .input-group input:focus,
 .input-group textarea:focus {
     outline: none;
+    /* Usa tu color cian neón */
     border-color: var(--color-neon-cyan);
     box-shadow: 0 0 10px var(--color-neon-cyan);
 }
@@ -115,15 +110,20 @@
     /* La tarjeta de información directa */
     padding: 30px;
     border-radius: 12px;
+    /* Usa tu fondo secundario de style.css (#111) */
+    background-color: var(--color-secondary-bg); 
+    /* Borde cian neón */
     border: 2px solid var(--color-neon-cyan); 
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4); 
+    box-shadow: var(--shadow-neon-cyan); 
 }
 
 .info-title {
     font-size: 2rem;
-    color: var(--color-neon-pink);
-    text-shadow: 0 0 10px var(--color-neon-pink);
+    /* Usa tu color rojo neón */
+    color: var(--color-neon-red);
+    text-shadow: var(--shadow-neon-red);
     margin-bottom: 25px;
+    /* Usa tu color amarillo neón */
     border-bottom: 2px solid var(--color-neon-yellow);
     padding-bottom: 10px;
 }
@@ -139,6 +139,7 @@
     font-weight: 700;
     color: var(--color-neon-cyan);
     margin-right: 15px;
+    /* Asegura el ancho mínimo para alinear */
     min-width: 140px; 
 }
 
@@ -167,7 +168,6 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    /* Ajuste para que se vea mejor en móviles pequeños si se envuelve */
     flex-wrap: wrap; 
 }
 
@@ -206,7 +206,19 @@
 }
 
 .social-icon:hover i {
-    /* El ícono se oscurece al hacer hover */
+    /* El ícono se oscurece al hacer hover (usando el color del fondo principal) */
     color: var(--color-bg-dark); 
     transform: scale(1.1);
+}
+
+/* Media Query específico de contacto para tabletas (mantener el grid en 2 columnas si es posible) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .contact-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    .contact-item .label {
+        min-width: 100px;
+    }
 }
