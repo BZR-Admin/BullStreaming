@@ -131,8 +131,8 @@ body {
 
 /* Ajuste del Logo: Mayor tamaño y eliminación de espacio debajo */
 .logo {
-    height: 85px; /* Tamaño grande para desktop */
-    min-width: 85px;
+    height: 120px; /* Tamaño grande para desktop */
+    min-width: 120px;
     /* CRÍTICO: Elimina el espacio fantasma debajo de la imagen */
     display: block; 
     
