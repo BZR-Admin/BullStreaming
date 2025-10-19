@@ -14,62 +14,37 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
 
-    <!-- ESTILOS TEMPORALES PARA EL VIDEO (Mover a style.css) -->
-    <style>
-        .video-section {
-            padding: 40px 5%;
-            text-align: center;
-            background-color: #0d0d0d; /* Un tono ligeramente más claro que el fondo */
-        }
-        .video-container {
-            max-width: 400px;
-            margin: 0 auto;
-            border: 3px solid #fce803; /* Borde neón amarillo */
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(252, 232, 3, 0.6); /* Resplandor neón */
-        }
-        .video-container video {
-            width: 100%;
-            display: block;
-        }
-        .video-title {
-            font-size: 2em;
-            margin-bottom: 25px;
-            color: #ff006e; /* Neón rosa */
-            text-shadow: 0 0 10px rgba(255, 0, 110, 0.7);
-        }
-
-        /* Responsive adjustments for video */
-        @media (max-width: 600px) {
-            .video-section {
-                padding: 40px 3%;
-            }
-        }
-    </style>
-
 </head>
 
 <body>
 
-    <!-- NOTA: He corregido la estructura de tu header para que sea consistente con los archivos anteriores (usando .header, .menu-toggle y nav.main-nav) y sea adaptativo, aunque no has incluido el JavaScript de menú hamburguesa aquí. -->
-    <header class="header">
+
+
+    <header class="header">
+
         <div class="container">
+
             <div class="logo-container">
-                <!-- Usamos el mismo patrón del logo que en otros archivos -->
-                <a href="index.html">
-                    <img src="logo-bull-streaming.png" alt="Bull Streaming Logo" class="logo">
-                </a>
+
+                <img src="logo-bull-streaming.png" alt="Bull Streaming Logo" class="logo">
+
             </div>
-            <!-- Si deseas que este header sea adaptativo, debes incluir el menú hamburguesa aquí -->
+
             <nav class="nav">
+
                 <a href="index.html" class="nav-link current">Inicio</a>
+
                 <a href="precios.html" class="nav-link">Precios</a>
+
                 <a href="revendedores.html" class="nav-link">Revendedores</a>
+
                 <a href="contacto.html" class="nav-link">Contacto</a>
                 <a href="faq.html" class="nav-link">Info</a>
-            </nav>
+
+                </nav>
+
         </div>
+
     </header>
 
 
@@ -188,26 +163,12 @@
 
                 <img src="flujo.png" alt="Flujo TV">
 
-            </div>
+                </div>
 
         </div>
 
     </section>
 
-
-    <!-- NUEVA SECCIÓN DE VIDEO -->
-    <section class="video-section">
-        <h2 class="video-title">¡Mira lo que te pierdes!</h2>
-        <div class="video-container">
-            <!-- Etiqueta de video: autoplay, loop, muted para la mejor UX. Controls para que el usuario pueda interactuar. -->
-            <video controls autoplay loop muted playsinline poster="path/to/video-poster.jpg">
-                <!-- Asegúrate de que el archivo netflix.mp4 esté en la ubicación correcta -->
-                <source src="netflix.mp4" type="video/mp4">
-                Tu navegador no soporta la etiqueta de video.
-            </video>
-        </div>
-    </section>
-    <!-- FIN DE LA NUEVA SECCIÓN DE VIDEO -->
 
 
     <section class="ofertas-destacadas">
