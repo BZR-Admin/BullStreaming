@@ -48,8 +48,8 @@ const productos = [
         logo: 'spotify.png',
         nombre: 'Spotify',
         plan: '1 Dispositivo',
-        precio: '3x1mes- 8,50x3meses- 15,50x6meses- 25x1año',
-        descripcion: 'Música sin límites, sin anuncios y modo sin conexión. Para un perfil.',
+        precio: '3x1mes',
+        descripcion: 'Música sin límites, sin anuncios y modo sin conexión. Planes para 1,3,6 y 12 meses.',
         cta_mensaje: 'Hola, me interesa el Plan Spotify).'
     },
     {
