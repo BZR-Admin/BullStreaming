@@ -1,237 +1,185 @@
 <!DOCTYPE html>
-
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Bull Streaming - Tu Centro de Entretenimiento</title>
-
     <link rel="stylesheet" href="style.css">
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
-
 </head>
-
 <body>
 
-
-
     <header class="header">
-
         <div class="container">
-
             <div class="logo-container">
-
                 <img src="logo-bull-streaming.png" alt="Bull Streaming Logo" class="logo">
-
             </div>
-
             <nav class="nav">
-
                 <a href="index.html" class="nav-link current">Inicio</a>
-
                 <a href="precios.html" class="nav-link">Precios</a>
-
                 <a href="revendedores.html" class="nav-link">Revendedores</a>
-
                 <a href="contacto.html" class="nav-link">Contacto</a>
                 <a href="faq.html" class="nav-link">Info</a>
-
-                </nav>
-
+            </nav>
         </div>
-
     </header>
 
-
-
     <main class="hero-section">
-
         <div class="container">
-
             <div class="hero-content">
-
                 <h1 class="hero-title neon-yellow">
-
                     El mejor centro de entretenimiento. <br>
-
                     Todas las plataformas de streaming, 100% confiables y al mejor precio.
-
                 </h1>
-
                 
-
                 <div class="hero-cta-group">
-
                     <a href="precios.html" class="btn btn-primary btn-neon-red">
-
                         Ver Planes y Precios ⚡
-
                     </a>
-
                     <a href="revendedores.html" class="btn btn-secondary btn-neon-cyan">
-
                         Conviértete en Revendedor 📈
-
                     </a>
-
                 </div>
 
-            </div>
-
+                <div class="visits-counter-box">
+                    <span class="counter-label">VISITAS HOY</span>
+                    <span class="counter-value neon-yellow" id="visit-count">0</span>
+                </div>
+                </div>
         </div>
-
     </main>
 
-
-
     <section class="propuesta-valor">
-
         <div class="container">
-
             <h2 class="section-title neon-cyan">¿Por Qué Elegir Bull Streaming?</h2>
-
             <div class="valor-grid">
-
                 
-
                 <div class="valor-item">
-
                     <span class="icon neon-red">✅</span>
-
                     <h3>Activación Inmediata</h3>
-
                     <p>Recibe tu cuenta y empieza a ver contenido en cuestión de minutos.</p>
-
                 </div>
-
                 
-
                 <div class="valor-item">
-
                     <span class="icon neon-red">🛡️</span>
-
                     <h3>Soporte Garantizado</h3>
-
                     <p>Te ayudamos con cualquier duda o problema durante toda tu suscripción. Soporte técnico 24/7.</p>
-
                 </div>
-
-
 
                 <div class="valor-item">
-
                     <span class="icon neon-red">💳</span>
-
                     <h3>Pagos Fáciles y Seguros</h3>
-
                     <p>Aceptamos múltiples métodos de pago, simplificando tu experiencia de compra.</p>
-
                 </div>
-
-
 
             </div>
-
         </div>
-
     </section>
-
-
 
     <section class="plataformas-populares">
-
         <div class="container">
-
             <h2 class="section-title neon-yellow">Plataformas Populares</h2>
-
             <div class="logos-grid">
-
                 <img src="netflix.png" alt="N3tflix">
-
                 <img src="disney.png" alt="Dlsney+">
-
                 <img src="hbo.png" alt="HB0 Max">
-
                 <img src="spotify.png" alt="Spot1fy">
-
                 <img src="prime.png" alt="Amazon Pr1me V1deo">
-
                 <img src="flujo.png" alt="Flujo TV">
-
-                </div>
-
+            </div>
         </div>
-
     </section>
-
-
 
     <section class="ofertas-destacadas">
-
         <div class="container">
-
             <h2 class="section-title neon-red">¡Oferta Destacada del Mes!</h2>
-
             
-
             <div class="oferta-card">
-
                 <p class="etiqueta-ahorro">💥 PLATAFORMA MÁS VENDIDA 💥</p>
-
                 <h3>PRIME VIDEO</h3>
-
                 <p class="precio-antes">Precio regular: $2.50</p>
-
                 <p class="precio-oferta neon-yellow">$2.00 / mes</p>
-
                 <a href="precios.html" class="btn btn-principal btn-neon-cyan">
-
                     ¡Ver todos los precios!
-
                 </a>
-
             </div>
-
-
 
             <p class="small-text">Toma captura y envianos por Whatsapp. Válido hasta fin de mes.</p>
-
                 <a id="cta-revendedores" href="#" target="_blank" class="btn btn-primary cta-whatsapp">
                         Contactanos por Whatsapp y usa nuestro bot con la palabra MENU📲
-                 </a>
+                </a>
         </div>
-
     </section>
 
-
-
     <footer class="footer">
-
         <div class="container">
-
             <p>&copy; 2024 Bull Streaming. Todos los derechos reservados.</p>
-
             <div class="footer-links">
-
                 <a href="contacto.html" class="footer-link">Contacto</a>
-
                 <a href="#" class="footer-link">Términos y Condiciones</a>
-
                 <a href="#" class="footer-link">Política de Privacidad</a>
-
             </div>
-
         </div>
-
     </footer>
+
 <script src="data2.js"></script>
 <script src="bot.js"></script>
 
-</body>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
+<script>
+    // 2. ¡IMPORTANTE! Pega tu configuración de Firebase aquí
+    // (La que obtuviste de la Configuración del Proyecto en la consola de Firebase)
+    const firebaseConfig = {
+        // <-- PEGA AQUÍ TU OBJETO firebaseConfig -->
+        
+        // Ejemplo de cómo se debe ver:
+        // apiKey: "AIzaSy...TU_API_KEY",
+        // authDomain: "tu-proyecto.firebaseapp.com",
+        // databaseURL: "https://tu-proyecto-default-rtdb.firebaseio.com",
+        // projectId: "tu-proyecto",
+        // storageBucket: "tu-proyecto.appspot.com",
+        // messagingSenderId: "123456789",
+        // appId: "1:123456:web:abcd123"
+    };
+
+    // 3. Inicializa Firebase
+    // Comprobamos si ya fue inicializado (por si acaso)
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+
+    // 4. Lógica del contador
+    (function() {
+        const counterElement = document.getElementById('visit-count');
+        if (!counterElement) return; // Salir si no encuentra el elemento
+
+        // Generamos la fecha de hoy en formato YYYY-MM-DD
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
+
+        // Ruta en la base de datos (Ej: visits/daily/2025-11-08)
+        const counterRef = database.ref('visits/daily/' + dateString);
+
+        // Suma 1 a la visita (Transacción para evitar errores)
+        counterRef.onDisconnect().cancel(); 
+        counterRef.transaction(function(currentValue) {
+            return (currentValue || 0) + 1;
+        });
+
+        // Muestra el conteo en tiempo real
+        counterRef.on('value', (snapshot) => {
+            const visits = snapshot.val();
+            if (visits) {
+                counterElement.innerText = visits;
+            }
+        });
+    })();
+</script>
+</body>
 </html>
