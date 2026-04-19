@@ -3,108 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bull Streaming Admin</title>
+    <title>Bull Streaming App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .animate-urgent { animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen pb-24">
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-24 font-sans">
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 flex justify-around p-3 z-50 shadow-2xl">
-        <button onclick="showTab('tab-venta')" class="nav-btn text-yellow-500 flex flex-col items-center gap-1">
-            <span class="text-xl">🛒</span>
-            <span class="text-[10px] uppercase font-bold">Venta</span>
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 flex justify-around p-4 z-50 backdrop-blur-md">
+        <button onclick="showTab('tab-venta')" class="nav-btn text-yellow-500 flex flex-col items-center">
+            <span class="text-xl">⚡</span><span class="text-[10px] font-bold">VENTA</span>
         </button>
-        <button onclick="showTab('tab-clientes'); cargarClientes();" class="nav-btn text-gray-400 flex flex-col items-center gap-1">
-            <span class="text-xl">👥</span>
-            <span class="text-[10px] uppercase font-bold">Clientes</span>
+        <button onclick="showTab('tab-clientes'); cargarClientes();" class="nav-btn text-slate-500 flex flex-col items-center">
+            <span class="text-xl">👥</span><span class="text-[10px] font-bold">CLIENTES</span>
         </button>
-        <button onclick="showTab('tab-registro'); cargarRegistros();" class="nav-btn text-gray-400 flex flex-col items-center gap-1">
-            <span class="text-xl">📋</span>
-            <span class="text-[10px] uppercase font-bold">Historial</span>
+        <button onclick="showTab('tab-registro'); cargarRegistros();" class="nav-btn text-slate-500 flex flex-col items-center">
+            <span class="text-xl">📂</span><span class="text-[10px] font-bold">HISTORIAL</span>
         </button>
     </nav>
 
-    <div class="p-5 max-w-md mx-auto">
-        <header class="text-center my-6">
+    <div class="p-4 max-w-md mx-auto">
+        <header class="text-center py-6">
             <h1 class="text-3xl font-black text-yellow-500 tracking-tighter italic">BULL STREAMING 🐂</h1>
-            <p class="text-gray-400 text-xs">Panel de Control de Ingeniería</p>
         </header>
 
-        <section id="tab-venta" class="tab-content active animate-in fade-in duration-500">
-            <div class="bg-gray-800 p-6 rounded-3xl border border-gray-700 shadow-xl">
-                <h2 class="text-lg font-bold mb-5 flex items-center gap-2">✨ Nueva Suscripción</h2>
+        <section id="tab-venta" class="tab-content active">
+            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-white">🛒 Nueva Venta</h2>
                 <div class="space-y-4">
-                    <div>
-                        <label class="text-xs text-gray-400 ml-1">Seleccionar Cliente</label>
-                        <select id="sel-cliente" class="w-full p-4 bg-gray-700 rounded-xl outline-none border border-gray-600 focus:border-yellow-500 appearance-none">
-                            <option value="">Cargando clientes...</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400 ml-1">Plataforma</label>
-                        <select id="v-servicio" class="w-full p-4 bg-gray-700 rounded-xl outline-none border border-gray-600 focus:border-yellow-500">
-                            <option>Netflix</option>
-                            <option>Disney+</option>
-                            <option>Magis TV</option>
-                            <option>HBO Max</option>
-                            <option>Prime Video</option>
-                            <option>Spotify</option>
-                            <option>YouTube Premium</option>
-                        </select>
-                    </div>
+                    <select id="sel-cliente" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 transition-all">
+                        <option value="">Cargando clientes...</option>
+                    </select>
+                    <select id="v-servicio" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500">
+                        <option>Netflix</option><option>Disney+</option><option>Magis TV</option><option>HBO Max</option><option>Spotify</option><option>Prime Video</option>
+                    </select>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-xs text-gray-400 ml-1">Meses</label>
-                            <input type="number" id="v-meses" value="1" min="1" class="w-full p-4 bg-gray-700 rounded-xl outline-none border border-gray-600 focus:border-yellow-500">
-                        </div>
-                        <div>
-                            <label class="text-xs text-gray-400 ml-1">Correo/Perfil o Cuenta completa</label>
-                            <input type="text" id="v-perfil" placeholder="Ej: Perfil 2" class="w-full p-4 bg-gray-700 rounded-xl outline-none border border-gray-600 focus:border-yellow-500">
-                        </div>
+                        <input type="number" id="v-meses" value="1" placeholder="Meses" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
+                        <input type="text" id="v-perfil" placeholder="Perfil/Pin" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
                     </div>
-                    <button id="btn-vender" onclick="guardarVenta()" class="w-full py-5 bg-yellow-600 hover:bg-yellow-500 text-white font-black rounded-2xl shadow-lg shadow-yellow-900/20 active:scale-95 transition-all">
-                        FINALIZAR REGISTRO 🚀
+                    <button id="btn-venta" onclick="guardarVenta()" class="w-full py-5 bg-yellow-600 hover:bg-yellow-500 text-white font-black rounded-2xl transition-all shadow-lg shadow-yellow-900/20">
+                        REGISTRAR AHORA
                     </button>
                 </div>
             </div>
         </section>
 
         <section id="tab-clientes" class="tab-content">
-            <div class="bg-gray-800 p-6 rounded-3xl border border-gray-700 shadow-xl mb-6">
-                <h2 class="text-lg font-bold mb-5">👤 Nuevo Cliente</h2>
+            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl">
+                <h2 class="text-lg font-bold mb-4 text-white">👤 Nuevo Cliente</h2>
                 <div class="space-y-4">
-                    <input type="text" id="c-nombre" placeholder="Nombre completo" class="w-full p-4 bg-gray-700 rounded-xl outline-none border border-gray-600">
-                    <input type="tel" id="c-tel" placeholder="WhatsApp (Ej: 593...)" class="w-full p-4 bg-gray-700 rounded-xl outline-none border border-gray-600">
-                    <button id="btn-cliente" onclick="guardarCliente()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl active:scale-95 transition-all">
-                        GUARDAR EN BASE DE DATOS
+                    <input type="text" id="c-nombre" placeholder="Nombre del cliente" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
+                    <input type="tel" id="c-tel" placeholder="WhatsApp (Ej: 593987654321)" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
+                    <button id="btn-cliente" onclick="guardarCliente()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl transition-all">
+                        GUARDAR CLIENTE
                     </button>
                 </div>
             </div>
         </section>
 
         <section id="tab-registro" class="tab-content">
-            <h2 class="text-lg font-bold mb-5 flex justify-between items-center">
-                Ventas Recientes
-                <button onclick="cargarRegistros()" class="text-xs text-yellow-500">🔄 Actualizar</button>
-            </h2>
-            <div id="lista-registros" class="space-y-3">
-                </div>
+            <div class="flex justify-between items-center mb-4 text-white">
+                <h2 class="text-lg font-bold">📋 Control de Vencimientos</h2>
+                <button onclick="cargarRegistros()" class="text-yellow-500 text-sm">🔄 Refrescar</button>
+            </div>
+            <div id="lista-registros" class="space-y-3"></div>
         </section>
     </div>
 
     <script>
+        // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
         const API_URL = "https://script.google.com/macros/s/AKfycbxlhHQKzQgtu38GVJ5OWC-19bD6vj6XA_ht3SHorGPNzdxl24mvda5p0rrllAb-lbLRXw/exec";
 
-        
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-yellow-500', 'text-gray-400'));
-            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-yellow-500', 'text-slate-500'));
             document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.replace('text-gray-400', 'text-yellow-500');
+            event.currentTarget.classList.replace('text-slate-500', 'text-yellow-500');
         }
 
         async function cargarClientes() {
@@ -114,19 +92,16 @@
                 const select = document.getElementById('sel-cliente');
                 select.innerHTML = '<option value="">Seleccione Cliente</option>' + 
                     data.map(c => `<option value="${c[1]}">${c[1]}</option>`).join('');
-            } catch (e) {
-                document.getElementById('sel-cliente').innerHTML = '<option>Error al cargar</option>';
-            }
+            } catch (e) { console.error("Error cargando clientes"); }
         }
 
         async function guardarVenta() {
-            const btn = document.getElementById('btn-vender');
+            const btn = document.getElementById('btn-venta');
             const cliente = document.getElementById('sel-cliente').value;
-            if(!cliente) return alert("Selecciona un cliente");
-
-            btn.disabled = true; btn.innerText = "PROCESANDO...";
-
-            const body = {
+            if(!cliente) return alert("Seleccione un cliente");
+            
+            btn.disabled = true; btn.innerText = "GUARDANDO...";
+            const payload = {
                 action: "addVenta",
                 cliente: cliente,
                 servicio: document.getElementById('v-servicio').value,
@@ -134,26 +109,22 @@
                 correo: document.getElementById('v-perfil').value
             };
 
-            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
-            alert("✅ Venta Guardada en Google Sheets");
-            btn.disabled = false; btn.innerText = "FINALIZAR REGISTRO 🚀";
+            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("✅ Venta registrada");
+            btn.disabled = false; btn.innerText = "REGISTRAR AHORA";
             document.getElementById('v-perfil').value = "";
         }
 
         async function guardarCliente() {
             const btn = document.getElementById('btn-cliente');
             const nombre = document.getElementById('c-nombre').value;
-            if(!nombre) return alert("Escribe un nombre");
+            const tel = document.getElementById('c-tel').value;
+            if(!nombre || !tel) return alert("Complete los datos");
 
             btn.disabled = true;
-            const body = {
-                action: "addCliente",
-                nombre: nombre,
-                telefono: document.getElementById('c-tel').value
-            };
-
-            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
-            alert("✅ Cliente Añadido");
+            const payload = { action: "addCliente", nombre: nombre, telefono: tel };
+            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("✅ Cliente guardado");
             btn.disabled = false;
             document.getElementById('c-nombre').value = "";
             document.getElementById('c-tel').value = "";
@@ -162,36 +133,55 @@
 
         async function cargarRegistros() {
             const container = document.getElementById('lista-registros');
-            container.innerHTML = '<div class="text-center py-10 text-gray-500">Buscando datos...</div>';
+            container.innerHTML = '<p class="text-center text-slate-500">Cargando historial...</p>';
             
             try {
                 const res = await fetch(`${API_URL}?action=getRegistros`);
                 const data = await res.json();
                 
-                if(data.length === 0) {
-                    container.innerHTML = '<div class="text-center py-10 text-gray-500">No hay ventas registradas</div>';
-                    return;
-                }
+                container.innerHTML = data.reverse().map(r => {
+                    const fechaVence = new Date(r[5]);
+                    const hoy = new Date();
+                    const diffTime = fechaVence - hoy;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    let colorStyle = "border-slate-800 bg-slate-900";
+                    let label = "Activo";
+                    let labelColor = "text-green-500";
 
-                container.innerHTML = data.reverse().map(r => `
-                    <div class="bg-gray-800 p-4 rounded-2xl border-l-4 border-yellow-500 shadow-md">
-                        <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-yellow-500">${r[0]}</h3>
-                            <span class="text-[10px] bg-gray-700 px-2 py-1 rounded text-gray-300">${r[1]}</span>
+                    if (diffDays <= 0) {
+                        colorStyle = "border-red-600 bg-red-950/20";
+                        label = "VENCIDO ❌"; labelColor = "text-red-500";
+                    } else if (diffDays <= 1) {
+                        colorStyle = "border-orange-500 bg-orange-950/20 animate-urgent";
+                        label = "VENCE MAÑANA 🔔"; labelColor = "text-orange-500 font-black";
+                    }
+
+                    const mensaje = encodeURIComponent(`Hola ${r[0]}, Bull Streaming te informa que tu cuenta de ${r[1]} (${r[2]}) vence el ${fechaVence.toLocaleDateString()}. ¿Deseas renovar?`);
+                    const linkWA = `https://wa.me/${r[7]}?text=${mensaje}`;
+
+                    return `
+                        <div class="p-4 rounded-3xl border-l-8 ${colorStyle} shadow-lg transition-all">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-bold text-lg">${r[0]}</h3>
+                                    <p class="text-yellow-500 text-sm font-bold uppercase">${r[1]}</p>
+                                </div>
+                                <span class="text-[10px] ${labelColor} font-bold">${label}</span>
+                            </div>
+                            <div class="mt-2 text-xs text-slate-400 space-y-1">
+                                <p>📧 Perfil: ${r[2] || 'Sin especificar'}</p>
+                                <p>📅 Vence: ${fechaVence.toLocaleDateString()}</p>
+                            </div>
+                            <a href="${linkWA}" target="_blank" class="mt-4 flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl transition-all">
+                                💬 AVISAR RENOVACIÓN
+                            </a>
                         </div>
-                        <p class="text-xs text-gray-400 mt-1">${r[2] || 'Sin perfil'}</p>
-                        <div class="mt-3 flex justify-between items-center border-t border-gray-700 pt-2">
-                            <span class="text-[10px] text-gray-500 italic">Vence: ${new Date(r[5]).toLocaleDateString()}</span>
-                            <span class="text-[10px] font-bold text-green-500">${r[6] || 'ACTIVO'}</span>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (e) {
-                container.innerHTML = '<div class="text-center py-10 text-red-500">Error al cargar historial</div>';
-            }
+                    `;
+                }).join('');
+            } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-xs">Error de conexión</p>'; }
         }
 
-        // Carga inicial de clientes al abrir la página
         window.onload = cargarClientes;
     </script>
 </body>
