@@ -3,79 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bull Streaming App</title>
+    <title>Bull Streaming Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-900 text-gray-100 min-h-screen pb-20">
 
-    <div class="w-full max-w-md bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-700">
-        <h1 class="text-2xl font-bold text-center text-yellow-500 mb-8">BULL STREAMING 🐂</h1>
-        
-        <form id="formRegistro" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium mb-1">Nombre del Cliente</label>
-                <input type="text" id="cliente" required class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:ring-2 focus:ring-yellow-500 outline-none">
-            </div>
+    <nav class="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 flex justify-around p-3 z-50">
+        <button onclick="showTab('tab-venta')" class="text-yellow-500 text-xs flex flex-col items-center"><span>🛒</span>Venta</button>
+        <button onclick="showTab('tab-clientes'); cargarClientes();" class="text-gray-400 text-xs flex flex-col items-center"><span>👤</span>Clientes</button>
+        <button onclick="showTab('tab-registro'); cargarRegistros();" class="text-gray-400 text-xs flex flex-col items-center"><span>📋</span>Registros</button>
+    </nav>
 
-            <div>
-                <label class="block text-sm font-medium mb-1">Plataforma</label>
-                <select id="servicio" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 outline-none">
-                    <option>Netflix</option>
-                    <option>Disney+</option>
-                    <option>HBO Max</option>
-                    <option>Spotify</option>
-                    <option>Magis TV</option>
-                </select>
-            </div>
+    <div class="p-4 max-w-md mx-auto">
+        <h1 class="text-xl font-bold text-center text-yellow-500 mb-6 uppercase tracking-widest">Bull Streaming</h1>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Meses</label>
-                    <input type="number" id="duracion" value="1" min="1" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 outline-none">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Correo/Perfil</label>
-                    <input type="text" id="correo" placeholder="Ej: Perfil 1" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 outline-none">
+        <section id="tab-venta" class="tab-content space-y-4">
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
+                <h2 class="text-lg font-semibold mb-4">Nueva Venta</h2>
+                <div class="space-y-4">
+                    <select id="sel-cliente" class="w-full p-3 bg-gray-700 rounded-lg outline-none border border-gray-600">
+                        <option value="">Cargando clientes...</option>
+                    </select>
+                    <select id="v-servicio" class="w-full p-3 bg-gray-700 rounded-lg outline-none border border-gray-600">
+                        <option>Netflix</option><option>Disney+</option><option>Magis TV</option><option>Spotify</option>
+                    </select>
+                    <input type="number" id="v-meses" placeholder="Meses" value="1" class="w-full p-3 bg-gray-700 rounded-lg outline-none border border-gray-600">
+                    <input type="text" id="v-perfil" placeholder="Correo / Perfil" class="w-full p-3 bg-gray-700 rounded-lg outline-none border border-gray-600">
+                    <button onclick="guardarVenta()" class="w-full py-4 bg-yellow-600 font-bold rounded-xl active:scale-95 transition">GUARDAR VENTA</button>
                 </div>
             </div>
+        </section>
 
-            <button type="submit" id="btn" class="w-full py-4 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-xl transition duration-300 shadow-lg">
-                REGISTRAR VENTA
-            </button>
-        </form>
+        <section id="tab-clientes" class="tab-content hidden space-y-4">
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
+                <h2 class="text-lg font-semibold mb-4">Nuevo Cliente</h2>
+                <div class="space-y-4">
+                    <input type="text" id="c-nombre" placeholder="Nombre completo" class="w-full p-3 bg-gray-700 rounded-lg outline-none border border-gray-600">
+                    <input type="tel" id="c-tel" placeholder="WhatsApp (Ej: 593...)" class="w-full p-3 bg-gray-700 rounded-lg outline-none border border-gray-600">
+                    <button onclick="guardarCliente()" class="w-full py-4 bg-blue-600 font-bold rounded-xl active:scale-95 transition">AÑADIR CLIENTE</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-registro" class="tab-content hidden space-y-4">
+            <h2 class="text-lg font-semibold">Ventas Recientes</h2>
+            <div id="lista-registros" class="space-y-2">
+                </div>
+        </section>
     </div>
 
     <script>
-        const URL_API = "AQUÍ_PEGA_TU_URL_DE_APPS_SCRIPT";
+        const API_URL = "TU_URL_DE_APPS_SCRIPT_AQUI";
 
-        document.getElementById('formRegistro').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn');
-            btn.disabled = true;
-            btn.innerText = "PROCESANDO...";
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
 
-            const payload = {
-                cliente: document.getElementById('cliente').value,
-                servicio: document.getElementById('servicio').value,
-                duracion: document.getElementById('duracion').value,
-                correo: document.getElementById('correo').value
+        async function cargarClientes() {
+            const res = await fetch(`${API_URL}?action=getClientes`);
+            const data = await res.json();
+            const select = document.getElementById('sel-cliente');
+            select.innerHTML = '<option value="">Seleccione Cliente</option>' + 
+                data.map(c => `<option value="${c[1]}">${c[1]}</option>`).join('');
+        }
+
+        async function guardarVenta() {
+            const body = {
+                action: "addVenta",
+                cliente: document.getElementById('sel-cliente').value,
+                servicio: document.getElementById('v-servicio').value,
+                duracion: document.getElementById('v-meses').value,
+                correo: document.getElementById('v-perfil').value
             };
+            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
+            alert("Venta registrada");
+        }
 
-            try {
-                await fetch(URL_API, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify(payload)
-                });
-                alert("✅ Venta guardada correctamente");
-                document.getElementById('formRegistro').reset();
-            } catch (err) {
-                alert("❌ Error de conexión");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "REGISTRAR VENTA";
-            }
-        });
+        async function guardarCliente() {
+            const body = {
+                action: "addCliente",
+                nombre: document.getElementById('c-nombre').value,
+                telefono: document.getElementById('c-tel').value
+            };
+            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
+            alert("Cliente guardado");
+            document.getElementById('c-nombre').value = "";
+            document.getElementById('c-tel').value = "";
+        }
+
+        async function cargarRegistros() {
+            const container = document.getElementById('lista-registros');
+            container.innerHTML = "Cargando...";
+            const res = await fetch(`${API_URL}?action=getRegistros`);
+            const data = await res.json();
+            container.innerHTML = data.reverse().map(r => `
+                <div class="bg-gray-800 p-3 rounded-lg border-l-4 border-yellow-500 text-sm">
+                    <p><b>${r[0]}</b> - ${r[1]}</p>
+                    <p class="text-gray-400 text-xs">Vence: ${new Date(r[5]).toLocaleDateString()}</p>
+                </div>
+            `).join('');
+        }
+
+        // Carga inicial
+        cargarClientes();
     </script>
 </body>
 </html>
