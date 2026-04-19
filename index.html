@@ -3,105 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bull Streaming App</title>
+    <title>Bull Streaming Pro</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a"> <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/1041/1041888.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1041/1041888.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        .animate-urgent { animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .animate-urgent { animation: pulse-red 2s infinite; }
+        /* Evita el scroll horizontal y mejora el toque en móviles */
+        body { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-24 font-sans">
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 flex justify-around p-4 z-50 backdrop-blur-md">
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 flex justify-around p-4 z-50 backdrop-blur-lg shadow-2xl">
         <button onclick="showTab('tab-venta')" class="nav-btn text-yellow-500 flex flex-col items-center">
-            <span class="text-xl">⚡</span><span class="text-[10px] font-bold">VENTA</span>
+            <span class="text-xl">⚡</span><span class="text-[10px] font-bold uppercase tracking-wider">Venta</span>
         </button>
         <button onclick="showTab('tab-clientes'); cargarClientes();" class="nav-btn text-slate-500 flex flex-col items-center">
-            <span class="text-xl">👥</span><span class="text-[10px] font-bold">CLIENTES</span>
+            <span class="text-xl">👥</span><span class="text-[10px] font-bold uppercase tracking-wider">Clientes</span>
         </button>
         <button onclick="showTab('tab-registro'); cargarRegistros();" class="nav-btn text-slate-500 flex flex-col items-center">
-            <span class="text-xl">📂</span><span class="text-[10px] font-bold">HISTORIAL</span>
+            <span class="text-xl">📂</span><span class="text-[10px] font-bold uppercase tracking-wider">Historial</span>
         </button>
     </nav>
 
     <div class="p-4 max-w-md mx-auto">
         <header class="text-center py-6">
-            <h1 class="text-3xl font-black text-yellow-500 tracking-tighter italic">BULL STREAMING 🐂</h1>
+            <h1 class="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter">Bull Streaming 🐂</h1>
         </header>
 
         <section id="tab-venta" class="tab-content active">
-            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl">
-                <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-white">🛒 Nueva Venta</h2>
-                <div class="space-y-4">
-                    <select id="sel-cliente" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 transition-all">
-                        <option value="">Cargando clientes...</option>
-                    </select>
-                    <select id="v-servicio" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500">
-                        <option>Perfil Normal Netflix</option>
-                        <option>Perfil Extra Netflix</option>
-                        <option>Cuenta Completa Netflix</option>
-                        <option>Perfil Disney sin ESPN</option>
-                        <option>Perfil Disney Normal</option>
-                        <option>Perfil Disney Especial</option>
-                        <option>Cuenta Completa Disney</option>
-                        <option>Plan Individual de Spotify</option>
-                        <option>Plan Duo de Spotify</option>
-                        <option>Perfil de Flujo Tv</option>
-                        <option>Cuenta completa de Flujo Tv</option>
-                        <option>Perfil de HBO Max</option>
-                        <option>Cuenta Completa de HBO Max</option>
-                        <option>Perfil de Megax TV</option>
-                        <option>Cuenta Completa de Megax TV</option>
-                        <option>Perfil de Prime Video</option>
-                        <option>Cuenta completa de Prime Video</option>
-                        <option>Perfil de Paramount</option>
-                        <option>Cuenta completa de Paramount</option>
-                        <option>Perfil de Crunchyroll</option>
-                        <option>Cuenta completa de Crunchyroll</option>
-                        <option>Cuenta de Youtube</option>
-                        <option>Perfil de CupCut</option>
-                        <option>Plan Individual de CHAT GPT</option>
-                        <option>Plan Completo de CHAT GPT</option>
-                        <option>Plan de Canva</option>
-                        <option></option>
-                    </select>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="number" id="v-meses" value="1" placeholder="Meses" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
-                        <input type="text" id="v-perfil" placeholder="Correo/Perfil" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
+            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-4">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">🛒 Nueva Suscripción</h2>
+                <select id="sel-cliente" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 transition-all text-sm">
+                    <option value="">Cargando clientes...</option>
+                </select>
+                <select id="v-servicio" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 text-sm">
+                    <option>Netflix</option><option>Disney+</option><option>Magis TV</option><option>HBO Max</option><option>Spotify</option><option>YouTube Premium</option><option>Prime Video</option>
+                </select>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <label class="text-[10px] text-slate-500 ml-2 uppercase">Meses</label>
+                        <input type="number" id="v-meses" value="1" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
                     </div>
-                    <button id="btn-venta" onclick="guardarVenta()" class="w-full py-5 bg-yellow-600 hover:bg-yellow-500 text-white font-black rounded-2xl transition-all shadow-lg shadow-yellow-900/20">
-                        REGISTRAR AHORA
-                    </button>
+                    <div>
+                        <label class="text-[10px] text-slate-500 ml-2 uppercase">Perfil/Pin</label>
+                        <input type="text" id="v-perfil" placeholder="Ej: P2-44" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
+                    </div>
                 </div>
+                <button id="btn-venta" onclick="guardarVenta()" class="w-full py-5 bg-yellow-600 font-black rounded-2xl shadow-lg active:scale-95 transition-all uppercase text-sm tracking-widest">
+                    REGISTRAR VENTA
+                </button>
             </div>
         </section>
 
         <section id="tab-clientes" class="tab-content">
-            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl">
-                <h2 class="text-lg font-bold mb-4 text-white">👤 Nuevo Cliente</h2>
-                <div class="space-y-4">
-                    <input type="text" id="c-nombre" placeholder="Nombre del cliente" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
-                    <input type="tel" id="c-tel" placeholder="WhatsApp (Ej: 593987654321)" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
-                    <button id="btn-cliente" onclick="guardarCliente()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl transition-all">
-                        GUARDAR CLIENTE
-                    </button>
-                </div>
+            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-4">
+                <h2 class="text-lg font-bold text-white uppercase tracking-tight">👤 Registro de Clientes</h2>
+                <input type="text" id="c-nombre" placeholder="Nombre completo" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none text-sm">
+                <input type="tel" id="c-tel" placeholder="WhatsApp (Ej: 5939...)" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none text-sm">
+                <button id="btn-cliente" onclick="guardarCliente()" class="w-full py-4 bg-indigo-600 font-bold rounded-2xl active:scale-95 transition-all text-sm uppercase tracking-widest">
+                    AÑADIR A LA BASE
+                </button>
             </div>
         </section>
 
         <section id="tab-registro" class="tab-content">
-            <div class="flex justify-between items-center mb-4 text-white">
-                <h2 class="text-lg font-bold">📋 Control de Vencimientos</h2>
-                <button onclick="cargarRegistros()" class="text-yellow-500 text-sm">🔄 Refrescar</button>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-bold text-white uppercase tracking-tight">📋 Vencimientos</h2>
+                <button onclick="cargarRegistros()" class="text-yellow-500 text-xs font-bold bg-yellow-500/10 px-3 py-1 rounded-full uppercase">🔄 Refrescar</button>
             </div>
-            <div id="lista-registros" class="space-y-3"></div>
+            <div id="lista-registros" class="space-y-4"></div>
         </section>
     </div>
 
     <script>
-        // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
         const API_URL = "https://script.google.com/macros/s/AKfycbxlhHQKzQgtu38GVJ5OWC-19bD6vj6XA_ht3SHorGPNzdxl24mvda5p0rrllAb-lbLRXw/exec";
 
         function showTab(tabId) {
@@ -115,97 +99,108 @@
             try {
                 const res = await fetch(`${API_URL}?action=getClientes`);
                 const data = await res.json();
-                const select = document.getElementById('sel-cliente');
-                select.innerHTML = '<option value="">Seleccione Cliente</option>' + 
+                document.getElementById('sel-cliente').innerHTML = '<option value="">Seleccione Cliente</option>' + 
                     data.map(c => `<option value="${c[1]}">${c[1]}</option>`).join('');
-            } catch (e) { console.error("Error cargando clientes"); }
+            } catch (e) { console.error("Error"); }
         }
 
         async function guardarVenta() {
             const btn = document.getElementById('btn-venta');
             const cliente = document.getElementById('sel-cliente').value;
-            if(!cliente) return alert("Seleccione un cliente");
+            if(!cliente) return alert("Selecciona un cliente");
             
-            btn.disabled = true; btn.innerText = "GUARDANDO...";
-            const payload = {
-                action: "addVenta",
-                cliente: cliente,
-                servicio: document.getElementById('v-servicio').value,
-                duracion: document.getElementById('v-meses').value,
-                correo: document.getElementById('v-perfil').value
-            };
+            btn.disabled = true; btn.innerText = "PROCESANDO...";
+            const payload = { action: "addVenta", cliente: cliente, servicio: document.getElementById('v-servicio').value, duracion: document.getElementById('v-meses').value, correo: document.getElementById('v-perfil').value };
 
             await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            alert("✅ Venta registrada");
-            btn.disabled = false; btn.innerText = "REGISTRAR AHORA";
+            alert("✅ Venta Guardada");
+            btn.disabled = false; btn.innerText = "REGISTRAR VENTA";
             document.getElementById('v-perfil').value = "";
         }
 
         async function guardarCliente() {
             const btn = document.getElementById('btn-cliente');
             const nombre = document.getElementById('c-nombre').value;
-            const tel = document.getElementById('c-tel').value;
-            if(!nombre || !tel) return alert("Complete los datos");
+            if(!nombre) return alert("Falta nombre");
 
             btn.disabled = true;
-            const payload = { action: "addCliente", nombre: nombre, telefono: tel };
+            const payload = { action: "addCliente", nombre: nombre, telefono: document.getElementById('c-tel').value };
             await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            alert("✅ Cliente guardado");
+            alert("✅ Cliente Guardado");
             btn.disabled = false;
-            document.getElementById('c-nombre').value = "";
-            document.getElementById('c-tel').value = "";
+            document.getElementById('c-nombre').value = ""; document.getElementById('c-tel').value = "";
             cargarClientes();
         }
 
         async function cargarRegistros() {
             const container = document.getElementById('lista-registros');
-            container.innerHTML = '<p class="text-center text-slate-500">Cargando historial...</p>';
+            container.innerHTML = '<p class="text-center text-slate-600 text-[10px] uppercase tracking-widest mt-10">Conectando con el servidor...</p>';
             
             try {
                 const res = await fetch(`${API_URL}?action=getRegistros`);
                 const data = await res.json();
                 
                 container.innerHTML = data.reverse().map(r => {
-                    const fechaVence = new Date(r[5]);
-                    const hoy = new Date();
-                    const diffTime = fechaVence - hoy;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    
-                    let colorStyle = "border-slate-800 bg-slate-900";
-                    let label = "Activo";
-                    let labelColor = "text-green-500";
+                    const fVence = new Date(r[5]);
+                    const diff = Math.ceil((fVence - new Date()) / (1000 * 60 * 60 * 24));
+                    let color = "border-slate-800", label = "Suscripción Activa", labelColor = "text-green-500";
 
-                    if (diffDays <= 0) {
-                        colorStyle = "border-red-600 bg-red-950/20";
-                        label = "VENCIDO ❌"; labelColor = "text-red-500";
-                    } else if (diffDays <= 1) {
-                        colorStyle = "border-orange-500 bg-orange-950/20 animate-urgent";
-                        label = "VENCE MAÑANA 🔔"; labelColor = "text-orange-500 font-black";
+                    if(diff <= 0) { 
+                        color = "border-red-600 bg-red-950/20 text-red-200"; 
+                        label = "SERVICIO VENCIDO ❌"; 
+                        labelColor = "text-red-500 font-black";
+                    } else if(diff <= 1) { 
+                        color = "border-orange-500 bg-orange-950/20 animate-urgent"; 
+                        label = "VENCE MAÑANA 🔔"; 
+                        labelColor = "text-orange-500 font-black";
                     }
 
-                    const mensaje = encodeURIComponent(`Hola ${r[0]}, Bull Streaming te informa que tu ${r[1]} (${r[2]}) vence el ${fechaVence.toLocaleDateString()}. ¿Deseas renovar?`);
-                    const linkWA = `https://wa.me/${r[7]}?text=${mensaje}`;
+                    const msgWA = encodeURIComponent(`Hola ${r[0]}, Bull Streaming te informa que tu cuenta de ${r[1]} (${r[2]}) vence el ${fVence.toLocaleDateString()}. ¿Deseas renovar?`);
 
                     return `
-                        <div class="p-4 rounded-3xl border-l-8 ${colorStyle} shadow-lg transition-all">
-                            <div class="flex justify-between items-start">
+                        <div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 shadow-xl relative transition-all">
+                            <div class="flex justify-between items-start mb-1">
                                 <div>
-                                    <h3 class="font-bold text-lg">${r[0]}</h3>
-                                    <p class="text-yellow-500 text-sm font-bold uppercase">${r[1]}</p>
+                                    <h3 class="font-bold text-white text-lg tracking-tight">${r[0]}</h3>
+                                    <p class="text-yellow-500 text-[10px] font-black uppercase tracking-widest">${r[1]}</p>
                                 </div>
-                                <span class="text-[10px] ${labelColor} font-bold">${label}</span>
+                                <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full hover:bg-red-600 transition-colors">🗑️</button>
                             </div>
-                            <div class="mt-2 text-xs text-slate-400 space-y-1">
-                                <p>📧 Correo/Perfil: ${r[2] || 'Sin especificar'}</p>
-                                <p>📅 Renovación: ${fechaVence.toLocaleDateString()}</p>
+                            
+                            <div class="mt-3 space-y-1 text-xs text-slate-400">
+                                <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Perfil:</span> <span class="text-slate-100 font-mono font-bold">${r[2]}</span></p>
+                                <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Vence:</span> <span class="text-slate-100 font-bold">${fVence.toLocaleDateString()}</span></p>
+                                <p class="${labelColor} text-[10px] pt-1 uppercase">${label}</p>
                             </div>
-                            <a href="${linkWA}" target="_blank" class="mt-4 flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl transition-all">
-                                💬 AVISAR RENOVACIÓN
-                            </a>
+
+                            <div class="mt-4 grid grid-cols-2 gap-3">
+                                <button onclick="editarVenta('${r[0]}','${r[2]}','${r[5]}')" class="py-3 bg-slate-800 text-slate-400 text-[9px] font-black rounded-xl border border-slate-700 uppercase tracking-tighter">✏️ Editar Datos</button>
+                                <a href="https://wa.me/${r[7]}?text=${msgWA}" target="_blank" class="py-3 bg-green-600 text-white text-[9px] font-black rounded-xl text-center uppercase tracking-tighter">💬 Avisar por WA</a>
+                            </div>
                         </div>
                     `;
                 }).join('');
-            } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-xs">Error de conexión</p>'; }
+            } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error de conexión</p>'; }
+        }
+
+        async function editarVenta(cliente, correoOrig, fechaOrig) {
+            const nuevoCorreo = prompt("Nuevo Correo/Perfil:", correoOrig);
+            const nuevaFechaStr = prompt("Nueva fecha de vencimiento (AAAA-MM-DD):", new Date(fechaOrig).toISOString().split('T')[0]);
+            if(nuevoCorreo && nuevaFechaStr) {
+                const body = { action: "editVenta", cliente: cliente, correoOriginal: correoOrig, nuevoCorreo: nuevoCorreo, nuevaFecha: nuevaFechaStr };
+                await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
+                alert("Actualizado en Google Sheets. Refresca el historial.");
+                cargarRegistros();
+            }
+        }
+
+        async function eliminarVenta(cliente, correo) {
+            if(confirm(`¿Deseas eliminar el registro de ${cliente}?`)) {
+                const body = { action: "deleteVenta", cliente: cliente, correo: correo };
+                await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
+                alert("Registro eliminado.");
+                cargarRegistros();
+            }
         }
 
         window.onload = cargarClientes;
