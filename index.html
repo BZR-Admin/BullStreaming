@@ -183,7 +183,7 @@
                         label = "VENCE MAÑANA 🔔"; labelColor = "text-orange-500 font-black";
                     }
 
-                    const mensaje = encodeURIComponent(`Hola ${r[0]}, Bull Streaming te informa que tu cuenta de ${r[1]} (${r[2]}) vence el ${fechaVence.toLocaleDateString()}. ¿Deseas renovar?`);
+                    const mensaje = encodeURIComponent(`Hola ${r[0]}, Bull Streaming te informa que tu ${r[1]} (${r[2]}) vence el ${fechaVence.toLocaleDateString()}. ¿Deseas renovar?`);
                     const linkWA = `https://wa.me/${r[7]}?text=${mensaje}`;
 
                     return `
