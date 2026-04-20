@@ -8,8 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0f172a"> 
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/1041/1041888.png">
+    <meta name="theme-color" content="#0f172a"> <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/1041/1041888.png">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1041/1041888.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -75,7 +74,7 @@
                 </select>
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                        <label class="text-[10px] text-slate-500 ml-2 uppercase">Meses (x30 días)</label>
+                        <label class="text-[10px] text-slate-500 ml-2 uppercase">Meses</label>
                         <input type="number" id="v-meses" value="1" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
                     </div>
                     <div>
@@ -110,8 +109,7 @@
     </div>
 
     <script>
-        // REEMPLAZA ESTA URL POR LA TUYA DE GOOGLE APPS SCRIPT
-        const API_URL = "TU_URL_DE_GOOGLE_APPS_SCRIPT";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxlhHQKzQgtu38GVJ5OWC-19bD6vj6XA_ht3SHorGPNzdxl24mvda5p0rrllAb-lbLRXw/exec";
 
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -126,7 +124,7 @@
                 const data = await res.json();
                 document.getElementById('sel-cliente').innerHTML = '<option value="">Seleccione Cliente</option>' + 
                     data.map(c => `<option value="${c[1]}">${c[1]}</option>`).join('');
-            } catch (e) { console.error("Error cargando clientes"); }
+            } catch (e) { console.error("Error"); }
         }
 
         async function guardarVenta() {
@@ -135,10 +133,11 @@
             if(!cliente) return alert("Selecciona un cliente");
             
             btn.disabled = true; btn.innerText = "PROCESANDO...";
+            // El backend ahora debe manejar la suma de 30 días basándose en la duración
             const payload = { action: "addVenta", cliente: cliente, servicio: document.getElementById('v-servicio').value, duracion: document.getElementById('v-meses').value, correo: document.getElementById('v-perfil').value };
 
             await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            alert("✅ Venta Guardada (30 días exactos)");
+            alert("✅ Venta Guardada");
             btn.disabled = false; btn.innerText = "REGISTRAR VENTA";
             document.getElementById('v-perfil').value = "";
         }
@@ -159,42 +158,42 @@
 
         async function cargarRegistros() {
             const container = document.getElementById('lista-registros');
-            container.innerHTML = '<p class="text-center text-slate-600 text-[10px] uppercase tracking-widest mt-10">Sincronizando con Sheet...</p>';
+            container.innerHTML = '<p class="text-center text-slate-600 text-[10px] uppercase tracking-widest mt-10">Conectando con el servidor...</p>';
             
             try {
                 const res = await fetch(`${API_URL}?action=getRegistros`);
                 const data = await res.json();
                 
                 container.innerHTML = data.reverse().map(r => {
-                    // AJUSTE FECHA ECUADOR (UTC-5)
-                    const fVenceReal = new Date(r[5]);
-                    fVenceReal.setHours(fVenceReal.getHours() + 5);
-                    
+                    // CORRECCIÓN ZONA HORARIA (Sumar 5 horas para Ecuador/UTC-5)
+                    const fVence = new Date(r[5]);
+                    fVence.setHours(fVence.getHours() + 5);
+
                     const hoy = new Date();
                     hoy.setHours(0,0,0,0);
-                    const fCheck = new Date(fVenceReal);
+                    const fCheck = new Date(fVence);
                     fCheck.setHours(0,0,0,0);
 
-                    // Diferencia de días
-                    const diffDays = Math.ceil((fCheck - hoy) / (1000 * 60 * 60 * 24));
+                    // Diferencia en días exactos
+                    const diff = Math.ceil((fCheck - hoy) / (1000 * 60 * 60 * 24));
                     
                     let color = "border-slate-800", label = "Suscripción Activa", labelColor = "text-green-500";
 
-                    // LOGICA SOLICITADA:
-                    // Rojo el día 30 (o si ya venció)
-                    if(diffDays <= 0) { 
+                    // LOGICA DE COLORES:
+                    // Si faltan 0 días o ya venció (Día 30 del ciclo)
+                    if(diff <= 0) { 
                         color = "border-red-600 bg-red-950/20 animate-urgent text-red-200"; 
                         label = "RENOVAR HOY (DÍA 30) 🚨"; 
                         labelColor = "text-red-500 font-black";
                     } 
-                    // Amarillo pasado 27 días (es decir, faltan 3 días para el 30)
-                    else if(diffDays <= 3) { 
+                    // Si faltan entre 1 y 3 días (Día 27, 28, 29 del ciclo)
+                    else if(diff <= 3) { 
                         color = "border-yellow-500 bg-yellow-500/10 text-yellow-200"; 
                         label = "AVISO PREVIO (DÍA 27+) ⏳"; 
                         labelColor = "text-yellow-500 font-black";
                     }
 
-                    const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming te informa que tu *${r[1]} (${r[2]})* vence el *${fVenceReal.toLocaleDateString()}*. ¿Deseas renovar?`);
+                    const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming te informa que tu *${r[1]} (${r[2]})* vence el *${fVence.toLocaleDateString()}*. ¿Deseas renovar?`);
 
                     return `
                         <div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 shadow-xl relative transition-all">
@@ -208,13 +207,13 @@
                             
                             <div class="mt-3 space-y-1 text-xs text-slate-400">
                                 <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Correo/Perfil:</span> <span class="text-slate-100 font-mono font-bold">${r[2]}</span></p>
-                                <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Vence el:</span> <span class="text-slate-100 font-bold">${fVenceReal.toLocaleDateString()}</span></p>
+                                <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Vence el:</span> <span class="text-slate-100 font-bold">${fVence.toLocaleDateString()}</span></p>
                                 <p class="${labelColor} text-[10px] pt-1 uppercase tracking-tighter font-bold">${label}</p>
                             </div>
 
                             <div class="mt-4 grid grid-cols-2 gap-3">
-                                <button onclick="editarVenta('${r[0]}','${r[2]}','${r[5]}')" class="py-3 bg-slate-800 text-slate-400 text-[9px] font-black rounded-xl border border-slate-700 uppercase tracking-tighter">✏️ Editar</button>
-                                <a href="https://wa.me/${r[7]}?text=${msgWA}" target="_blank" class="py-3 bg-green-600 text-white text-[9px] font-black rounded-xl text-center uppercase tracking-tighter">💬 Avisar WA</a>
+                                <button onclick="editarVenta('${r[0]}','${r[2]}','${r[5]}')" class="py-3 bg-slate-800 text-slate-400 text-[9px] font-black rounded-xl border border-slate-700 uppercase tracking-tighter">✏️ Editar Datos</button>
+                                <a href="https://wa.me/${r[7]}?text=${msgWA}" target="_blank" class="py-3 bg-green-600 text-white text-[9px] font-black rounded-xl text-center uppercase tracking-tighter">💬 Avisar por WA</a>
                             </div>
                         </div>
                     `;
@@ -224,11 +223,11 @@
 
         async function editarVenta(cliente, correoOrig, fechaOrig) {
             const nuevoCorreo = prompt("Nuevo Correo/Perfil:", correoOrig);
-            const nuevaFechaStr = prompt("Nueva fecha vencimiento (AAAA-MM-DD):", new Date(fechaOrig).toISOString().split('T')[0]);
+            const nuevaFechaStr = prompt("Nueva fecha de vencimiento (AAAA-MM-DD):", new Date(fechaOrig).toISOString().split('T')[0]);
             if(nuevoCorreo && nuevaFechaStr) {
                 const body = { action: "editVenta", cliente: cliente, correoOriginal: correoOrig, nuevoCorreo: nuevoCorreo, nuevaFecha: nuevaFechaStr };
                 await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
-                alert("Actualizado en Google Sheets.");
+                alert("Actualizado en Google Sheets. Refresca el historial.");
                 cargarRegistros();
             }
         }
