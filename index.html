@@ -1,3 +1,7 @@
+Claro que sí, es totalmente posible hacerlo solo en el HTML. He añadido una **barra de búsqueda inteligente** en la pestaña de historial.
+Esta barra filtrará **en tiempo real** mientras escribes, buscando coincidencias por nombre del cliente, tipo de servicio (Netflix, Disney, etc.) o correo.
+Aquí tienes el código completo con la función de filtrado integrada:
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -18,6 +22,8 @@
         @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         .animate-urgent { animation: pulse-red 2s infinite; }
         body { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        /* Estilo para el buscador */
+        .search-container { position: sticky; top: 0; z-index: 40; background: #0f172a; padding-bottom: 1rem; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-24 font-sans">
@@ -100,9 +106,15 @@
         </section>
 
         <section id="tab-registro" class="tab-content">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-lg font-bold text-white uppercase tracking-tight">📋 Vencimientos</h2>
-                <button onclick="cargarRegistros()" class="text-yellow-500 text-xs font-bold bg-yellow-500/10 px-3 py-1 rounded-full uppercase">🔄 Refrescar</button>
+            <div class="search-container">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-white uppercase tracking-tight">📋 Historial</h2>
+                    <button onclick="cargarRegistros()" class="text-yellow-500 text-xs font-bold bg-yellow-500/10 px-3 py-1 rounded-full uppercase">🔄 Refrescar</button>
+                </div>
+                <div class="relative">
+                    <input type="text" id="buscador-historial" onkeyup="filtrarRegistros()" placeholder="Buscar cliente, servicio o correo..." class="w-full p-4 bg-slate-900 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 transition-all text-sm pl-11 shadow-inner">
+                    <span class="absolute left-4 top-4 opacity-50">🔍</span>
+                </div>
             </div>
             <div id="lista-registros" class="space-y-4"></div>
         </section>
@@ -110,6 +122,7 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxlhHQKzQgtu38GVJ5OWC-19bD6vj6XA_ht3SHorGPNzdxl24mvda5p0rrllAb-lbLRXw/exec";
+        let registrosLocales = []; // Variable global para guardar los datos y filtrar rápido
 
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -136,7 +149,6 @@
             
             btn.disabled = true; btn.innerText = "PROCESANDO...";
 
-            // CALCULO DE 30 DÍAS EXACTOS DESDE EL LADO DEL CLIENTE
             const hoy = new Date();
             const msPorDia = 24 * 60 * 60 * 1000;
             const fechaVencimiento = new Date(hoy.getTime() + (parseInt(meses) * 30 * msPorDia));
@@ -147,7 +159,6 @@
                 servicio: document.getElementById('v-servicio').value, 
                 duracion: meses, 
                 correo: document.getElementById('v-perfil').value,
-                // Pasamos la fecha calculada para sobreescribir cualquier error del servidor
                 fechaCalculada: fechaVencimiento.toISOString()
             };
 
@@ -178,59 +189,79 @@
             try {
                 const res = await fetch(`${API_URL}?action=getRegistros`);
                 const data = await res.json();
-                
-                container.innerHTML = data.reverse().map(r => {
-                    const fVence = new Date(r[5]);
-                    fVence.setHours(fVence.getHours() + 5); // Corrección Ecuador
-
-                    const hoy = new Date();
-                    hoy.setHours(0,0,0,0);
-                    const fCheck = new Date(fVence);
-                    fCheck.setHours(0,0,0,0);
-
-                    const diff = Math.ceil((fCheck - hoy) / (1000 * 60 * 60 * 24));
-                    
-                    let color = "border-slate-800", label = "Suscripción Activa", labelColor = "text-green-500";
-
-                    // ROJO: El día 30 (hoy mismo vence o ya pasó)
-                    if(diff <= 0) { 
-                        color = "border-red-600 bg-red-950/20 animate-urgent text-red-200"; 
-                        label = "RENOVAR HOY (DÍA 30) 🚨"; 
-                        labelColor = "text-red-500 font-black";
-                    } 
-                    // AMARILLO: Entre el día 27 y 29 (faltan 3, 2 o 1 día para el 30)
-                    else if(diff <= 3) { 
-                        color = "border-yellow-500 bg-yellow-500/10 text-yellow-200"; 
-                        label = "AVISO PREVIO (DÍA 27+) ⏳"; 
-                        labelColor = "text-yellow-500 font-black";
-                    }
-
-                    const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming te informa que tu *${r[1]} (${r[2]})* vence el *${fVence.toLocaleDateString()}*. ¿Deseas renovar?`);
-
-                    return `
-                        <div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 shadow-xl relative transition-all">
-                            <div class="flex justify-between items-start mb-1">
-                                <div>
-                                    <h3 class="font-bold text-white text-lg tracking-tight">${r[0]}</h3>
-                                    <p class="text-yellow-500 text-[10px] font-black uppercase tracking-widest">${r[1]}</p>
-                                </div>
-                                <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full hover:bg-red-600 transition-colors">🗑️</button>
-                            </div>
-                            
-                            <div class="mt-3 space-y-1 text-xs text-slate-400">
-                                <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Correo/Perfil:</span> <span class="text-slate-100 font-mono font-bold">${r[2]}</span></p>
-                                <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Vence el:</span> <span class="text-slate-100 font-bold">${fVence.toLocaleDateString()}</span></p>
-                                <p class="${labelColor} text-[10px] pt-1 uppercase tracking-tighter font-bold">${label}</p>
-                            </div>
-
-                            <div class="mt-4 grid grid-cols-2 gap-3">
-                                <button onclick="editarVenta('${r[0]}','${r[2]}','${r[5]}')" class="py-3 bg-slate-800 text-slate-400 text-[9px] font-black rounded-xl border border-slate-700 uppercase tracking-tighter">✏️ Editar Datos</button>
-                                <a href="https://wa.me/${r[7]}?text=${msgWA}" target="_blank" class="py-3 bg-green-600 text-white text-[9px] font-black rounded-xl text-center uppercase tracking-tighter">💬 Avisar por WA</a>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                registrosLocales = data.reverse(); // Guardamos una copia para el buscador
+                renderizarRegistros(registrosLocales);
             } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error al cargar historial</p>'; }
+        }
+
+        // Función nueva para filtrar la lista
+        function filtrarRegistros() {
+            const termino = document.getElementById('buscador-historial').value.toLowerCase();
+            const filtrados = registrosLocales.filter(r => {
+                const nombre = r[0].toLowerCase();
+                const servicio = r[1].toLowerCase();
+                const correo = r[2].toLowerCase();
+                return nombre.includes(termino) || servicio.includes(termino) || correo.includes(termino);
+            });
+            renderizarRegistros(filtrados);
+        }
+
+        // Función para dibujar los registros en pantalla
+        function renderizarRegistros(lista) {
+            const container = document.getElementById('lista-registros');
+            if(lista.length === 0) {
+                container.innerHTML = '<p class="text-center text-slate-600 text-[10px] uppercase py-10">Sin resultados</p>';
+                return;
+            }
+
+            container.innerHTML = lista.map(r => {
+                const fVence = new Date(r[5]);
+                fVence.setHours(fVence.getHours() + 5);
+
+                const hoy = new Date();
+                hoy.setHours(0,0,0,0);
+                const fCheck = new Date(fVence);
+                fCheck.setHours(0,0,0,0);
+
+                const diff = Math.ceil((fCheck - hoy) / (1000 * 60 * 60 * 24));
+                
+                let color = "border-slate-800", label = "Suscripción Activa", labelColor = "text-green-500";
+
+                if(diff <= 0) { 
+                    color = "border-red-600 bg-red-950/20 animate-urgent text-red-200"; 
+                    label = "RENOVAR HOY (DÍA 30) 🚨"; 
+                    labelColor = "text-red-500 font-black";
+                } else if(diff <= 3) { 
+                    color = "border-yellow-500 bg-yellow-500/10 text-yellow-200"; 
+                    label = "AVISO PREVIO (DÍA 27+) ⏳"; 
+                    labelColor = "text-yellow-500 font-black";
+                }
+
+                const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming te informa que tu *${r[1]} (${r[2]})* vence el *${fVence.toLocaleDateString()}*. ¿Deseas renovar?`);
+
+                return `
+                    <div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 shadow-xl relative transition-all">
+                        <div class="flex justify-between items-start mb-1">
+                            <div>
+                                <h3 class="font-bold text-white text-lg tracking-tight">${r[0]}</h3>
+                                <p class="text-yellow-500 text-[10px] font-black uppercase tracking-widest">${r[1]}</p>
+                            </div>
+                            <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full hover:bg-red-600 transition-colors">🗑️</button>
+                        </div>
+                        
+                        <div class="mt-3 space-y-1 text-xs text-slate-400">
+                            <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Correo/Perfil:</span> <span class="text-slate-100 font-mono font-bold">${r[2]}</span></p>
+                            <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Vence el:</span> <span class="text-slate-100 font-bold">${fVence.toLocaleDateString()}</span></p>
+                            <p class="${labelColor} text-[10px] pt-1 uppercase tracking-tighter font-bold">${label}</p>
+                        </div>
+
+                        <div class="mt-4 grid grid-cols-2 gap-3">
+                            <button onclick="editarVenta('${r[0]}','${r[2]}','${r[5]}')" class="py-3 bg-slate-800 text-slate-400 text-[9px] font-black rounded-xl border border-slate-700 uppercase tracking-tighter">✏️ Editar Datos</button>
+                            <a href="https://wa.me/${r[7]}?text=${msgWA}" target="_blank" class="py-3 bg-green-600 text-white text-[9px] font-black rounded-xl text-center uppercase tracking-tighter">💬 Avisar por WA</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function editarVenta(cliente, correoOrig, fechaOrig) {
@@ -257,3 +288,5 @@
     </script>
 </body>
 </html>
+
+```
