@@ -21,6 +21,9 @@
         body { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         .search-container { position: sticky; top: 0; z-index: 40; background: #0f172a; padding-bottom: 0.5rem; }
         .btn-sort { font-size: 8px; font-weight: 900; letter-spacing: 0.05em; }
+        /* Ocultar barra de scroll pero mantener funcionalidad */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-24 font-sans">
@@ -42,6 +45,7 @@
             <h1 class="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter">Bull Streaming 🐂</h1>
         </header>
 
+        <!-- TAB VENTA -->
         <section id="tab-venta" class="tab-content active">
             <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-4">
                 <h2 class="text-lg font-bold text-white flex items-center gap-2">🛒 Nueva Suscripción</h2>
@@ -93,6 +97,7 @@
             </div>
         </section>
 
+        <!-- TAB CLIENTES -->
         <section id="tab-clientes" class="tab-content">
             <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-4">
                 <h2 class="text-lg font-bold text-white uppercase tracking-tight">👤 Registro de Clientes</h2>
@@ -104,6 +109,7 @@
             </div>
         </section>
 
+        <!-- TAB REGISTRO -->
         <section id="tab-registro" class="tab-content">
             <div class="search-container">
                 <div class="flex justify-between items-center mb-4">
@@ -134,7 +140,7 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-yellow-500', 'text-slate-500'));
             document.getElementById(tabId).classList.add('active');
-            if (event && event.currentTarget.classList) {
+            if (event && event.currentTarget && event.currentTarget.classList) {
                 event.currentTarget.classList.replace('text-slate-500', 'text-yellow-500');
             }
         }
@@ -157,7 +163,6 @@
             
             btn.disabled = true; btn.innerText = "PROCESANDO...";
 
-            // CORRECCIÓN DE DESFASE: Forzar 00:00:00 local
             const hoy = new Date();
             hoy.setHours(0,0,0,0); 
             
@@ -202,12 +207,10 @@
                 const res = await fetch(`${API_URL}?action=getRegistros`);
                 const data = await res.json();
                 registrosLocales = data;
-                // Por defecto: Los que vencen pronto arriba
                 ordenar('vence', 'asc');
             } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error al cargar historial</p>'; }
         }
 
-        // LÓGICA DE ORDENAMIENTO
         function ordenar(criterio, direccion) {
             registrosLocales.sort((a, b) => {
                 let valA, valB;
@@ -244,14 +247,11 @@
             container.innerHTML = lista.map(r => {
                 const fVence = new Date(r[5]);
                 fVence.setHours(0,0,0,0);
-
                 const hoy = new Date();
                 hoy.setHours(0,0,0,0);
-
                 const diff = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
                 
                 let color = "border-slate-800", label = "Suscripción Activa", labelColor = "text-green-500";
-
                 if(diff <= 0) { 
                     color = "border-red-600 bg-red-950/20 animate-urgent text-red-200"; 
                     label = "RENOVAR HOY (DÍA 30) 🚨"; 
@@ -271,6 +271,7 @@
                                 <h3 class="font-bold text-white text-lg tracking-tight">${r[0]}</h3>
                                 <p class="text-yellow-500 text-[10px] font-black uppercase tracking-widest">${r[1]}</p>
                             </div>
+                            <!-- ELIMINAR CON CONFIRMACIÓN -->
                             <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full hover:bg-red-600 transition-colors">🗑️</button>
                         </div>
                         
@@ -295,17 +296,29 @@
             if(nuevoCorreo && nuevaFechaStr) {
                 const body = { action: "editVenta", cliente: cliente, correoOriginal: correoOrig, nuevoCorreo: nuevoCorreo, nuevaFecha: nuevaFechaStr };
                 await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
-                alert("Cambio solicitado.");
-                cargarRegistros();
+                alert("Cambio solicitado. Sincronizando...");
+                setTimeout(cargarRegistros, 1500);
             }
         }
 
+        // FUNCIÓN DE ELIMINACIÓN CORREGIDA
         async function eliminarVenta(cliente, correo) {
-            if(confirm(`¿Eliminar registro de ${cliente}?`)) {
+            if(confirm(`¿Estás seguro de eliminar el registro de ${cliente} (${correo})?`)) {
                 const body = { action: "deleteVenta", cliente: cliente, correo: correo };
+                
+                // 1. Efecto visual inmediato (Opcional: borrar el elemento del DOM o poner mensaje)
+                console.log("Eliminando...");
+                
+                // 2. Enviar a Google
                 await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
-                alert("Eliminado.");
-                cargarRegistros();
+                
+                // 3. Avisar al usuario
+                alert("Eliminación procesada. Recargando historial...");
+                
+                // 4. IMPORTANTE: Esperar 1.5 segundos para dar tiempo a la Sheet de actualizarse antes de pedir los datos de nuevo
+                setTimeout(() => {
+                    cargarRegistros();
+                }, 1500);
             }
         }
 
