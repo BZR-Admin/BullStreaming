@@ -151,7 +151,6 @@
             }
         }
 
-        // NUEVO: EXTRAER CORREO Y PERFIL AUTOMÁTICAMENTE
         function extraerDatosAutomatico() {
             const texto = document.getElementById('v-fast-paste').value;
             if (!texto) return;
@@ -159,11 +158,9 @@
             const regexCorreo = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
             const correoEncontrado = texto.match(regexCorreo);
 
-            // Busca "Perfil:" o "👤 Usuario:" y extrae lo que sigue
             const regexPerfil = /(?:Perfil:)\s*([^\n\r]+)/i;
             const perfilEncontrado = texto.match(regexPerfil);
 
-            // Detección automática de plataforma
             const selectServicio = document.getElementById('v-servicio');
             const upperText = texto.toUpperCase();
             if (upperText.includes("DISNEY")) selectServicio.value = "Perfil de Disney Normal";
@@ -199,12 +196,11 @@
             
             btn.disabled = true; btn.innerText = "PROCESANDO...";
 
-            // Lógica de fechas: hoy 00:00 y vencimiento día 30 (hoy + 29 días)
             const hoy = new Date();
             hoy.setHours(0,0,0,0); 
             
             const fechaVencimiento = new Date(hoy.getTime());
-            fechaVencimiento.setDate(hoy.getDate() + 29); // 1 + 29 = 30
+            fechaVencimiento.setDate(hoy.getDate() + 29); 
             fechaVencimiento.setHours(0,0,0,0);
 
             const payload = { 
@@ -220,7 +216,6 @@
             alert(`✅ Venta Registrada exitosamente.`);
             btn.disabled = false; btn.innerText = "REGISTRAR VENTA";
             
-            // Limpiar campos
             document.getElementById('v-perfil').value = "";
             document.getElementById('v-fast-paste').value = "";
         }
@@ -251,7 +246,6 @@
             } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error al cargar historial</p>'; }
         }
 
-        // LÓGICA DE ORDENAMIENTO MEJORADA (Milisegundos)
         function ordenar(criterio, direccion) {
             registrosLocales.sort((a, b) => {
                 let valA, valB;
@@ -334,11 +328,18 @@
 
         async function editarVenta(cliente, correoOrig, fechaOrig) {
             const nuevoCorreo = prompt("Nuevo Correo/Perfil:", correoOrig);
-            const nuevaFechaStr = prompt("Nueva fecha de vencimiento (AAAA-MM-DD):", new Date(fechaOrig).toISOString().split('T')[0]);
+            
+            // CORRECCIÓN: Ajustamos la fecha para que se muestre correctamente en el prompt
+            const fechaActualFormateada = new Date(fechaOrig).toISOString().split('T')[0];
+            const nuevaFechaStr = prompt("Nueva fecha de vencimiento (AAAA-MM-DD):", fechaActualFormateada);
+            
             if(nuevoCorreo && nuevaFechaStr) {
-                const body = { action: "editVenta", cliente: cliente, correoOriginal: correoOrig, nuevoCorreo: nuevoCorreo, nuevaFecha: nuevaFechaStr };
+                // CORRECCIÓN DE ZONA HORARIA: Forzamos el mediodía para evitar saltos de día
+                const fechaAjustada = new Date(nuevaFechaStr + 'T12:00:00').toISOString().split('T')[0];
+                
+                const body = { action: "editVenta", cliente: cliente, correoOriginal: correoOrig, nuevoCorreo: nuevoCorreo, nuevaFecha: fechaAjustada };
                 await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
-                alert("Cambio solicitado. Sincronizando...");
+                alert("✅ Cambio solicitado. Sincronizando...");
                 setTimeout(cargarRegistros, 1500);
             }
         }
