@@ -260,6 +260,7 @@
             return new Date(0);
         }
 
+        // --- RENDERIZADO CON SEMÁFORO CORREGIDO ---
         function renderizarRegistros(lista) {
             const container = document.getElementById('lista-registros');
             if(lista.length === 0) { container.innerHTML = '<p class="text-center py-10 opacity-50">Sin registros</p>'; return; }
@@ -268,22 +269,21 @@
                 const hoy = new Date();
                 hoy.setHours(12,0,0,0);
                 
-                // Cálculo de diferencia en días
+                // Diferencia de días
                 const diff = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
                 
                 let color = "border-slate-800", label = "Activa", labelColor = "text-green-500";
                 
-                // --- LÓGICA DE SEMÁFORO ---
                 if(diff <= 0) { 
-                    // Día de vencimiento o ya vencido (Rojo)
+                    // Día 30 o ya vencido
                     color = "border-red-600 bg-red-950/20 animate-urgent"; 
                     label = "VENCIDO 🚨"; 
                     labelColor = "text-red-500"; 
                 }
                 else if(diff <= 2) { 
-                    // Faltan 2 días o 1 día (Amarillo) - Ejemplo: Día 28 y 29
+                    // Días 28 y 29 (faltan 1 o 2 días)
                     color = "border-yellow-500 bg-yellow-500/10"; 
-                    label = `VENCE EN ${diff} DÍA${diff>1?'S':''} ⏳`; 
+                    label = "AVISO PRÓXIMO ⏳"; 
                     labelColor = "text-yellow-500"; 
                 }
 
