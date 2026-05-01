@@ -21,7 +21,6 @@
         body { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         .search-container { position: sticky; top: 0; z-index: 40; background: #0f172a; padding-bottom: 0.5rem; }
         .btn-sort { font-size: 8px; font-weight: 900; letter-spacing: 0.05em; }
-        /* Ocultar barra de scroll pero mantener funcionalidad */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -45,13 +44,21 @@
             <h1 class="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter">Bull Streaming 🐂</h1>
         </header>
 
-        <!-- TAB VENTA -->
         <section id="tab-venta" class="tab-content active">
             <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-4">
                 <h2 class="text-lg font-bold text-white flex items-center gap-2">🛒 Nueva Suscripción</h2>
-                <select id="sel-cliente" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 transition-all text-sm">
+                
+                <div class="relative">
+                    <textarea id="v-fast-paste" placeholder="Pega aquí el texto de entrega (Correo, Perfil...)" 
+                        class="w-full p-3 bg-slate-950 rounded-xl border border-slate-700 text-[10px] text-slate-300 h-20 outline-none focus:border-indigo-500 transition-all shadow-inner"
+                        oninput="extraerDatosAutomatico()"></textarea>
+                    <span class="absolute right-3 top-2 text-[8px] text-indigo-400 font-black uppercase tracking-widest bg-slate-950 px-1">Autodetectar</span>
+                </div>
+
+                <select id="sel-cliente" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 text-sm">
                     <option value="">Cargando clientes...</option>
                 </select>
+
                 <select id="v-servicio" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 text-sm">
                     <option>Perfil Normal de Netflix</option>
                     <option>Perfil Extra de Netflix</option>
@@ -81,14 +88,15 @@
                     <option>Plan premium de Dezeer</option>
                     <option>Plan premium de Chat GPT</option>
                 </select>
+
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                        <label class="text-[10px] text-slate-500 ml-2 uppercase">Meses (30 días c/u)</label>
+                        <label class="text-[10px] text-slate-500 ml-2 uppercase">Meses</label>
                         <input type="number" id="v-meses" value="1" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
                     </div>
                     <div>
                         <label class="text-[10px] text-slate-500 ml-2 uppercase">Correo/perfil</label>
-                        <input type="text" id="v-perfil" placeholder="Ej: P2-44" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
+                        <input type="text" id="v-perfil" placeholder="Ej: P2-44" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none border-indigo-900/50">
                     </div>
                 </div>
                 <button id="btn-venta" onclick="guardarVenta()" class="w-full py-5 bg-yellow-600 font-black rounded-2xl shadow-lg active:scale-95 transition-all uppercase text-sm tracking-widest">
@@ -97,7 +105,6 @@
             </div>
         </section>
 
-        <!-- TAB CLIENTES -->
         <section id="tab-clientes" class="tab-content">
             <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-4">
                 <h2 class="text-lg font-bold text-white uppercase tracking-tight">👤 Registro de Clientes</h2>
@@ -109,7 +116,6 @@
             </div>
         </section>
 
-        <!-- TAB REGISTRO -->
         <section id="tab-registro" class="tab-content">
             <div class="search-container">
                 <div class="flex justify-between items-center mb-4">
@@ -145,6 +151,36 @@
             }
         }
 
+        // NUEVO: EXTRAER CORREO Y PERFIL AUTOMÁTICAMENTE
+        function extraerDatosAutomatico() {
+            const texto = document.getElementById('v-fast-paste').value;
+            if (!texto) return;
+
+            const regexCorreo = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+            const correoEncontrado = texto.match(regexCorreo);
+
+            // Busca "Perfil:" o "👤 Usuario:" y extrae lo que sigue
+            const regexPerfil = /(?:Perfil:)\s*([^\n\r]+)/i;
+            const perfilEncontrado = texto.match(regexPerfil);
+
+            // Detección automática de plataforma
+            const selectServicio = document.getElementById('v-servicio');
+            const upperText = texto.toUpperCase();
+            if (upperText.includes("DISNEY")) selectServicio.value = "Perfil de Disney Normal";
+            else if (upperText.includes("NETFLIX")) selectServicio.value = "Perfil Normal de Netflix";
+            else if (upperText.includes("SPOTIFY")) selectServicio.value = "Plan Individual de Spotify";
+            else if (upperText.includes("PRIME")) selectServicio.value = "Perfil de Prime Video";
+            else if (upperText.includes("HBO") || upperText.includes("MAX")) selectServicio.value = "Perfil de HBO MAX";
+
+            if (correoEncontrado) {
+                let valorFinal = correoEncontrado[0];
+                if (perfilEncontrado) {
+                    valorFinal += ` - P${perfilEncontrado[1].trim()}`;
+                }
+                document.getElementById('v-perfil').value = valorFinal;
+            }
+        }
+
         async function cargarClientes() {
             try {
                 const res = await fetch(`${API_URL}?action=getClientes`);
@@ -163,11 +199,12 @@
             
             btn.disabled = true; btn.innerText = "PROCESANDO...";
 
+            // Lógica de fechas: hoy 00:00 y vencimiento día 30 (hoy + 29 días)
             const hoy = new Date();
             hoy.setHours(0,0,0,0); 
             
             const fechaVencimiento = new Date(hoy.getTime());
-            fechaVencimiento.setDate(hoy.getDate() + (parseInt(meses) * 30));
+            fechaVencimiento.setDate(hoy.getDate() + 29); // 1 + 29 = 30
             fechaVencimiento.setHours(0,0,0,0);
 
             const payload = { 
@@ -180,9 +217,12 @@
             };
 
             await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            alert(`✅ Venta Registrada. Vence el: ${fechaVencimiento.toLocaleDateString()}`);
+            alert(`✅ Venta Registrada exitosamente.`);
             btn.disabled = false; btn.innerText = "REGISTRAR VENTA";
+            
+            // Limpiar campos
             document.getElementById('v-perfil').value = "";
+            document.getElementById('v-fast-paste').value = "";
         }
 
         async function guardarCliente() {
@@ -211,16 +251,19 @@
             } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error al cargar historial</p>'; }
         }
 
+        // LÓGICA DE ORDENAMIENTO MEJORADA (Milisegundos)
         function ordenar(criterio, direccion) {
             registrosLocales.sort((a, b) => {
                 let valA, valB;
                 if (criterio === 'vence') {
-                    valA = new Date(a[5]);
-                    valB = new Date(b[5]);
+                    valA = new Date(a[5]).getTime();
+                    valB = new Date(b[5]).getTime();
                 } else if (criterio === 'creado') {
-                    valA = new Date(a[3]);
-                    valB = new Date(b[3]);
+                    valA = new Date(a[3]).getTime();
+                    valB = new Date(b[3]).getTime();
                 }
+                if (isNaN(valA)) valA = 0;
+                if (isNaN(valB)) valB = 0;
                 return direccion === 'asc' ? valA - valB : valB - valA;
             });
             filtrarRegistros();
@@ -254,7 +297,7 @@
                 let color = "border-slate-800", label = "Suscripción Activa", labelColor = "text-green-500";
                 if(diff <= 0) { 
                     color = "border-red-600 bg-red-950/20 animate-urgent text-red-200"; 
-                    label = "RENOVAR HOY (DÍA 30) 🚨"; 
+                    label = "RENOVAR HOY (VENCIDO) 🚨"; 
                     labelColor = "text-red-500 font-black";
                 } else if(diff <= 3) { 
                     color = "border-yellow-500 bg-yellow-500/10 text-yellow-200"; 
@@ -271,7 +314,6 @@
                                 <h3 class="font-bold text-white text-lg tracking-tight">${r[0]}</h3>
                                 <p class="text-yellow-500 text-[10px] font-black uppercase tracking-widest">${r[1]}</p>
                             </div>
-                            <!-- ELIMINAR CON CONFIRMACIÓN -->
                             <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full hover:bg-red-600 transition-colors">🗑️</button>
                         </div>
                         
@@ -301,24 +343,12 @@
             }
         }
 
-        // FUNCIÓN DE ELIMINACIÓN CORREGIDA
         async function eliminarVenta(cliente, correo) {
-            if(confirm(`¿Estás seguro de eliminar el registro de ${cliente} (${correo})?`)) {
+            if(confirm(`¿Estás seguro de eliminar el registro de ${cliente}?`)) {
                 const body = { action: "deleteVenta", cliente: cliente, correo: correo };
-                
-                // 1. Efecto visual inmediato (Opcional: borrar el elemento del DOM o poner mensaje)
-                console.log("Eliminando...");
-                
-                // 2. Enviar a Google
                 await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
-                
-                // 3. Avisar al usuario
-                alert("Eliminación procesada. Recargando historial...");
-                
-                // 4. IMPORTANTE: Esperar 1.5 segundos para dar tiempo a la Sheet de actualizarse antes de pedir los datos de nuevo
-                setTimeout(() => {
-                    cargarRegistros();
-                }, 1500);
+                alert("Eliminación procesada.");
+                setTimeout(cargarRegistros, 1500);
             }
         }
 
