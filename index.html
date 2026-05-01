@@ -151,20 +151,15 @@
             }
         }
 
-        // --- DETECCIÓN INTELIGENTE CORREGIDA ---
         function extraerDatosAutomatico() {
             const texto = document.getElementById('v-fast-paste').value;
             if (!texto) return;
-
             const regexCorreo = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
             const correoEncontrado = texto.match(regexCorreo);
             const regexPerfil = /(?:Perfil:)\s*([^\n\r]+)/i;
             const perfilEncontrado = texto.match(regexPerfil);
-
             const selectServicio = document.getElementById('v-servicio');
             const upperText = texto.toUpperCase();
-
-            // Mapeo exacto a las opciones de tu Select
             if (upperText.includes("YOUTUBE")) selectServicio.value = "Plan premium de Youtube";
             else if (upperText.includes("DISNEY")) selectServicio.value = "Perfil de Disney Normal";
             else if (upperText.includes("NETFLIX")) selectServicio.value = "Perfil Normal de Netflix";
@@ -174,7 +169,6 @@
             else if (upperText.includes("CANVA")) selectServicio.value = "Plan premium de Canva";
             else if (upperText.includes("CRUNCHY")) selectServicio.value = "Plan premium de Crunchyroll";
             else if (upperText.includes("FLUJO")) selectServicio.value = "Perfil de Flujo "; 
-
             if (correoEncontrado) {
                 let valorFinal = correoEncontrado[0];
                 if (perfilEncontrado) valorFinal += ` - P${perfilEncontrado[1].trim()}`;
@@ -191,30 +185,16 @@
             } catch (e) { console.error("Error al cargar clientes"); }
         }
 
-        // --- GUARDAR VENTA CORREGIDA (RESTA 1 DÍA) ---
         async function guardarVenta() {
             const btn = document.getElementById('btn-venta');
             const cliente = document.getElementById('sel-cliente').value;
             const meses = parseInt(document.getElementById('v-meses').value);
             if(!cliente) return alert("Selecciona un cliente");
-            
             btn.disabled = true; btn.innerText = "PROCESANDO...";
-
             let fecha = new Date();
-            // Sumamos los 30 días y restamos 1 para que el ciclo sea exacto (ej. 1 al 30)
             fecha.setDate(fecha.getDate() + (30 * meses) - 1); 
-            
             const fechaLimpia = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
-
-            const payload = { 
-                action: "addVenta", 
-                cliente: cliente, 
-                servicio: document.getElementById('v-servicio').value, 
-                duracion: meses, 
-                correo: document.getElementById('v-perfil').value,
-                fechaCalculada: fechaLimpia
-            };
-
+            const payload = { action: "addVenta", cliente: cliente, servicio: document.getElementById('v-servicio').value, duracion: meses, correo: document.getElementById('v-perfil').value, fechaCalculada: fechaLimpia };
             await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             alert(`✅ Registrada. Vence: ${fecha.getDate()}/${fecha.getMonth()+1}/${fecha.getFullYear()}`);
             btn.disabled = false; btn.innerText = "REGISTRAR VENTA";
@@ -246,6 +226,7 @@
             } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error de conexión</p>'; }
         }
 
+        // --- ORDENAMIENTO CORREGIDO (REGISTRO ÍNDICE 3) ---
         function ordenar(criterio, direccion) {
             const indice = criterio === 'vence' ? 5 : 3;
             registrosLocales.sort((a, b) => {
@@ -267,20 +248,22 @@
         }
 
         function parseFechaManual(fechaRaw) {
-            if (!fechaRaw) return new Date();
-            const soloFecha = fechaRaw.toString().split('T')[0];
+            if (!fechaRaw) return new Date(0);
+            // Si ya es un objeto Date o tiene formato ISO con T
+            let fString = fechaRaw.toString();
+            const soloFecha = fString.split('T')[0];
             const partes = soloFecha.split(/[-/]/); 
             if (partes.length === 3) {
                 if (partes[0].length === 4) return new Date(partes[0], partes[1] - 1, partes[2], 12, 0, 0);
                 else return new Date(partes[2], partes[1] - 1, partes[0], 12, 0, 0);
             }
-            return new Date(fechaRaw);
+            const intentoFinal = new Date(fechaRaw);
+            return isNaN(intentoFinal.getTime()) ? new Date(0) : intentoFinal;
         }
 
         function renderizarRegistros(lista) {
             const container = document.getElementById('lista-registros');
             if(lista.length === 0) { container.innerHTML = '<p class="text-center py-10 opacity-50">Sin registros</p>'; return; }
-
             container.innerHTML = lista.map(r => {
                 const fVence = parseFechaManual(r[5]);
                 const hoy = new Date();
@@ -333,7 +316,6 @@
                 setTimeout(cargarRegistros, 1500);
             }
         }
-
         window.onload = cargarClientes;
     </script>
 </body>
