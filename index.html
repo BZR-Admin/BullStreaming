@@ -222,20 +222,15 @@
                 const res = await fetch(`${API_URL}?action=getRegistros`);
                 const data = await res.json();
                 registrosLocales = data;
-                // Al cargar por primera vez, ordenamos por registro descendente (lo más nuevo arriba)
                 ordenar('creado', 'desc');
             } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error de conexión</p>'; }
         }
 
-        // --- ORDENAMIENTO REFORZADO ---
         function ordenar(criterio, direccion) {
             const indice = criterio === 'vence' ? 5 : 3;
             registrosLocales.sort((a, b) => {
                 let valA = parseFechaManual(a[indice]).getTime();
                 let valB = parseFechaManual(b[indice]).getTime();
-                
-                // Si la fecha es igual o inválida, usamos el índice de la fila (asumiendo que está en el array)
-                // Pero lo normal es que las fechas de registro sean distintas por milisegundos.
                 if (direccion === 'asc') return valA - valB;
                 return valB - valA;
             });
@@ -254,12 +249,8 @@
 
         function parseFechaManual(fechaRaw) {
             if (!fechaRaw) return new Date(0);
-            
-            // Intento de parseo directo para fechas ISO de Google
             let d = new Date(fechaRaw);
             if (!isNaN(d.getTime())) return d;
-
-            // Fallback para strings manuales YYYY-MM-DD o DD/MM/YYYY
             const soloFecha = fechaRaw.toString().split(' ')[0].split('T')[0];
             const partes = soloFecha.split(/[-/]/); 
             if (partes.length === 3) {
@@ -272,14 +263,31 @@
         function renderizarRegistros(lista) {
             const container = document.getElementById('lista-registros');
             if(lista.length === 0) { container.innerHTML = '<p class="text-center py-10 opacity-50">Sin registros</p>'; return; }
+            
             container.innerHTML = lista.map(r => {
                 const fVence = parseFechaManual(r[5]);
                 const hoy = new Date();
                 hoy.setHours(12,0,0,0);
+                
+                // Cálculo de diferencia de días
                 const diff = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
+                
                 let color = "border-slate-800", label = "Activa", labelColor = "text-green-500";
-                if(diff <= 0) { color = "border-red-600 bg-red-950/20 animate-urgent"; label = "VENCIDO 🚨"; labelColor = "text-red-500"; }
-                else if(diff <= 3) { color = "border-yellow-500 bg-yellow-500/10"; label = "AVISO (DÍA 27+) ⏳"; labelColor = "text-yellow-500"; }
+                
+                // Lógica del semáforo corregida:
+                if(diff <= 0) { 
+                    // Vence hoy o ya venció
+                    color = "border-red-600 bg-red-950/20 animate-urgent"; 
+                    label = "VENCIDO 🚨"; 
+                    labelColor = "text-red-500"; 
+                }
+                else if(diff <= 2) { 
+                    // Faltan 1 o 2 días (Día 28 o 29)
+                    color = "border-yellow-500 bg-yellow-500/10"; 
+                    label = "POR VENCER ⏳"; 
+                    labelColor = "text-yellow-500"; 
+                }
+
                 const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming informa: tu *${r[1]}* vence el *${fVence.toLocaleDateString()}*. ¿Renovamos?`);
                 return `
                     <div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 shadow-xl mb-4">
