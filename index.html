@@ -263,28 +263,27 @@
         function renderizarRegistros(lista) {
             const container = document.getElementById('lista-registros');
             if(lista.length === 0) { container.innerHTML = '<p class="text-center py-10 opacity-50">Sin registros</p>'; return; }
-            
             container.innerHTML = lista.map(r => {
                 const fVence = parseFechaManual(r[5]);
                 const hoy = new Date();
                 hoy.setHours(12,0,0,0);
                 
-                // Cálculo de diferencia de días
+                // Cálculo de diferencia en días
                 const diff = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
                 
                 let color = "border-slate-800", label = "Activa", labelColor = "text-green-500";
                 
-                // Lógica del semáforo corregida:
+                // --- LÓGICA DE SEMÁFORO ---
                 if(diff <= 0) { 
-                    // Vence hoy o ya venció
+                    // Día de vencimiento o ya vencido (Rojo)
                     color = "border-red-600 bg-red-950/20 animate-urgent"; 
                     label = "VENCIDO 🚨"; 
                     labelColor = "text-red-500"; 
                 }
                 else if(diff <= 2) { 
-                    // Faltan 1 o 2 días (Día 28 o 29)
+                    // Faltan 2 días o 1 día (Amarillo) - Ejemplo: Día 28 y 29
                     color = "border-yellow-500 bg-yellow-500/10"; 
-                    label = "POR VENCER ⏳"; 
+                    label = `VENCE EN ${diff} DÍA${diff>1?'S':''} ⏳`; 
                     labelColor = "text-yellow-500"; 
                 }
 
