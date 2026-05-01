@@ -1,7 +1,4 @@
-Este problema de "comerse un día" es el dolor de cabeza más común en programación web debido a cómo los navegadores interpretan las zonas horarias. Cuando el sistema lee una fecha como "2024-05-30", el navegador a veces piensa que es "2024-05-30 00:00:00" en horario UTC, y al convertirlo a tu hora local (Ecuador), retrocede unas horas y se marca como el día 29.
-He aplicado una técnica llamada **"ISO-Safe Parsing"** que ignora completamente la zona horaria del dispositivo y fuerza a que la fecha se mantenga exactamente como está escrita en la base de datos. También me aseguré de que los botones de ordenamiento funcionen perfectamente.
-Aquí tienes el código definitivo:
-```html
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -356,5 +353,3 @@ Aquí tienes el código definitivo:
     </script>
 </body>
 </html>
-
-```
