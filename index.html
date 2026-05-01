@@ -130,8 +130,6 @@
                 <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
                     <button onclick="ordenar('vence', 'asc')" class="btn-sort flex-shrink-0 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 uppercase">Vence ↑</button>
                     <button onclick="ordenar('vence', 'desc')" class="btn-sort flex-shrink-0 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 uppercase">Vence ↓</button>
-                    <button onclick="ordenar('creado', 'asc')" class="btn-sort flex-shrink-0 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 uppercase">Registro ↑</button>
-                    <button onclick="ordenar('creado', 'desc')" class="btn-sort flex-shrink-0 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 uppercase">Registro ↓</button>
                 </div>
             </div>
             <div id="lista-registros" class="space-y-4"></div>
@@ -146,24 +144,21 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-yellow-500', 'text-slate-500'));
             document.getElementById(tabId).classList.add('active');
-            if (event && event.currentTarget && event.currentTarget.classList) {
-                event.currentTarget.classList.replace('text-slate-500', 'text-yellow-500');
-            }
+            if (window.event && event.currentTarget) event.currentTarget.classList.replace('text-slate-500', 'text-yellow-500');
         }
 
         function extraerDatosAutomatico() {
             const texto = document.getElementById('v-fast-paste').value;
             if (!texto) return;
-
             const regexCorreo = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
             const correoEncontrado = texto.match(regexCorreo);
-
             const regexPerfil = /(?:Perfil:)\s*([^\n\r]+)/i;
             const perfilEncontrado = texto.match(regexPerfil);
-
             const selectServicio = document.getElementById('v-servicio');
             const upperText = texto.toUpperCase();
-            if (upperText.includes("DISNEY")) selectServicio.value = "Perfil de Disney Normal";
+
+            if (upperText.includes("YOUTUBE")) selectServicio.value = "Plan premium de Youtube";
+            else if (upperText.includes("DISNEY")) selectServicio.value = "Perfil de Disney Normal";
             else if (upperText.includes("NETFLIX")) selectServicio.value = "Perfil Normal de Netflix";
             else if (upperText.includes("SPOTIFY")) selectServicio.value = "Plan Individual de Spotify";
             else if (upperText.includes("PRIME")) selectServicio.value = "Perfil de Prime Video";
@@ -171,9 +166,7 @@
 
             if (correoEncontrado) {
                 let valorFinal = correoEncontrado[0];
-                if (perfilEncontrado) {
-                    valorFinal += ` - P${perfilEncontrado[1].trim()}`;
-                }
+                if (perfilEncontrado) valorFinal += ` - P${perfilEncontrado[1].trim()}`;
                 document.getElementById('v-perfil').value = valorFinal;
             }
         }
@@ -190,18 +183,17 @@
         async function guardarVenta() {
             const btn = document.getElementById('btn-venta');
             const cliente = document.getElementById('sel-cliente').value;
-            const meses = document.getElementById('v-meses').value;
-            
+            const meses = parseInt(document.getElementById('v-meses').value);
             if(!cliente) return alert("Selecciona un cliente");
             
             btn.disabled = true; btn.innerText = "PROCESANDO...";
 
-            const hoy = new Date();
-            hoy.setHours(0,0,0,0); 
+            // CALCULAMOS FECHA SIN USAR ISO (EVITA SALTOS)
+            let d = new Date();
+            d.setHours(12,0,0,0);
+            d.setDate(d.getDate() + (30 * meses));
             
-            const fechaVencimiento = new Date(hoy.getTime());
-            fechaVencimiento.setDate(hoy.getDate() + 29); 
-            fechaVencimiento.setHours(0,0,0,0);
+            const fechaString = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
             const payload = { 
                 action: "addVenta", 
@@ -209,116 +201,67 @@
                 servicio: document.getElementById('v-servicio').value, 
                 duracion: meses, 
                 correo: document.getElementById('v-perfil').value,
-                fechaCalculada: fechaVencimiento.toISOString()
+                fechaCalculada: fechaString
             };
 
             await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            alert(`✅ Venta Registrada exitosamente.`);
+            alert(`✅ Registrada para el día ${d.getDate()}`);
             btn.disabled = false; btn.innerText = "REGISTRAR VENTA";
-            
-            document.getElementById('v-perfil').value = "";
-            document.getElementById('v-fast-paste').value = "";
-        }
-
-        async function guardarCliente() {
-            const btn = document.getElementById('btn-cliente');
-            const nombre = document.getElementById('c-nombre').value;
-            if(!nombre) return alert("Falta nombre");
-
-            btn.disabled = true;
-            const payload = { action: "addCliente", nombre: nombre, telefono: document.getElementById('c-tel').value };
-            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            alert("✅ Cliente Guardado");
-            btn.disabled = false;
-            document.getElementById('c-nombre').value = ""; document.getElementById('c-tel').value = "";
-            cargarClientes();
+            document.getElementById('v-perfil').value = ""; document.getElementById('v-fast-paste').value = "";
         }
 
         async function cargarRegistros() {
             const container = document.getElementById('lista-registros');
-            container.innerHTML = '<p class="text-center text-slate-600 text-[10px] uppercase tracking-widest mt-10">Sincronizando registros...</p>';
-            
+            container.innerHTML = '<p class="text-center text-slate-600 mt-10">Sincronizando...</p>';
             try {
                 const res = await fetch(`${API_URL}?action=getRegistros`);
                 const data = await res.json();
                 registrosLocales = data;
                 ordenar('vence', 'asc');
-            } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error al cargar historial</p>'; }
+            } catch (e) { container.innerHTML = '<p class="text-red-500 text-center">Error</p>'; }
         }
 
-        function ordenar(criterio, direccion) {
-            registrosLocales.sort((a, b) => {
-                let valA, valB;
-                if (criterio === 'vence') {
-                    valA = new Date(a[5]).getTime();
-                    valB = new Date(b[5]).getTime();
-                } else if (criterio === 'creado') {
-                    valA = new Date(a[3]).getTime();
-                    valB = new Date(b[3]).getTime();
-                }
-                if (isNaN(valA)) valA = 0;
-                if (isNaN(valB)) valB = 0;
-                return direccion === 'asc' ? valA - valB : valB - valA;
-            });
-            filtrarRegistros();
+        // SOLUCIÓN DEFINITIVA: Separar el string para no perder el día
+        function formatearFechaLegible(fechaRaw) {
+            if(!fechaRaw) return "S/F";
+            // Tomamos solo la parte YYYY-MM-DD
+            let partes = fechaRaw.toString().split('T')[0].split('-');
+            if(partes.length < 3) return "Fecha Inválida";
+            // Retornamos DD/MM/YYYY directo de los números
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
         }
 
-        function filtrarRegistros() {
-            const termino = document.getElementById('buscador-historial').value.toLowerCase();
-            const filtrados = registrosLocales.filter(r => {
-                const nombre = r[0].toString().toLowerCase();
-                const servicio = r[1].toString().toLowerCase();
-                const correo = r[2].toString().toLowerCase();
-                return nombre.includes(termino) || servicio.includes(termino) || correo.includes(termino);
-            });
-            renderizarRegistros(filtrados);
+        function obtenerDiffDias(fechaRaw) {
+            let partes = fechaRaw.toString().split('T')[0].split('-');
+            let fVence = new Date(partes[0], partes[1] - 1, partes[2], 12, 0, 0);
+            let hoy = new Date();
+            hoy.setHours(0,0,0,0);
+            return Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
         }
 
         function renderizarRegistros(lista) {
             const container = document.getElementById('lista-registros');
-            if(lista.length === 0) {
-                container.innerHTML = '<p class="text-center text-slate-600 text-[10px] uppercase py-10">Sin resultados</p>';
-                return;
-            }
-
             container.innerHTML = lista.map(r => {
-                const fVence = new Date(r[5]);
-                fVence.setHours(0,0,0,0);
-                const hoy = new Date();
-                hoy.setHours(0,0,0,0);
-                const diff = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
-                
-                let color = "border-slate-800", label = "Suscripción Activa", labelColor = "text-green-500";
-                if(diff <= 0) { 
-                    color = "border-red-600 bg-red-950/20 animate-urgent text-red-200"; 
-                    label = "RENOVAR HOY (VENCIDO) 🚨"; 
-                    labelColor = "text-red-500 font-black";
-                } else if(diff <= 3) { 
-                    color = "border-yellow-500 bg-yellow-500/10 text-yellow-200"; 
-                    label = "AVISO PREVIO (DÍA 27+) ⏳"; 
-                    labelColor = "text-yellow-500 font-black";
-                }
+                const diff = obtenerDiffDias(r[5]);
+                let color = "border-slate-800", label = "Activa", labelColor = "text-green-500";
+                if(diff <= 0) { color = "border-red-600 bg-red-950/20 animate-urgent"; label = "VENCIDO 🚨"; labelColor = "text-red-500"; }
+                else if(diff <= 3) { color = "border-yellow-500 bg-yellow-500/10"; label = "AVISO PRÓXIMO ⏳"; labelColor = "text-yellow-500"; }
 
-                const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming te informa que tu *${r[1]} (${r[2]})* vence el *${fVence.toLocaleDateString()}*. ¿Deseas renovar?`);
+                const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming informa: tu *${r[1]}* vence el *${formatearFechaLegible(r[5])}*. ¿Renovamos?`);
 
                 return `
-                    <div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 shadow-xl relative">
-                        <div class="flex justify-between items-start mb-1">
-                            <div>
-                                <h3 class="font-bold text-white text-lg tracking-tight">${r[0]}</h3>
-                                <p class="text-yellow-500 text-[10px] font-black uppercase tracking-widest">${r[1]}</p>
-                            </div>
-                            <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full hover:bg-red-600 transition-colors">🗑️</button>
+                    <div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 shadow-xl mb-4">
+                        <div class="flex justify-between items-start">
+                            <div><h3 class="font-bold text-white">${r[0]}</h3><p class="text-yellow-500 text-[10px] font-black">${r[1]}</p></div>
+                            <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full">🗑️</button>
                         </div>
-                        
-                        <div class="mt-3 space-y-1 text-xs text-slate-400">
-                            <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Correo/Perfil:</span> <span class="text-slate-100 font-mono font-bold">${r[2]}</span></p>
-                            <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Vence el:</span> <span class="text-slate-100 font-bold">${fVence.toLocaleDateString()}</span></p>
-                            <p class="${labelColor} text-[10px] pt-1 uppercase tracking-tighter font-bold">${label}</p>
+                        <div class="mt-3 text-xs text-slate-400">
+                            <p class="flex justify-between"><span>Perfil:</span> <span class="text-slate-100 font-bold">${r[2]}</span></p>
+                            <p class="flex justify-between"><span>Vence:</span> <span class="text-slate-100 font-bold">${formatearFechaLegible(r[5])}</span></p>
+                            <p class="${labelColor} text-[10px] pt-1 font-black">${label}</p>
                         </div>
-
                         <div class="mt-4 grid grid-cols-2 gap-3">
-                            <button onclick="editarVenta('${r[0]}','${r[2]}','${r[5]}')" class="py-3 bg-slate-800 text-slate-400 text-[9px] font-black rounded-xl border border-slate-700 uppercase">✏️ Editar</button>
+                            <button onclick="editarVenta('${r[0]}','${r[2]}','${r[5]}')" class="py-3 bg-slate-800 text-[9px] rounded-xl uppercase">✏️ Editar</button>
                             <a href="https://wa.me/${r[7]}?text=${msgWA}" target="_blank" class="py-3 bg-green-600 text-white text-[9px] font-black rounded-xl text-center uppercase">💬 Avisar</a>
                         </div>
                     </div>
@@ -328,28 +271,41 @@
 
         async function editarVenta(cliente, correoOrig, fechaOrig) {
             const nuevoCorreo = prompt("Nuevo Correo/Perfil:", correoOrig);
-            
-            // CORRECCIÓN: Ajustamos la fecha para que se muestre correctamente en el prompt
-            const fechaActualFormateada = new Date(fechaOrig).toISOString().split('T')[0];
-            const nuevaFechaStr = prompt("Nueva fecha de vencimiento (AAAA-MM-DD):", fechaActualFormateada);
-            
+            const fechaLimpia = fechaOrig.toString().split('T')[0];
+            const nuevaFechaStr = prompt("Nueva fecha (AAAA-MM-DD):", fechaLimpia);
             if(nuevoCorreo && nuevaFechaStr) {
-                // CORRECCIÓN DE ZONA HORARIA: Forzamos el mediodía para evitar saltos de día
-                const fechaAjustada = new Date(nuevaFechaStr + 'T12:00:00').toISOString().split('T')[0];
-                
-                const body = { action: "editVenta", cliente: cliente, correoOriginal: correoOrig, nuevoCorreo: nuevoCorreo, nuevaFecha: fechaAjustada };
+                const body = { action: "editVenta", cliente: cliente, correoOriginal: correoOrig, nuevoCorreo: nuevoCorreo, nuevaFecha: nuevaFechaStr };
                 await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
-                alert("✅ Cambio solicitado. Sincronizando...");
-                setTimeout(cargarRegistros, 1500);
+                setTimeout(cargarRegistros, 1000);
             }
         }
 
-        async function eliminarVenta(cliente, correo) {
-            if(confirm(`¿Estás seguro de eliminar el registro de ${cliente}?`)) {
-                const body = { action: "deleteVenta", cliente: cliente, correo: correo };
-                await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
-                alert("Eliminación procesada.");
-                setTimeout(cargarRegistros, 1500);
+        function ordenar(criterio, direccion) {
+            registrosLocales.sort((a, b) => {
+                let valA = new Date(a[5].split('T')[0]).getTime();
+                let valB = new Date(b[5].split('T')[0]).getTime();
+                return direccion === 'asc' ? valA - valB : valB - valA;
+            });
+            filtrarRegistros();
+        }
+
+        function filtrarRegistros() {
+            const t = document.getElementById('buscador-historial').value.toLowerCase();
+            renderizarRegistros(registrosLocales.filter(r => r[0].toLowerCase().includes(t) || r[1].toLowerCase().includes(t) || r[2].toLowerCase().includes(t)));
+        }
+
+        async function guardarCliente() {
+            const n = document.getElementById('c-nombre').value;
+            if(!n) return alert("Nombre?");
+            const payload = { action: "addCliente", nombre: n, telefono: document.getElementById('c-tel').value };
+            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("Listo"); cargarClientes();
+        }
+
+        async function eliminarVenta(c, m) {
+            if(confirm("¿Eliminar?")) {
+                await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "deleteVenta", cliente: c, correo: m }) });
+                setTimeout(cargarRegistros, 1000);
             }
         }
 
