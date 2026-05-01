@@ -222,17 +222,22 @@
                 const res = await fetch(`${API_URL}?action=getRegistros`);
                 const data = await res.json();
                 registrosLocales = data;
-                ordenar('vence', 'asc');
+                // Al cargar por primera vez, ordenamos por registro descendente (lo más nuevo arriba)
+                ordenar('creado', 'desc');
             } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error de conexión</p>'; }
         }
 
-        // --- ORDENAMIENTO CORREGIDO (REGISTRO ÍNDICE 3) ---
+        // --- ORDENAMIENTO REFORZADO ---
         function ordenar(criterio, direccion) {
             const indice = criterio === 'vence' ? 5 : 3;
             registrosLocales.sort((a, b) => {
                 let valA = parseFechaManual(a[indice]).getTime();
                 let valB = parseFechaManual(b[indice]).getTime();
-                return direccion === 'asc' ? valA - valB : valB - valA;
+                
+                // Si la fecha es igual o inválida, usamos el índice de la fila (asumiendo que está en el array)
+                // Pero lo normal es que las fechas de registro sean distintas por milisegundos.
+                if (direccion === 'asc') return valA - valB;
+                return valB - valA;
             });
             filtrarRegistros();
         }
@@ -249,16 +254,19 @@
 
         function parseFechaManual(fechaRaw) {
             if (!fechaRaw) return new Date(0);
-            // Si ya es un objeto Date o tiene formato ISO con T
-            let fString = fechaRaw.toString();
-            const soloFecha = fString.split('T')[0];
+            
+            // Intento de parseo directo para fechas ISO de Google
+            let d = new Date(fechaRaw);
+            if (!isNaN(d.getTime())) return d;
+
+            // Fallback para strings manuales YYYY-MM-DD o DD/MM/YYYY
+            const soloFecha = fechaRaw.toString().split(' ')[0].split('T')[0];
             const partes = soloFecha.split(/[-/]/); 
             if (partes.length === 3) {
                 if (partes[0].length === 4) return new Date(partes[0], partes[1] - 1, partes[2], 12, 0, 0);
                 else return new Date(partes[2], partes[1] - 1, partes[0], 12, 0, 0);
             }
-            const intentoFinal = new Date(fechaRaw);
-            return isNaN(intentoFinal.getTime()) ? new Date(0) : intentoFinal;
+            return new Date(0);
         }
 
         function renderizarRegistros(lista) {
