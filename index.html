@@ -185,6 +185,7 @@
             } catch (e) { console.error("Error al cargar clientes"); }
         }
 
+        // --- CORREGIDO: SE ELIMINÓ EL -1 PARA QUE COINCIDA CON EL MENSAJE ---
         async function guardarVenta() {
             const btn = document.getElementById('btn-venta');
             const cliente = document.getElementById('sel-cliente').value;
@@ -192,7 +193,7 @@
             if(!cliente) return alert("Selecciona un cliente");
             btn.disabled = true; btn.innerText = "PROCESANDO...";
             let fecha = new Date();
-            fecha.setDate(fecha.getDate() + (30 * meses) - 1); 
+            fecha.setDate(fecha.getDate() + (30 * meses)); 
             const fechaLimpia = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
             const payload = { action: "addVenta", cliente: cliente, servicio: document.getElementById('v-servicio').value, duracion: meses, correo: document.getElementById('v-perfil').value, fechaCalculada: fechaLimpia };
             await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
@@ -259,7 +260,6 @@
             return new Date(0);
         }
 
-        // --- RENDERIZADO CON SEMÁFORO CORREGIDO ---
         function renderizarRegistros(lista) {
             const container = document.getElementById('lista-registros');
             if(lista.length === 0) { container.innerHTML = '<p class="text-center py-10 opacity-50">Sin registros</p>'; return; }
@@ -267,21 +267,15 @@
                 const fVence = parseFechaManual(r[5]);
                 const hoy = new Date();
                 hoy.setHours(12,0,0,0);
-                
-                // Diferencia de días
                 const diff = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
-                
                 let color = "border-slate-800", label = "Activa", labelColor = "text-green-500";
                 
-                // LÓGICA DEL SEMÁFORO
                 if(diff <= 0) { 
-                    // Día 30 (o ya vencido) -> ROJO
                     color = "border-red-600 bg-red-950/20 animate-urgent"; 
                     label = "VENCIDO 🚨"; 
                     labelColor = "text-red-500"; 
                 }
                 else if(diff === 1 || diff === 2) { 
-                    // Día 28 y 29 -> AMARILLO
                     color = "border-yellow-500 bg-yellow-500/10"; 
                     label = "AVISO PRÓXIMO ⏳"; 
                     labelColor = "text-yellow-500"; 
