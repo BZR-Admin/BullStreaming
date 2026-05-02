@@ -260,6 +260,7 @@
             return new Date(0);
         }
 
+        // --- SOLO ESTA FUNCIÓN HA SIDO MODIFICADA PARA EL SEMÁFORO ---
         function renderizarRegistros(lista) {
             const container = document.getElementById('lista-registros');
             if(lista.length === 0) { container.innerHTML = '<p class="text-center py-10 opacity-50">Sin registros</p>'; return; }
@@ -268,20 +269,20 @@
                 const hoy = new Date();
                 hoy.setHours(12,0,0,0);
                 
-                // Cálculo de diferencia en días
-                const diff = Math.round((fVence - hoy) / (1000 * 60 * 60 * 24));
+                // Cálculo de diferencia de días exactos
+                const diff = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
                 
                 let color = "border-slate-800", label = "Activa", labelColor = "text-green-500";
                 
-                // LÓGICA DE SEMÁFORO ACTUALIZADA
+                // SEMÁFORO SEGÚN TU PEDIDO:
+                // Día 30 (o menor) = Rojo
+                // Día 28 y 29 (quedan 1 o 2 días) = Amarillo
                 if(diff <= 0) { 
-                    // Día 30 (0 días o menos) -> ROJO
                     color = "border-red-600 bg-red-950/20 animate-urgent"; 
                     label = "VENCIDO 🚨"; 
                     labelColor = "text-red-500"; 
                 }
                 else if(diff === 1 || diff === 2) { 
-                    // Días 28 y 29 (1 o 2 días restantes) -> AMARILLO
                     color = "border-yellow-500 bg-yellow-500/10"; 
                     label = "AVISO PRÓXIMO ⏳"; 
                     labelColor = "text-yellow-500"; 
