@@ -185,7 +185,6 @@
             } catch (e) { console.error("Error al cargar clientes"); }
         }
 
-        // --- CORREGIDO: SE ELIMINÓ EL -1 PARA QUE COINCIDA CON EL MENSAJE ---
         async function guardarVenta() {
             const btn = document.getElementById('btn-venta');
             const cliente = document.getElementById('sel-cliente').value;
@@ -193,7 +192,7 @@
             if(!cliente) return alert("Selecciona un cliente");
             btn.disabled = true; btn.innerText = "PROCESANDO...";
             let fecha = new Date();
-            fecha.setDate(fecha.getDate() + (30 * meses)); 
+            fecha.setDate(fecha.getDate() + (30 * meses) - 1); 
             const fechaLimpia = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
             const payload = { action: "addVenta", cliente: cliente, servicio: document.getElementById('v-servicio').value, duracion: meses, correo: document.getElementById('v-perfil').value, fechaCalculada: fechaLimpia };
             await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
@@ -232,7 +231,8 @@
             registrosLocales.sort((a, b) => {
                 let valA = parseFechaManual(a[indice]).getTime();
                 let valB = parseFechaManual(b[indice]).getTime();
-                return direccion === 'asc' ? valA - valB : valB - valA;
+                if (direccion === 'asc') return valA - valB;
+                return valB - valA;
             });
             filtrarRegistros();
         }
@@ -267,15 +267,21 @@
                 const fVence = parseFechaManual(r[5]);
                 const hoy = new Date();
                 hoy.setHours(12,0,0,0);
-                const diff = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
+                
+                // Cálculo de diferencia en días
+                const diff = Math.round((fVence - hoy) / (1000 * 60 * 60 * 24));
+                
                 let color = "border-slate-800", label = "Activa", labelColor = "text-green-500";
                 
+                // LÓGICA DE SEMÁFORO ACTUALIZADA
                 if(diff <= 0) { 
+                    // Día 30 (0 días o menos) -> ROJO
                     color = "border-red-600 bg-red-950/20 animate-urgent"; 
                     label = "VENCIDO 🚨"; 
                     labelColor = "text-red-500"; 
                 }
                 else if(diff === 1 || diff === 2) { 
+                    // Días 28 y 29 (1 o 2 días restantes) -> AMARILLO
                     color = "border-yellow-500 bg-yellow-500/10"; 
                     label = "AVISO PRÓXIMO ⏳"; 
                     labelColor = "text-yellow-500"; 
