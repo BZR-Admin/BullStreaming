@@ -138,7 +138,6 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbxlhHQKzQgtu38GVJ5OWC-19bD6vj6XA_ht3SHorGPNzdxl24mvda5p0rrllAb-lbLRXw/exec";
     let registrosLocales = [];
     
-    // CAMBIO 2: Variable de control
     let seleccionManualServicio = false;
 
     function bloquearSeleccionManual() {
@@ -158,7 +157,6 @@
         }
     }
 
-    // --- LÓGICA DE FECHAS ROBUSTA ---
     function parseFechaManual(fechaRaw) {
         if (!fechaRaw) return new Date(0);
         const stringFecha = fechaRaw.toString().trim();
@@ -194,7 +192,6 @@
         return isNaN(d.getTime()) ? new Date(0) : d;
     }
 
-    // CAMBIO 3: Función extraerDatosAutomatico mejorada
     function extraerDatosAutomatico() {
         const texto = document.getElementById('v-fast-paste').value;
         if (!texto) return;
@@ -210,6 +207,7 @@
 
         if (!seleccionManualServicio) {
             if (upperText.includes("NETFLIX")) {
+                // PRIORIDAD: Detectar EXTRA antes que NORMAL
                 if (upperText.includes("EXTRA") || upperText.includes("ADICIONAL") || upperText.includes("EXTRAPROFILE")) {
                     selectServicio.value = "Perfil Extra de Netflix";
                 } else if (upperText.includes("COMPLETA") || upperText.includes("CUENTA COMPLETA")) {
@@ -238,7 +236,9 @@
     async function guardarVenta() {
         const btn = document.getElementById('btn-venta');
         const cliente = document.getElementById('sel-cliente').value;
+        const servicioFinal = document.getElementById('v-servicio').value; // Captura inmediata
         const meses = parseInt(document.getElementById('v-meses').value);
+        
         if(!cliente) return alert("Selecciona un cliente");
 
         let fecha = new Date();
@@ -247,29 +247,34 @@
         
         if (!fConfirm) return;
 
-        btn.disabled = true; btn.innerText = "PROCESANDO...";
+        btn.disabled = true; 
+        btn.innerText = "PROCESANDO...";
         
         const payload = { 
             action: "addVenta", 
             cliente, 
-            servicio: document.getElementById('v-servicio').value, 
+            servicio: servicioFinal, 
             duracion: meses, 
             correo: document.getElementById('v-perfil').value, 
             fechaCalculada: fConfirm 
         };
 
-        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        alert("✅ Registrada");
-        
-        // CAMBIO 4: Reinicio de variables al terminar
-        btn.disabled = false; 
-        btn.innerText = "REGISTRAR VENTA";
-        document.getElementById('v-perfil').value = "";
-        document.getElementById('v-fast-paste').value = "";
-        seleccionManualServicio = false; 
+        try {
+            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("✅ Registrada como: " + servicioFinal);
+            
+            btn.disabled = false; 
+            btn.innerText = "REGISTRAR VENTA";
+            document.getElementById('v-perfil').value = "";
+            document.getElementById('v-fast-paste').value = "";
+            seleccionManualServicio = false; 
+            cargarRegistros();
+        } catch (e) {
+            alert("Error al conectar");
+            btn.disabled = false;
+        }
     }
 
-    // --- OTRAS FUNCIONES ---
     async function cargarRegistros() {
         const container = document.getElementById('lista-registros');
         container.innerHTML = '<p class="text-center text-slate-600 text-[10px] mt-10">Sincronizando...</p>';
@@ -322,7 +327,10 @@
             return direccion === 'asc' ? valA - valB : valB - valA;
         });
         document.querySelectorAll('.btn-sort').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-800'));
-        if(criterio === 'creado') document.getElementById('btn-sort-recent').classList.replace('bg-slate-800', 'bg-indigo-600');
+        if(criterio === 'creado') {
+            const btnSortRecent = document.getElementById('btn-sort-recent');
+            if (btnSortRecent) btnSortRecent.classList.replace('bg-slate-800', 'bg-indigo-600');
+        }
         filtrarRegistros();
     }
 
