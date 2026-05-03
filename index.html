@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -136,99 +135,55 @@
     </section>
 </div>
 
-<!-- REEMPLAZA TODO TU BLOQUE <script>...</script> POR ESTE -->
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxlhHQKzQgtu38GVJ5OWC-19bD6vj6XA_ht3SHorGPNzdxl24mvda5p0rrllAb-lbLRXw/exec";
     let registrosLocales = [];
-
-    /* ========= NUEVO: GUARDAR SI EL USUARIO CAMBIÓ MANUALMENTE EL SERVICIO ========= */
     let servicioManual = false;
 
     window.onload = function() {
         cargarClientes();
-
-        const servicioSelect = document.getElementById('v-servicio');
-        const fastPaste = document.getElementById('v-fast-paste');
-
-        servicioSelect.addEventListener('change', () => {
-            servicioManual = true;
-        });
-
-        fastPaste.addEventListener('focus', () => {
-            servicioManual = false;
-        });
+        document.getElementById('v-servicio').addEventListener('change', () => { servicioManual = true; });
+        document.getElementById('v-fast-paste').addEventListener('focus', () => { servicioManual = false; });
     };
 
     function showTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-yellow-500', 'text-slate-500'));
         document.getElementById(tabId).classList.add('active');
-        if (event && event.currentTarget && event.currentTarget.classList) {
+        if (event && event.currentTarget) {
             event.currentTarget.classList.replace('text-slate-500', 'text-yellow-500');
         }
     }
 
-    /* ========= FUNCIÓN MEJORADA ========= */
     function extraerDatosAutomatico() {
         const texto = document.getElementById('v-fast-paste').value;
         if (!texto) return;
+        const upperText = texto.toUpperCase();
+        const selectServicio = document.getElementById('v-servicio');
+
+        if (!servicioManual) {
+            if (upperText.includes("NETFLIX")) {
+                if (upperText.includes("EXTRA") || upperText.includes("ADICIONAL")) selectServicio.value = "Perfil Extra de Netflix";
+                else selectServicio.value = "Perfil Normal de Netflix";
+            } 
+            else if (upperText.includes("YOUTUBE")) selectServicio.value = "Plan premium de Youtube";
+            else if (upperText.includes("DISNEY")) selectServicio.value = "Perfil de Disney Normal";
+            else if (upperText.includes("SPOTIFY")) selectServicio.value = "Plan Individual de Spotify";
+            else if (upperText.includes("PRIME") || upperText.includes("AMAZON")) selectServicio.value = "Perfil de Prime Video";
+            else if (upperText.includes("HBO") || upperText.includes("MAX")) selectServicio.value = "Perfil de HBO MAX";
+            else if (upperText.includes("CANVA")) selectServicio.value = "Plan premium de Canva";
+            else if (upperText.includes("CRUNCHY")) selectServicio.value = "Plan premium de Crunchyroll";
+            else if (upperText.includes("FLUJO")) selectServicio.value = "Perfil de Flujo ";
+        }
 
         const regexCorreo = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
         const correoEncontrado = texto.match(regexCorreo);
-
         const regexPerfil = /(?:Perfil:)\s*([^\n\r]+)/i;
         const perfilEncontrado = texto.match(regexPerfil);
 
-        const selectServicio = document.getElementById('v-servicio');
-        const upperText = texto.toUpperCase();
-
-        /* SOLO AUTODETECTA SI EL USUARIO NO CAMBIÓ MANUALMENTE */
-        if (!servicioManual) {
-            if (upperText.includes("YOUTUBE")) {
-                selectServicio.value = "Plan premium de Youtube";
-            } 
-            else if (upperText.includes("DISNEY")) {
-                selectServicio.value = "Perfil de Disney Normal";
-            } 
-            else if (upperText.includes("NETFLIX")) {
-                /* Detectar NETFLIX EXTRA */
-                if (
-                    upperText.includes("EXTRA") ||
-                    upperText.includes("ADICIONAL") ||
-                    upperText.includes("MIEMBRO EXTRA")
-                ) {
-                    selectServicio.value = "Perfil Extra de Netflix";
-                } else {
-                    selectServicio.value = "Perfil Normal de Netflix";
-                }
-            } 
-            else if (upperText.includes("SPOTIFY")) {
-                selectServicio.value = "Plan Individual de Spotify";
-            } 
-            else if (upperText.includes("PRIME") || upperText.includes("AMAZON")) {
-                selectServicio.value = "Perfil de Prime Video";
-            } 
-            else if (upperText.includes("HBO") || upperText.includes("MAX")) {
-                selectServicio.value = "Perfil de HBO MAX";
-            } 
-            else if (upperText.includes("CANVA")) {
-                selectServicio.value = "Plan premium de Canva";
-            } 
-            else if (upperText.includes("CRUNCHY")) {
-                selectServicio.value = "Plan premium de Crunchyroll";
-            } 
-            else if (upperText.includes("FLUJO")) {
-                selectServicio.value = "Perfil de Flujo ";
-            }
-        }
-
         if (correoEncontrado) {
             let valorFinal = correoEncontrado[0];
-
-            if (perfilEncontrado) {
-                valorFinal += ` - P${perfilEncontrado[1].trim()}`;
-            }
-
+            if (perfilEncontrado) valorFinal += ` - P${perfilEncontrado[1].trim()}`;
             document.getElementById('v-perfil').value = valorFinal;
         }
     }
@@ -237,166 +192,153 @@
         try {
             const res = await fetch(`${API_URL}?action=getClientes`);
             const data = await res.json();
-
-            document.getElementById('sel-cliente').innerHTML =
-                '<option value="">Seleccione Cliente</option>' +
+            document.getElementById('sel-cliente').innerHTML = '<option value="">Seleccione Cliente</option>' + 
                 data.map(c => `<option value="${c[1]}">${c[1]}</option>`).join('');
-        } catch (e) {
-            console.error("Error al cargar clientes");
-        }
+        } catch (e) { console.error("Error al cargar clientes"); }
     }
 
     async function guardarVenta() {
         const btn = document.getElementById('btn-venta');
         const cliente = document.getElementById('sel-cliente').value;
         const meses = parseInt(document.getElementById('v-meses').value);
-
-        if (!cliente) return alert("Selecciona un cliente");
+        if(!cliente) return alert("Selecciona un cliente");
 
         let fecha = new Date();
-        fecha.setDate(fecha.getDate() + (30 * meses) - 1);
-
+        fecha.setDate(fecha.getDate() + (30 * meses) - 1); 
         const fechaCalculada = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
-
-        const fechaConfirmada = prompt(
-            "Confirma o ajusta la fecha de vencimiento (AAAA-MM-DD):",
-            fechaCalculada
-        );
-
+        const fechaConfirmada = prompt("Confirma fecha (AAAA-MM-DD):", fechaCalculada);
         if (fechaConfirmada === null) return;
 
-        btn.disabled = true;
-        btn.innerText = "PROCESANDO...";
-
-        const payload = {
-            action: "addVenta",
-            cliente: cliente,
-            servicio: document.getElementById('v-servicio').value,
-            duracion: meses,
-            correo: document.getElementById('v-perfil').value,
-            fechaCalculada: fechaConfirmada
+        btn.disabled = true; btn.innerText = "PROCESANDO...";
+        const payload = { 
+            action: "addVenta", 
+            cliente: cliente, 
+            servicio: document.getElementById('v-servicio').value, 
+            duracion: meses, 
+            correo: document.getElementById('v-perfil').value, 
+            fechaCalculada: fechaConfirmada 
         };
-
-        await fetch(API_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(payload)
-        });
-
-        const partes = fechaConfirmada.split('-');
-
-        alert(`✅ Registrada. Vence: ${partes[2]}/${partes[1]}/${partes[0]}`);
-
-        btn.disabled = false;
-        btn.innerText = "REGISTRAR VENTA";
-
+        
+        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        alert(`✅ Registrada. Vence: ${fechaConfirmada}`);
+        btn.disabled = false; btn.innerText = "REGISTRAR VENTA";
         document.getElementById('v-perfil').value = "";
         document.getElementById('v-fast-paste').value = "";
-
-        /* RESETEA PARA NUEVA VENTA */
         servicioManual = false;
     }
 
     async function guardarCliente() {
         const btn = document.getElementById('btn-cliente');
         const nombre = document.getElementById('c-nombre').value;
-
-        if (!nombre) return alert("Falta nombre");
-
+        if(!nombre) return alert("Falta nombre");
         btn.disabled = true;
-
-        const payload = {
-            action: "addCliente",
-            nombre: nombre,
-            telefono: document.getElementById('c-tel').value
-        };
-
-        await fetch(API_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(payload)
-        });
-
+        const payload = { action: "addCliente", nombre: nombre, telefono: document.getElementById('c-tel').value };
+        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
         alert("✅ Cliente Guardado");
-
         btn.disabled = false;
-
-        document.getElementById('c-nombre').value = "";
-        document.getElementById('c-tel').value = "";
-
+        document.getElementById('c-nombre').value = ""; document.getElementById('c-tel').value = "";
         cargarClientes();
     }
 
     async function cargarRegistros() {
         const container = document.getElementById('lista-registros');
-
-        container.innerHTML =
-            '<p class="text-center text-slate-600 text-[10px] uppercase mt-10 tracking-widest">Sincronizando...</p>';
-
+        container.innerHTML = '<p class="text-center text-slate-600 text-[10px] uppercase mt-10 tracking-widest">Sincronizando...</p>';
         try {
             const res = await fetch(`${API_URL}?action=getRegistros`);
             const data = await res.json();
-
             registrosLocales = data;
-
             ordenar('creado', 'desc');
-        } catch (e) {
-            container.innerHTML =
-                '<p class="text-red-500 text-center text-[10px]">Error de conexión</p>';
-        }
+        } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error de conexión</p>'; }
     }
 
     function ordenar(criterio, direccion) {
         const indice = criterio === 'vence' ? 5 : 3;
-
         registrosLocales.sort((a, b) => {
             let valA = parseFechaManual(a[indice]).getTime();
             let valB = parseFechaManual(b[indice]).getTime();
-
             if (direccion === 'asc') return valA - valB;
-
             return valB - valA;
         });
-
         filtrarRegistros();
     }
 
     function filtrarRegistros() {
         const termino = document.getElementById('buscador-historial').value.toLowerCase();
-
-        const filtrados = registrosLocales.filter(r =>
-            r[0].toString().toLowerCase().includes(termino) ||
-            r[1].toString().toLowerCase().includes(termino) ||
+        const filtrados = registrosLocales.filter(r => 
+            r[0].toString().toLowerCase().includes(termino) || 
+            r[1].toString().toLowerCase().includes(termino) || 
             r[2].toString().toLowerCase().includes(termino)
         );
-
         renderizarRegistros(filtrados);
     }
 
     function parseFechaManual(fechaRaw) {
         if (!fechaRaw) return new Date(0);
-
         const soloFecha = fechaRaw.toString().split(' ')[0].split('T')[0];
-
         if (/^\d{4}-\d{2}-\d{2}$/.test(soloFecha)) {
             const [anio, mes, dia] = soloFecha.split('-').map(Number);
             return new Date(anio, mes - 1, dia, 12, 0, 0);
         }
-
         if (/^\d{2}\/\d{2}\/\d{4}$/.test(soloFecha)) {
             const [dia, mes, anio] = soloFecha.split('/').map(Number);
             return new Date(anio, mes - 1, dia, 12, 0, 0);
         }
-
         let d = new Date(fechaRaw);
+        return isNaN(d.getTime()) ? new Date(0) : new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0);
+    }
 
-        if (!isNaN(d.getTime())) {
-            return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0);
+    function renderizarRegistros(lista) {
+        const container = document.getElementById('lista-registros');
+        if(lista.length === 0) { container.innerHTML = '<p class="text-center py-10 opacity-50">Sin registros</p>'; return; }
+        container.innerHTML = lista.map(r => {
+            const fVence = parseFechaManual(r[5]);
+            const hoy = new Date();
+            hoy.setHours(12,0,0,0);
+            const diff = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
+            let color = "border-slate-800", label = "Activa", labelColor = "text-green-500";
+            if (diff <= 0) { color = "border-red-600 bg-red-950/20 animate-urgent"; label = "VENCIDO 🚨"; labelColor = "text-red-500"; }
+            else if (diff <= 2) { color = "border-yellow-500 bg-yellow-500/10"; label = `VENCE EN ${diff} DÍAS ⏳`; labelColor = "text-yellow-500"; }
+            
+            const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming informa: tu *${r[1]}* vence el *${fVence.toLocaleDateString()}*. ¿Renovamos?`);
+            return `
+                <div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 shadow-xl mb-4">
+                    <div class="flex justify-between items-start">
+                        <div class="max-w-[80%]">
+                            <h3 class="font-bold text-white text-lg truncate">${r[0]}</h3>
+                            <p class="text-yellow-500 text-[10px] font-black uppercase tracking-wider">${r[1]}</p>
+                        </div>
+                        <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full text-sm">🗑️</button>
+                    </div>
+                    <div class="mt-3 text-xs text-slate-400 space-y-1">
+                        <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Perfil:</span> <span class="text-slate-100 font-bold">${r[2]}</span></p>
+                        <p class="flex justify-between"><span>Vence:</span> <span class="text-slate-100 font-bold">${fVence.toLocaleDateString()}</span></p>
+                        <p class="${labelColor} text-[10px] pt-1 font-black uppercase">${label}</p>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <button onclick="editarVenta('${r[0]}','${r[2]}','${r[5]}')" class="py-3 bg-slate-800 text-[9px] font-black rounded-xl uppercase border border-slate-700">✏️ Editar</button>
+                        <a href="https://wa.me/${r[7]}?text=${msgWA}" target="_blank" class="py-3 bg-green-600 text-white text-[9px] font-black rounded-xl text-center uppercase">💬 Avisar</a>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    async function editarVenta(cliente, correoOrig, fechaOrig) {
+        const nuevoCorreo = prompt("Nuevo Perfil:", correoOrig);
+        const f = parseFechaManual(fechaOrig);
+        const fechaF = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
+        const nuevaFechaStr = prompt("Nueva fecha (AAAA-MM-DD):", fechaF);
+        if(nuevoCorreo && nuevaFechaStr) {
+            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "editVenta", cliente, correoOriginal: correoOrig, nuevoCorreo, nuevaFecha: nuevaFechaStr }) });
+            alert("🔄 Sincronizando..."); setTimeout(cargarRegistros, 1500);
         }
+    }
 
-        return new Date(0);
+    async function eliminarVenta(cliente, correo) {
+        if(confirm(`¿Eliminar registro de ${cliente}?`)) {
+            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "deleteVenta", cliente, correo }) });
+            setTimeout(cargarRegistros, 1500);
+        }
     }
 </script>
-
 </body>
 </html>
