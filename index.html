@@ -47,16 +47,14 @@
         <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-4">
             <h2 class="text-lg font-bold text-white flex items-center gap-2">🛒 Nueva Suscripción</h2>
             <div class="relative">
-                <textarea id="v-fast-paste" placeholder="Pega aquí el texto de entrega (Correo, Perfil...)" 
+                <textarea id="v-fast-paste" placeholder="Pega aquí el texto de entrega..." 
                     class="w-full p-3 bg-slate-950 rounded-xl border border-slate-700 text-[10px] text-slate-300 h-20 outline-none focus:border-indigo-500 transition-all shadow-inner"
                     oninput="extraerDatosAutomatico()"></textarea>
                 <span class="absolute right-3 top-2 text-[8px] text-indigo-400 font-black uppercase tracking-widest bg-slate-950 px-1">Autodetectar</span>
             </div>
-
             <select id="sel-cliente" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 text-sm">
                 <option value="">Cargando clientes...</option>
             </select>
-
             <select id="v-servicio" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 text-sm">
                 <option>Perfil Normal de Netflix</option>
                 <option>Perfil Extra de Netflix</option>
@@ -86,7 +84,6 @@
                 <option>Plan premium de Dezeer</option>
                 <option>Plan premium de Chat GPT</option>
             </select>
-
             <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
                     <label class="text-[10px] text-slate-500 ml-2 uppercase">Meses</label>
@@ -121,14 +118,12 @@
                 <button onclick="cargarRegistros()" class="text-yellow-500 text-xs font-bold bg-yellow-500/10 px-3 py-1 rounded-full uppercase">🔄 Refrescar</button>
             </div>
             <div class="relative mb-3">
-                <input type="text" id="buscador-historial" onkeyup="filtrarRegistros()" placeholder="Buscar cliente, servicio o correo..." class="w-full p-4 bg-slate-900 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 transition-all text-sm pl-11 shadow-inner">
+                <input type="text" id="buscador-historial" onkeyup="filtrarRegistros()" placeholder="Buscar..." class="w-full p-4 bg-slate-900 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 transition-all text-sm pl-11 shadow-inner">
                 <span class="absolute left-4 top-4 opacity-50">🔍</span>
             </div>
             <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
                 <button onclick="ordenar('vence', 'asc')" class="btn-sort flex-shrink-0 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 uppercase">Vence ↑</button>
                 <button onclick="ordenar('vence', 'desc')" class="btn-sort flex-shrink-0 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 uppercase">Vence ↓</button>
-                <button onclick="ordenar('creado', 'asc')" class="btn-sort flex-shrink-0 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 uppercase">Registro ↑</button>
-                <button onclick="ordenar('creado', 'desc')" class="btn-sort flex-shrink-0 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 uppercase">Registro ↓</button>
             </div>
         </div>
         <div id="lista-registros" class="space-y-4"></div>
@@ -155,126 +150,11 @@
         }
     }
 
-    function extraerDatosAutomatico() {
-        const texto = document.getElementById('v-fast-paste').value;
-        if (!texto) return;
-        const upperText = texto.toUpperCase();
-        const selectServicio = document.getElementById('v-servicio');
-
-        if (!servicioManual) {
-            if (upperText.includes("NETFLIX")) {
-                if (upperText.includes("EXTRA") || upperText.includes("ADICIONAL")) selectServicio.value = "Perfil Extra de Netflix";
-                else selectServicio.value = "Perfil Normal de Netflix";
-            } 
-            else if (upperText.includes("YOUTUBE")) selectServicio.value = "Plan premium de Youtube";
-            else if (upperText.includes("DISNEY")) selectServicio.value = "Perfil de Disney Normal";
-            else if (upperText.includes("SPOTIFY")) selectServicio.value = "Plan Individual de Spotify";
-            else if (upperText.includes("PRIME") || upperText.includes("AMAZON")) selectServicio.value = "Perfil de Prime Video";
-            else if (upperText.includes("HBO") || upperText.includes("MAX")) selectServicio.value = "Perfil de HBO MAX";
-            else if (upperText.includes("CANVA")) selectServicio.value = "Plan premium de Canva";
-            else if (upperText.includes("CRUNCHY")) selectServicio.value = "Plan premium de Crunchyroll";
-            else if (upperText.includes("FLUJO")) selectServicio.value = "Perfil de Flujo ";
-        }
-
-        const regexCorreo = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-        const correoEncontrado = texto.match(regexCorreo);
-        const regexPerfil = /(?:Perfil:)\s*([^\n\r]+)/i;
-        const perfilEncontrado = texto.match(regexPerfil);
-
-        if (correoEncontrado) {
-            let valorFinal = correoEncontrado[0];
-            if (perfilEncontrado) valorFinal += ` - P${perfilEncontrado[1].trim()}`;
-            document.getElementById('v-perfil').value = valorFinal;
-        }
-    }
-
-    async function cargarClientes() {
-        try {
-            const res = await fetch(`${API_URL}?action=getClientes`);
-            const data = await res.json();
-            document.getElementById('sel-cliente').innerHTML = '<option value="">Seleccione Cliente</option>' + 
-                data.map(c => `<option value="${c[1]}">${c[1]}</option>`).join('');
-        } catch (e) { console.error("Error al cargar clientes"); }
-    }
-
-    async function guardarVenta() {
-        const btn = document.getElementById('btn-venta');
-        const cliente = document.getElementById('sel-cliente').value;
-        const meses = parseInt(document.getElementById('v-meses').value);
-        if(!cliente) return alert("Selecciona un cliente");
-
-        let fecha = new Date();
-        fecha.setDate(fecha.getDate() + (30 * meses) - 1); 
-        const fechaCalculada = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
-        const fechaConfirmada = prompt("Confirma fecha (AAAA-MM-DD):", fechaCalculada);
-        if (fechaConfirmada === null) return;
-
-        btn.disabled = true; btn.innerText = "PROCESANDO...";
-        const payload = { 
-            action: "addVenta", 
-            cliente: cliente, 
-            servicio: document.getElementById('v-servicio').value, 
-            duracion: meses, 
-            correo: document.getElementById('v-perfil').value, 
-            fechaCalculada: fechaConfirmada 
-        };
-        
-        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        alert(`✅ Registrada. Vence: ${fechaConfirmada}`);
-        btn.disabled = false; btn.innerText = "REGISTRAR VENTA";
-        document.getElementById('v-perfil').value = "";
-        document.getElementById('v-fast-paste').value = "";
-        servicioManual = false;
-    }
-
-    async function guardarCliente() {
-        const btn = document.getElementById('btn-cliente');
-        const nombre = document.getElementById('c-nombre').value;
-        if(!nombre) return alert("Falta nombre");
-        btn.disabled = true;
-        const payload = { action: "addCliente", nombre: nombre, telefono: document.getElementById('c-tel').value };
-        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        alert("✅ Cliente Guardado");
-        btn.disabled = false;
-        document.getElementById('c-nombre').value = ""; document.getElementById('c-tel').value = "";
-        cargarClientes();
-    }
-
-    async function cargarRegistros() {
-        const container = document.getElementById('lista-registros');
-        container.innerHTML = '<p class="text-center text-slate-600 text-[10px] uppercase mt-10 tracking-widest">Sincronizando...</p>';
-        try {
-            const res = await fetch(`${API_URL}?action=getRegistros`);
-            const data = await res.json();
-            registrosLocales = data;
-            ordenar('creado', 'desc');
-        } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error de conexión</p>'; }
-    }
-
-    function ordenar(criterio, direccion) {
-        const indice = criterio === 'vence' ? 5 : 3;
-        registrosLocales.sort((a, b) => {
-            let valA = parseFechaManual(a[indice]).getTime();
-            let valB = parseFechaManual(b[indice]).getTime();
-            if (direccion === 'asc') return valA - valB;
-            return valB - valA;
-        });
-        filtrarRegistros();
-    }
-
-    function filtrarRegistros() {
-        const termino = document.getElementById('buscador-historial').value.toLowerCase();
-        const filtrados = registrosLocales.filter(r => 
-            r[0].toString().toLowerCase().includes(termino) || 
-            r[1].toString().toLowerCase().includes(termino) || 
-            r[2].toString().toLowerCase().includes(termino)
-        );
-        renderizarRegistros(filtrados);
-    }
-
+    // --- LÓGICA DE FECHAS (TU VERSIÓN CORRECTA) ---
     function parseFechaManual(fechaRaw) {
         if (!fechaRaw) return new Date(0);
         const soloFecha = fechaRaw.toString().split(' ')[0].split('T')[0];
+        
         if (/^\d{4}-\d{2}-\d{2}$/.test(soloFecha)) {
             const [anio, mes, dia] = soloFecha.split('-').map(Number);
             return new Date(anio, mes - 1, dia, 12, 0, 0);
@@ -284,37 +164,63 @@
             return new Date(anio, mes - 1, dia, 12, 0, 0);
         }
         let d = new Date(fechaRaw);
-        return isNaN(d.getTime()) ? new Date(0) : new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0);
+        if (!isNaN(d.getTime())) {
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0);
+        }
+        return new Date(0);
+    }
+
+    async function cargarRegistros() {
+        const container = document.getElementById('lista-registros');
+        container.innerHTML = '<p class="text-center text-slate-600 text-[10px] mt-10">Sincronizando...</p>';
+        try {
+            const res = await fetch(`${API_URL}?action=getRegistros&t=${Date.now()}`);
+            registrosLocales = await res.json();
+            ordenar('creado', 'desc');
+        } catch (e) { 
+            container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error de conexión</p>'; 
+        }
     }
 
     function renderizarRegistros(lista) {
         const container = document.getElementById('lista-registros');
         if(lista.length === 0) { container.innerHTML = '<p class="text-center py-10 opacity-50">Sin registros</p>'; return; }
+        
         container.innerHTML = lista.map(r => {
             const fVence = parseFechaManual(r[5]);
             const hoy = new Date();
             hoy.setHours(12,0,0,0);
+            
             const diff = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
             let color = "border-slate-800", label = "Activa", labelColor = "text-green-500";
-            if (diff <= 0) { color = "border-red-600 bg-red-950/20 animate-urgent"; label = "VENCIDO 🚨"; labelColor = "text-red-500"; }
-            else if (diff <= 2) { color = "border-yellow-500 bg-yellow-500/10"; label = `VENCE EN ${diff} DÍAS ⏳`; labelColor = "text-yellow-500"; }
             
+            if (diff <= 0) {
+                color = "border-red-600 bg-red-950/20 animate-urgent";
+                label = "VENCIDO 🚨";
+                labelColor = "text-red-500";
+            } else if (diff <= 3) {
+                color = "border-yellow-500 bg-yellow-500/10";
+                label = `VENCE EN ${diff} DÍAS ⏳`;
+                labelColor = "text-yellow-500";
+            }
+
             const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming informa: tu *${r[1]}* vence el *${fVence.toLocaleDateString()}*. ¿Renovamos?`);
+
             return `
-                <div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 shadow-xl mb-4">
+                <div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 mb-4">
                     <div class="flex justify-between items-start">
-                        <div class="max-w-[80%]">
-                            <h3 class="font-bold text-white text-lg truncate">${r[0]}</h3>
-                            <p class="text-yellow-500 text-[10px] font-black uppercase tracking-wider">${r[1]}</p>
+                        <div class="max-w-[75%]">
+                            <h3 class="font-bold text-white truncate">${r[0]}</h3>
+                            <p class="text-yellow-500 text-[10px] font-black uppercase">${r[1]}</p>
                         </div>
-                        <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full text-sm">🗑️</button>
+                        <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full text-[10px]">🗑️</button>
                     </div>
                     <div class="mt-3 text-xs text-slate-400 space-y-1">
-                        <p class="flex justify-between border-b border-slate-800/50 pb-1"><span>Perfil:</span> <span class="text-slate-100 font-bold">${r[2]}</span></p>
+                        <p class="flex justify-between"><span>Perfil:</span> <span class="text-slate-100 font-bold">${r[2]}</span></p>
                         <p class="flex justify-between"><span>Vence:</span> <span class="text-slate-100 font-bold">${fVence.toLocaleDateString()}</span></p>
                         <p class="${labelColor} text-[10px] pt-1 font-black uppercase">${label}</p>
                     </div>
-                    <div class="mt-4 grid grid-cols-2 gap-3">
+                    <div class="mt-4 grid grid-cols-2 gap-2">
                         <button onclick="editarVenta('${r[0]}','${r[2]}','${r[5]}')" class="py-3 bg-slate-800 text-[9px] font-black rounded-xl uppercase border border-slate-700">✏️ Editar</button>
                         <a href="https://wa.me/${r[7]}?text=${msgWA}" target="_blank" class="py-3 bg-green-600 text-white text-[9px] font-black rounded-xl text-center uppercase">💬 Avisar</a>
                     </div>
@@ -322,21 +228,101 @@
         }).join('');
     }
 
-    async function editarVenta(cliente, correoOrig, fechaOrig) {
-        const nuevoCorreo = prompt("Nuevo Perfil:", correoOrig);
-        const f = parseFechaManual(fechaOrig);
-        const fechaF = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
-        const nuevaFechaStr = prompt("Nueva fecha (AAAA-MM-DD):", fechaF);
-        if(nuevoCorreo && nuevaFechaStr) {
-            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "editVenta", cliente, correoOriginal: correoOrig, nuevoCorreo, nuevaFecha: nuevaFechaStr }) });
-            alert("🔄 Sincronizando..."); setTimeout(cargarRegistros, 1500);
+    // --- RESTO DE FUNCIONES ---
+    async function cargarClientes() {
+        try {
+            const res = await fetch(`${API_URL}?action=getClientes`);
+            const data = await res.json();
+            document.getElementById('sel-cliente').innerHTML = '<option value="">Seleccione Cliente</option>' + 
+                data.map(c => `<option value="${c[1]}">${c[1]}</option>`).join('');
+        } catch (e) { console.error(e); }
+    }
+
+    async function guardarVenta() {
+        const btn = document.getElementById('btn-venta');
+        const cliente = document.getElementById('sel-cliente').value;
+        const meses = parseInt(document.getElementById('v-meses').value);
+        if(!cliente) return alert("Selecciona cliente");
+
+        let fecha = new Date();
+        fecha.setDate(fecha.getDate() + (30 * meses) - 1);
+        const fechaCalculada = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+        const fConfirm = prompt("Confirmar vencimiento (AAAA-MM-DD):", fechaCalculada);
+        if (!fConfirm) return;
+
+        btn.disabled = true; btn.innerText = "PROCESANDO...";
+        const payload = { action: "addVenta", cliente, servicio: document.getElementById('v-servicio').value, duracion: meses, correo: document.getElementById('v-perfil').value, fechaCalculada: fConfirm };
+        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        alert("✅ Registrada");
+        btn.disabled = false; btn.innerText = "REGISTRAR VENTA";
+        document.getElementById('v-perfil').value = ""; document.getElementById('v-fast-paste').value = "";
+    }
+
+    async function guardarCliente() {
+        const btn = document.getElementById('btn-cliente');
+        const nombre = document.getElementById('c-nombre').value;
+        if(!nombre) return alert("Falta nombre");
+        btn.disabled = true;
+        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "addCliente", nombre, telefono: document.getElementById('c-tel').value }) });
+        alert("✅ Guardado");
+        btn.disabled = false; document.getElementById('c-nombre').value = ""; document.getElementById('c-tel').value = "";
+        cargarClientes();
+    }
+
+    function ordenar(criterio, direccion) {
+        const indice = criterio === 'vence' ? 5 : 3;
+        registrosLocales.sort((a, b) => {
+            let valA = parseFechaManual(a[indice]).getTime();
+            let valB = parseFechaManual(b[indice]).getTime();
+            return direccion === 'asc' ? valA - valB : valB - valA;
+        });
+        filtrarRegistros();
+    }
+
+    function filtrarRegistros() {
+        const termino = document.getElementById('buscador-historial').value.toLowerCase();
+        const filtrados = registrosLocales.filter(r => 
+            r[0].toString().toLowerCase().includes(termino) || r[1].toString().toLowerCase().includes(termino) || r[2].toString().toLowerCase().includes(termino)
+        );
+        renderizarRegistros(filtrados);
+    }
+
+    function extraerDatosAutomatico() {
+        const texto = document.getElementById('v-fast-paste').value;
+        if (!texto) return;
+        const upper = texto.toUpperCase();
+        const select = document.getElementById('v-servicio');
+        if (!servicioManual) {
+            if (upper.includes("NETFLIX")) select.value = upper.includes("EXTRA") ? "Perfil Extra de Netflix" : "Perfil Normal de Netflix";
+            else if (upper.includes("YOUTUBE")) select.value = "Plan premium de Youtube";
+            else if (upper.includes("DISNEY")) select.value = "Perfil de Disney Normal";
+            else if (upper.includes("SPOTIFY")) select.value = "Plan Individual de Spotify";
+            else if (upper.includes("HBO") || upper.includes("MAX")) select.value = "Perfil de HBO MAX";
+        }
+        const mail = texto.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+        const perf = texto.match(/(?:Perfil:)\s*([^\n\r]+)/i);
+        if (mail) {
+            let res = mail[0];
+            if (perf) res += ` - P${perf[1].trim()}`;
+            document.getElementById('v-perfil').value = res;
         }
     }
 
     async function eliminarVenta(cliente, correo) {
         if(confirm(`¿Eliminar registro de ${cliente}?`)) {
             await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "deleteVenta", cliente, correo }) });
-            setTimeout(cargarRegistros, 1500);
+            alert("Eliminando..."); setTimeout(cargarRegistros, 1500);
+        }
+    }
+
+    async function editarVenta(cliente, correoOrig, fechaOrig) {
+        const nuevoCorreo = prompt("Nuevo Perfil/Correo:", correoOrig);
+        const f = parseFechaManual(fechaOrig);
+        const fFormato = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
+        const nuevaF = prompt("Nueva fecha (AAAA-MM-DD):", fFormato);
+        if(nuevoCorreo && nuevaF) {
+            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "editVenta", cliente, correoOriginal: correoOrig, nuevoCorreo, nuevaFecha: nuevaF }) });
+            alert("Actualizando..."); setTimeout(cargarRegistros, 1500);
         }
     }
 </script>
