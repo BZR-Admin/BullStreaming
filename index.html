@@ -148,24 +148,40 @@
         }
     }
 
+    // --- FUNCIÓN CORREGIDA ---
     function extraerDatosAutomatico() {
         const texto = document.getElementById('v-fast-paste').value;
         if (!texto) return;
-        const regexCorreo = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-        const correoEncontrado = texto.match(regexCorreo);
-        const regexPerfil = /(?:Perfil:)\s*([^\n\r]+)/i;
-        const perfilEncontrado = texto.match(regexPerfil);
-        const selectServicio = document.getElementById('v-servicio');
+
         const upperText = texto.toUpperCase();
-        if (upperText.includes("YOUTUBE")) selectServicio.value = "Plan premium de Youtube";
+        const selectServicio = document.getElementById('v-servicio');
+        
+        // Detección más inteligente de Netflix
+        if (upperText.includes("NETFLIX")) {
+            if (upperText.includes("EXTRA")) {
+                selectServicio.value = "Perfil Extra de Netflix";
+            } else if (upperText.includes("COMPLETA")) {
+                selectServicio.value = "Cuenta Completa de Netflix";
+            } else {
+                selectServicio.value = "Perfil Normal de Netflix";
+            }
+        } 
+        // Otros servicios
+        else if (upperText.includes("YOUTUBE")) selectServicio.value = "Plan premium de Youtube";
         else if (upperText.includes("DISNEY")) selectServicio.value = "Perfil de Disney Normal";
-        else if (upperText.includes("NETFLIX")) selectServicio.value = "Perfil Normal de Netflix";
         else if (upperText.includes("SPOTIFY")) selectServicio.value = "Plan Individual de Spotify";
         else if (upperText.includes("PRIME") || upperText.includes("AMAZON")) selectServicio.value = "Perfil de Prime Video";
         else if (upperText.includes("HBO") || upperText.includes("MAX")) selectServicio.value = "Perfil de HBO MAX";
         else if (upperText.includes("CANVA")) selectServicio.value = "Plan premium de Canva";
         else if (upperText.includes("CRUNCHY")) selectServicio.value = "Plan premium de Crunchyroll";
         else if (upperText.includes("FLUJO")) selectServicio.value = "Perfil de Flujo "; 
+
+        // Extracción de Correo y Perfil
+        const regexCorreo = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+        const correoEncontrado = texto.match(regexCorreo);
+        const regexPerfil = /(?:Perfil:)\s*([^\n\r]+)/i;
+        const perfilEncontrado = texto.match(regexPerfil);
+
         if (correoEncontrado) {
             let valorFinal = correoEncontrado[0];
             if (perfilEncontrado) valorFinal += ` - P${perfilEncontrado[1].trim()}`;
@@ -188,15 +204,12 @@
         const meses = parseInt(document.getElementById('v-meses').value);
         if(!cliente) return alert("Selecciona un cliente");
 
-        // --- LÓGICA DE FECHA ACTUAL ---
         let fecha = new Date();
         fecha.setDate(fecha.getDate() + (30 * meses) - 1); 
         const fechaCalculada = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
 
-        // --- VENTANA DE CONFIRMACIÓN (NUEVA) ---
         const fechaConfirmada = prompt("Confirma o ajusta la fecha de vencimiento (AAAA-MM-DD):", fechaCalculada);
-        
-        if (fechaConfirmada === null) return; // Si cancela, no hace nada
+        if (fechaConfirmada === null) return;
 
         btn.disabled = true; btn.innerText = "PROCESANDO...";
         const payload = { 
@@ -210,13 +223,13 @@
         
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
         
-        // Formatear fecha para el alert final
         const partes = fechaConfirmada.split('-');
         alert(`✅ Registrada. Vence: ${partes[2]}/${partes[1]}/${partes[0]}`);
         
         btn.disabled = false; btn.innerText = "REGISTRAR VENTA";
         document.getElementById('v-perfil').value = "";
         document.getElementById('v-fast-paste').value = "";
+        document.getElementById('v-servicio').selectedIndex = 0; // Reset opcional del servicio
     }
 
     async function guardarCliente() {
