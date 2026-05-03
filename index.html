@@ -50,11 +50,14 @@
                 <textarea id="v-fast-paste" placeholder="Pega aquí el texto de entrega..." 
                     class="w-full p-3 bg-slate-950 rounded-xl border border-slate-700 text-[10px] text-slate-300 h-20 outline-none focus:border-indigo-500 transition-all shadow-inner"
                     oninput="extraerDatosAutomatico()"></textarea>
+                <span class="absolute right-3 top-2 text-[8px] text-indigo-400 font-black uppercase tracking-widest bg-slate-950 px-1">Inteligente</span>
             </div>
+            
             <select id="sel-cliente" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 text-sm">
                 <option value="">Cargando clientes...</option>
             </select>
-            <select id="v-servicio" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 text-sm">
+
+            <select id="v-servicio" onchange="bloquearSeleccionManual()" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 text-sm">
                 <option>Perfil Normal de Netflix</option>
                 <option>Perfil Extra de Netflix</option>
                 <option>Cuenta Completa de Netflix</option>
@@ -83,13 +86,14 @@
                 <option>Plan premium de Dezeer</option>
                 <option>Plan premium de Chat GPT</option>
             </select>
+
             <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
                     <label class="text-[10px] text-slate-500 ml-2 uppercase">Meses</label>
                     <input type="number" id="v-meses" value="1" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
                 </div>
                 <div>
-                    <label class="text-[10px] text-slate-500 ml-2 uppercase">Correo/perfil</label>
+                    <label class="text-[10px] text-slate-500 ml-2 uppercase">Correo / Perfil</label>
                     <input type="text" id="v-perfil" placeholder="Ej: P2-44" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none">
                 </div>
             </div>
@@ -117,7 +121,7 @@
                 <button onclick="cargarRegistros()" class="text-yellow-500 text-xs font-bold bg-yellow-500/10 px-3 py-1 rounded-full uppercase">🔄 Refrescar</button>
             </div>
             <div class="relative mb-3">
-                <input type="text" id="buscador-historial" onkeyup="filtrarRegistros()" placeholder="Buscar cliente o servicio..." class="w-full p-4 bg-slate-900 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 transition-all text-sm pl-11 shadow-inner">
+                <input type="text" id="buscador-historial" onkeyup="filtrarRegistros()" placeholder="Buscar cliente..." class="w-full p-4 bg-slate-900 rounded-2xl border border-slate-700 outline-none focus:border-yellow-500 transition-all text-sm pl-11 shadow-inner">
                 <span class="absolute left-4 top-4 opacity-50">🔍</span>
             </div>
             <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
@@ -133,34 +137,37 @@
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxlhHQKzQgtu38GVJ5OWC-19bD6vj6XA_ht3SHorGPNzdxl24mvda5p0rrllAb-lbLRXw/exec";
     let registrosLocales = [];
-    let servicioManual = false;
+    
+    // CAMBIO 2: Variable de control
+    let seleccionManualServicio = false;
+
+    function bloquearSeleccionManual() {
+        seleccionManualServicio = true;
+    }
 
     window.onload = function() {
         cargarClientes();
-        document.getElementById('v-servicio').addEventListener('change', () => { servicioManual = true; });
-        document.getElementById('v-fast-paste').addEventListener('focus', () => { servicioManual = false; });
     };
 
     function showTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-yellow-500', 'text-slate-500'));
         document.getElementById(tabId).classList.add('active');
+        if (event && event.currentTarget) {
+            event.currentTarget.classList.replace('text-slate-500', 'text-yellow-500');
+        }
     }
 
-    // --- LÓGICA DE FECHAS REFORZADA ---
+    // --- LÓGICA DE FECHAS ROBUSTA ---
     function parseFechaManual(fechaRaw) {
         if (!fechaRaw) return new Date(0);
-        
         const stringFecha = fechaRaw.toString().trim();
-        
-        // Formato con "/" (Frecuente en Google Sheets: DD/MM/YYYY HH:MM:SS)
         if (stringFecha.includes('/')) {
             const partes = stringFecha.split(' ');
             const partesFecha = partes[0].split('/');
             const dia = parseInt(partesFecha[0]);
             const mes = parseInt(partesFecha[1]) - 1;
             const anio = parseInt(partesFecha[2]);
-            
             let h = 12, m = 0, s = 0;
             if (partes.length > 1) {
                 const partesHora = partes[1].split(':');
@@ -170,29 +177,99 @@
             }
             return new Date(anio, mes, dia, h, m, s);
         }
-
-        // Formato ISO o YYYY-MM-DD
         if (stringFecha.includes('-')) {
             const partes = stringFecha.split('T');
             const partesFecha = partes[0].split('-');
             const anio = parseInt(partesFecha[0]);
             const mes = parseInt(partesFecha[1]) - 1;
             const dia = parseInt(partesFecha[2]);
-            
             let h = 12, m = 0, s = 0;
             if (partes.length > 1) {
                 const partesHora = partes[1].replace('Z', '').split(':');
-                h = parseInt(partesHora[0]);
-                m = parseInt(partesHora[1]);
-                s = parseInt(partesHora[2] || 0);
+                h = parseInt(partesHora[0]); m = parseInt(partesHora[1]); s = parseInt(partesHora[2] || 0);
             }
             return new Date(anio, mes, dia, h, m, s);
         }
-
         const d = new Date(stringFecha);
         return isNaN(d.getTime()) ? new Date(0) : d;
     }
 
+    // CAMBIO 3: Función extraerDatosAutomatico mejorada
+    function extraerDatosAutomatico() {
+        const texto = document.getElementById('v-fast-paste').value;
+        if (!texto) return;
+
+        const regexCorreo = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+        const correoEncontrado = texto.match(regexCorreo);
+
+        const regexPerfil = /(?:Perfil:)\s*([^\n\r]+)/i;
+        const perfilEncontrado = texto.match(regexPerfil);
+
+        const selectServicio = document.getElementById('v-servicio');
+        const upperText = texto.toUpperCase();
+
+        if (!seleccionManualServicio) {
+            if (upperText.includes("NETFLIX")) {
+                if (upperText.includes("EXTRA") || upperText.includes("ADICIONAL") || upperText.includes("EXTRAPROFILE")) {
+                    selectServicio.value = "Perfil Extra de Netflix";
+                } else if (upperText.includes("COMPLETA") || upperText.includes("CUENTA COMPLETA")) {
+                    selectServicio.value = "Cuenta Completa de Netflix";
+                } else {
+                    selectServicio.value = "Perfil Normal de Netflix";
+                }
+            } 
+            else if (upperText.includes("YOUTUBE")) selectServicio.value = "Plan premium de Youtube";
+            else if (upperText.includes("DISNEY")) selectServicio.value = "Perfil de Disney Normal";
+            else if (upperText.includes("SPOTIFY")) selectServicio.value = "Plan Individual de Spotify";
+            else if (upperText.includes("PRIME") || upperText.includes("AMAZON")) selectServicio.value = "Perfil de Prime Video";
+            else if (upperText.includes("HBO") || upperText.includes("MAX")) selectServicio.value = "Perfil de HBO MAX";
+            else if (upperText.includes("CANVA")) selectServicio.value = "Plan premium de Canva";
+            else if (upperText.includes("CRUNCHY")) selectServicio.value = "Plan premium de Crunchyroll";
+            else if (upperText.includes("FLUJO")) selectServicio.value = "Perfil de Flujo ";
+        }
+
+        if (correoEncontrado) {
+            let valorFinal = correoEncontrado[0];
+            if (perfilEncontrado) valorFinal += ` - P${perfilEncontrado[1].trim()}`;
+            document.getElementById('v-perfil').value = valorFinal;
+        }
+    }
+
+    async function guardarVenta() {
+        const btn = document.getElementById('btn-venta');
+        const cliente = document.getElementById('sel-cliente').value;
+        const meses = parseInt(document.getElementById('v-meses').value);
+        if(!cliente) return alert("Selecciona un cliente");
+
+        let fecha = new Date();
+        fecha.setDate(fecha.getDate() + (30 * meses) - 1);
+        const fConfirm = prompt("Confirmar vencimiento (AAAA-MM-DD):", `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`);
+        
+        if (!fConfirm) return;
+
+        btn.disabled = true; btn.innerText = "PROCESANDO...";
+        
+        const payload = { 
+            action: "addVenta", 
+            cliente, 
+            servicio: document.getElementById('v-servicio').value, 
+            duracion: meses, 
+            correo: document.getElementById('v-perfil').value, 
+            fechaCalculada: fConfirm 
+        };
+
+        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        alert("✅ Registrada");
+        
+        // CAMBIO 4: Reinicio de variables al terminar
+        btn.disabled = false; 
+        btn.innerText = "REGISTRAR VENTA";
+        document.getElementById('v-perfil').value = "";
+        document.getElementById('v-fast-paste').value = "";
+        seleccionManualServicio = false; 
+    }
+
+    // --- OTRAS FUNCIONES ---
     async function cargarRegistros() {
         const container = document.getElementById('lista-registros');
         container.innerHTML = '<p class="text-center text-slate-600 text-[10px] mt-10">Sincronizando...</p>';
@@ -200,47 +277,40 @@
             const res = await fetch(`${API_URL}?action=getRegistros&t=${Date.now()}`);
             registrosLocales = await res.json();
             ordenar('creado', 'desc');
-        } catch (e) { 
-            container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error de conexión</p>'; 
-        }
+        } catch (e) { container.innerHTML = '<p class="text-red-500 text-center text-[10px]">Error de conexión</p>'; }
     }
 
     function renderizarRegistros(lista) {
         const container = document.getElementById('lista-registros');
         if(lista.length === 0) { container.innerHTML = '<p class="text-center py-10 opacity-50">Sin registros</p>'; return; }
-        
         container.innerHTML = lista.map(r => {
             const fVence = parseFechaManual(r[5]);
             const fCreado = parseFechaManual(r[3]);
             const hoy = new Date();
             const diff = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
-            
             let color = "border-slate-800", label = "Activa", labelColor = "text-green-500";
             if (diff <= 0) { color = "border-red-600 bg-red-950/20 animate-urgent"; label = "VENCIDO 🚨"; labelColor = "text-red-500"; }
             else if (diff <= 3) { color = "border-yellow-500 bg-yellow-500/10"; label = `VENCE EN ${diff} DÍAS ⏳`; labelColor = "text-yellow-500"; }
-
             const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming informa: tu *${r[1]}* vence el *${fVence.toLocaleDateString()}*. ¿Renovamos?`);
-
-            return `
-                <div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 mb-4">
-                    <div class="flex justify-between items-start">
-                        <div class="max-w-[75%]">
-                            <h3 class="font-bold text-white truncate">${r[0]}</h3>
-                            <p class="text-yellow-500 text-[10px] font-black uppercase">${r[1]}</p>
-                        </div>
-                        <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full text-[10px]">🗑️</button>
+            return `<div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 mb-4">
+                <div class="flex justify-between items-start">
+                    <div class="max-w-[75%]">
+                        <h3 class="font-bold text-white truncate">${r[0]}</h3>
+                        <p class="text-yellow-500 text-[10px] font-black uppercase">${r[1]}</p>
                     </div>
-                    <div class="mt-3 text-[11px] text-slate-400 space-y-1">
-                        <p class="flex justify-between"><span>Perfil:</span> <span class="text-slate-100 font-bold">${r[2]}</span></p>
-                        <p class="flex justify-between"><span>Vence:</span> <span class="text-slate-100 font-bold">${fVence.toLocaleDateString()}</span></p>
-                        <p class="flex justify-between opacity-50 text-[9px]"><span>Registro:</span> <span>${fCreado.toLocaleString()}</span></p>
-                        <p class="${labelColor} text-[10px] pt-1 font-black uppercase">${label}</p>
-                    </div>
-                    <div class="mt-4 grid grid-cols-2 gap-2">
-                        <button onclick="editarVenta('${r[0]}','${r[2]}','${r[5]}')" class="py-3 bg-slate-800 text-[9px] font-black rounded-xl uppercase border border-slate-700">✏️ Editar</button>
-                        <a href="https://wa.me/${r[7]}?text=${msgWA}" target="_blank" class="py-3 bg-green-600 text-white text-[9px] font-black rounded-xl text-center uppercase">💬 Avisar</a>
-                    </div>
-                </div>`;
+                    <button onclick="eliminarVenta('${r[0]}','${r[2]}')" class="bg-slate-800 p-2 rounded-full text-[10px]">🗑️</button>
+                </div>
+                <div class="mt-3 text-[11px] text-slate-400 space-y-1">
+                    <p class="flex justify-between"><span>Perfil:</span> <span class="text-slate-100 font-bold">${r[2]}</span></p>
+                    <p class="flex justify-between"><span>Vence:</span> <span class="text-slate-100 font-bold">${fVence.toLocaleDateString()}</span></p>
+                    <p class="flex justify-between opacity-50 text-[9px]"><span>Registro:</span> <span>${fCreado.toLocaleString()}</span></p>
+                    <p class="${labelColor} text-[10px] pt-1 font-black uppercase">${label}</p>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                    <button onclick="editarVenta('${r[0]}','${r[2]}','${r[5]}')" class="py-3 bg-slate-800 text-[9px] font-black rounded-xl uppercase border border-slate-700">✏️ Editar</button>
+                    <a href="https://wa.me/${r[7]}?text=${msgWA}" target="_blank" class="py-3 bg-green-600 text-white text-[9px] font-black rounded-xl text-center uppercase">💬 Avisar</a>
+                </div>
+            </div>`;
         }).join('');
     }
 
@@ -251,15 +321,11 @@
             const valB = parseFechaManual(b[indice]).getTime();
             return direccion === 'asc' ? valA - valB : valB - valA;
         });
-        
-        // Estética de botones
         document.querySelectorAll('.btn-sort').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-800'));
         if(criterio === 'creado') document.getElementById('btn-sort-recent').classList.replace('bg-slate-800', 'bg-indigo-600');
-        
         filtrarRegistros();
     }
 
-    // --- RESTO DE FUNCIONES (Siguen igual para no dañar nada) ---
     async function cargarClientes() {
         try {
             const res = await fetch(`${API_URL}?action=getClientes`);
@@ -269,21 +335,6 @@
         } catch (e) { console.error(e); }
     }
 
-    async function guardarVenta() {
-        const btn = document.getElementById('btn-venta');
-        const cliente = document.getElementById('sel-cliente').value;
-        const meses = parseInt(document.getElementById('v-meses').value);
-        if(!cliente) return alert("Selecciona cliente");
-        let fecha = new Date();
-        fecha.setDate(fecha.getDate() + (30 * meses) - 1);
-        const fConfirm = prompt("Confirmar vencimiento (AAAA-MM-DD):", `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`);
-        if (!fConfirm) return;
-        btn.disabled = true; btn.innerText = "PROCESANDO...";
-        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "addVenta", cliente, servicio: document.getElementById('v-servicio').value, duracion: meses, correo: document.getElementById('v-perfil').value, fechaCalculada: fConfirm }) });
-        alert("✅ Registrada");
-        location.reload();
-    }
-
     async function guardarCliente() {
         const btn = document.getElementById('btn-cliente');
         const nombre = document.getElementById('c-nombre').value;
@@ -291,7 +342,9 @@
         btn.disabled = true;
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "addCliente", nombre, telefono: document.getElementById('c-tel').value }) });
         alert("✅ Guardado");
-        location.reload();
+        document.getElementById('c-nombre').value = ""; document.getElementById('c-tel').value = "";
+        btn.disabled = false;
+        cargarClientes();
     }
 
     function filtrarRegistros() {
@@ -300,22 +353,6 @@
             r[0].toString().toLowerCase().includes(termino) || r[1].toString().toLowerCase().includes(termino) || r[2].toString().toLowerCase().includes(termino)
         );
         renderizarRegistros(filtrados);
-    }
-
-    function extraerDatosAutomatico() {
-        const texto = document.getElementById('v-fast-paste').value;
-        if (!texto) return;
-        const upper = texto.toUpperCase();
-        const select = document.getElementById('v-servicio');
-        if (!servicioManual) {
-            if (upper.includes("NETFLIX")) select.value = upper.includes("EXTRA") ? "Perfil Extra de Netflix" : "Perfil Normal de Netflix";
-            else if (upper.includes("YOUTUBE")) select.value = "Plan premium de Youtube";
-            else if (upper.includes("DISNEY")) select.value = "Perfil de Disney Normal";
-            else if (upper.includes("SPOTIFY")) select.value = "Plan Individual de Spotify";
-            else if (upper.includes("HBO") || upper.includes("MAX")) select.value = "Perfil de HBO MAX";
-        }
-        const mail = texto.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-        if (mail) document.getElementById('v-perfil').value = mail[0];
     }
 
     async function eliminarVenta(cliente, correo) {
