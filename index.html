@@ -207,7 +207,6 @@
 
         if (!seleccionManualServicio) {
             if (upperText.includes("NETFLIX")) {
-                // PRIORIDAD: Detectar EXTRA antes que NORMAL
                 if (upperText.includes("EXTRA") || upperText.includes("ADICIONAL") || upperText.includes("EXTRAPROFILE")) {
                     selectServicio.value = "Perfil Extra de Netflix";
                 } else if (upperText.includes("COMPLETA") || upperText.includes("CUENTA COMPLETA")) {
@@ -236,7 +235,7 @@
     async function guardarVenta() {
         const btn = document.getElementById('btn-venta');
         const cliente = document.getElementById('sel-cliente').value;
-        const servicioFinal = document.getElementById('v-servicio').value; // Captura inmediata
+        const servicioFinal = document.getElementById('v-servicio').value; 
         const meses = parseInt(document.getElementById('v-meses').value);
         
         if(!cliente) return alert("Selecciona un cliente");
@@ -296,7 +295,10 @@
             let color = "border-slate-800", label = "Activa", labelColor = "text-green-500";
             if (diff <= 0) { color = "border-red-600 bg-red-950/20 animate-urgent"; label = "VENCIDO 🚨"; labelColor = "text-red-500"; }
             else if (diff <= 3) { color = "border-yellow-500 bg-yellow-500/10"; label = `VENCE EN ${diff} DÍAS ⏳`; labelColor = "text-yellow-500"; }
-            const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming informa: tu *${r[1]}* vence el *${fVence.toLocaleDateString()}*. ¿Renovamos?`);
+            
+            // CAMBIO AQUÍ: Se incluye el correo/perfil r[2] en el mensaje de WhatsApp
+            const msgWA = encodeURIComponent(`Hola *${r[0]}*, Bull Streaming te informa que tu *${r[1]} (${r[2]})* vence el *${fVence.toLocaleDateString()}*. ¿Deseas renovar?`);
+            
             return `<div class="p-4 rounded-3xl border-l-8 ${color} bg-slate-900 mb-4">
                 <div class="flex justify-between items-start">
                     <div class="max-w-[75%]">
