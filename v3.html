@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bull Streaming Pro</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -12,33 +12,48 @@
     body { font-family: 'Inter', sans-serif; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    .glass { background: rgba(15,23,42,.82); backdrop-filter: blur(18px); }
-    .input {
-      width: 100%; padding: 14px; background: rgba(2,6,23,.85);
-      border: 1px solid rgb(51,65,85); border-radius: 18px;
-      outline: none; font-size: 14px;
+    .glass {
+      background: rgba(15, 23, 42, .76);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(148, 163, 184, .18);
     }
-    .input:focus { border-color: #facc15; box-shadow: 0 0 0 1px #facc15; }
+    .input {
+      width: 100%;
+      padding: 14px;
+      background: rgba(2, 6, 23, .75);
+      border: 1px solid rgb(51,65,85);
+      border-radius: 18px;
+      outline: none;
+      font-size: 14px;
+    }
+    .input:focus { border-color: #facc15; box-shadow: 0 0 0 2px rgba(250,204,21,.12); }
     .btn-main {
-      width: 100%; padding: 15px; border-radius: 18px;
-      font-weight: 900; background: linear-gradient(135deg,#facc15,#f97316);
+      width: 100%;
+      padding: 15px;
+      border-radius: 18px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #fde047, #f97316);
       color: #111827;
+      box-shadow: 0 12px 30px rgba(249,115,22,.25);
     }
     .btn-dark {
-      padding: 11px; border-radius: 14px; background: rgb(30,41,59);
-      font-weight: 900; font-size: 10px;
+      padding: 11px;
+      border-radius: 15px;
+      background: rgba(30,41,59,.95);
+      font-weight: 900;
+      font-size: 10px;
+      border: 1px solid rgba(148,163,184,.14);
     }
-    .card {
-      background: linear-gradient(180deg, rgba(15,23,42,.9), rgba(2,6,23,.9));
-      border: 1px solid rgba(148,163,184,.18);
-      border-radius: 26px;
+    .soft-card {
+      background: linear-gradient(145deg, rgba(30,41,59,.85), rgba(15,23,42,.85));
+      border: 1px solid rgba(148,163,184,.15);
     }
   </style>
 </head>
 
-<body class="min-h-screen bg-[radial-gradient(circle_at_top,#334155_0,#020617_38%,#000_100%)] text-slate-100 pb-28">
+<body class="min-h-screen bg-[radial-gradient(circle_at_top,#334155_0,#020617_45%,#000_100%)] text-slate-100 pb-28">
 
-<nav class="fixed bottom-3 left-3 right-3 z-50 glass border border-slate-700 rounded-3xl px-2 py-3 shadow-2xl">
+<nav class="fixed bottom-3 left-3 right-3 z-50 glass rounded-3xl px-2 py-3 shadow-2xl">
   <div class="grid grid-cols-5 text-center text-[10px] font-black">
     <button onclick="showTab('tab-dashboard', this)" class="nav-btn text-yellow-400">📊<br>Inicio</button>
     <button onclick="showTab('tab-venta', this)" class="nav-btn text-slate-400">⚡<br>Venta</button>
@@ -51,7 +66,7 @@
 <div class="max-w-md mx-auto p-4">
 
 <header class="py-6">
-  <p class="text-xs text-slate-400 font-black uppercase tracking-widest">Panel privado</p>
+  <p class="text-xs text-slate-400 font-black uppercase tracking-[.3em]">Panel privado</p>
   <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 italic">
     Bull Streaming
   </h1>
@@ -60,13 +75,13 @@
 <section id="tab-dashboard" class="tab-content active space-y-5">
   <h2 class="text-xl font-black">📊 Dashboard</h2>
 
-  <div>
-    <h3 class="text-sm font-black text-yellow-400 mb-2">Clientes</h3>
+  <div class="glass rounded-3xl p-4 space-y-3">
+    <h3 class="text-sm font-black text-yellow-400">Clientes</h3>
     <div id="dash-clientes" class="grid grid-cols-2 gap-3"></div>
   </div>
 
-  <div>
-    <h3 class="text-sm font-black text-cyan-400 mb-2">Mis cuentas / proveedor</h3>
+  <div class="glass rounded-3xl p-4 space-y-3">
+    <h3 class="text-sm font-black text-cyan-400">Para mí / proveedor</h3>
     <div id="dash-proveedor" class="grid grid-cols-2 gap-3"></div>
   </div>
 
@@ -74,35 +89,38 @@
 </section>
 
 <section id="tab-venta" class="tab-content space-y-4">
-  <div class="card p-5 space-y-4">
+
+  <div class="glass rounded-3xl p-5 space-y-4">
     <h2 class="text-xl font-black">⚡ Nueva venta</h2>
 
     <select id="v-cliente" class="input"></select>
 
-    <div class="bg-slate-950/80 border border-slate-700 rounded-3xl p-3 space-y-3">
+    <div class="bg-slate-950/70 border border-slate-700 rounded-3xl p-3 space-y-3">
       <div class="flex justify-between items-center">
         <p class="text-xs font-black text-yellow-400 uppercase">Pegado inteligente</p>
         <button onclick="limpiarPegado()" class="text-[10px] font-black text-slate-400">LIMPIAR</button>
       </div>
+
       <textarea id="v-texto" class="input h-44" placeholder="Pega aquí el texto de entrega..." oninput="detectarTextoVenta()"></textarea>
     </div>
 
     <select id="v-servicio" class="input"></select>
-    <input id="v-correo" class="input" placeholder="Correo / usuario de cuenta">
-    <input id="v-perfil" class="input" placeholder="Perfil / usuario entregado">
-    <input id="v-fecha-vencimiento" type="date" class="input">
-    <input id="v-ganancia" type="number" step="0.01" class="input" placeholder="Ganancia">
+    <input id="v-correo" class="input" placeholder="Correo / usuario de cuenta" />
+    <input id="v-perfil" class="input" placeholder="Perfil / usuario entregado" />
+    <input id="v-fecha-vencimiento" type="date" class="input" />
+    <input id="v-ganancia" type="number" step="0.01" class="input" placeholder="Ganancia" />
     <textarea id="v-observaciones" class="input h-20" placeholder="Observaciones"></textarea>
 
     <button onclick="registrarVenta()" class="btn-main">REGISTRAR VENTA</button>
   </div>
 
-  <div class="card p-5 space-y-3">
+  <div class="glass rounded-3xl p-5 space-y-3">
     <h2 class="text-lg font-black">👥 Cliente rápido</h2>
-    <input id="c-nombre" class="input" placeholder="Nombre">
-    <input id="c-whatsapp" class="input" placeholder="WhatsApp 5939...">
+    <input id="c-nombre" class="input" placeholder="Nombre" />
+    <input id="c-whatsapp" class="input" placeholder="WhatsApp 5939..." />
     <button onclick="guardarCliente()" class="btn-dark w-full">GUARDAR CLIENTE</button>
   </div>
+
 </section>
 
 <section id="tab-cuentas" class="tab-content space-y-4">
@@ -112,18 +130,18 @@
 </section>
 
 <section id="tab-compras" class="tab-content space-y-4">
-  <div class="card p-5 space-y-4">
+  <div class="glass rounded-3xl p-5 space-y-4">
     <h2 class="text-xl font-black">📦 Compra a proveedor</h2>
 
     <select id="comp-plataforma" onchange="seleccionarServicioCuenta()" class="input"></select>
-    <input id="comp-correo" class="input" placeholder="Correo de la cuenta comprada">
-    <input id="comp-proveedor" class="input" placeholder="Proveedor">
+    <input id="comp-correo" class="input" placeholder="Correo de la cuenta comprada" />
+    <input id="comp-proveedor" class="input" placeholder="Proveedor" />
 
     <label class="text-xs text-slate-400 font-black">Fecha compra</label>
-    <input id="comp-fecha-compra" type="date" class="input">
+    <input id="comp-fecha-compra" type="date" class="input" />
 
     <label class="text-xs text-slate-400 font-black">Vencimiento proveedor</label>
-    <input id="comp-fecha-vencimiento" type="date" class="input">
+    <input id="comp-fecha-vencimiento" type="date" class="input" />
 
     <textarea id="comp-observaciones" class="input h-20" placeholder="Observaciones"></textarea>
 
@@ -133,14 +151,14 @@
 
 <section id="tab-registro" class="tab-content space-y-4">
   <h2 class="text-xl font-black">📂 Registro de ventas</h2>
-  <input id="buscar-ventas" class="input" placeholder="Buscar..." oninput="renderVentas()">
+  <input id="buscar-ventas" class="input" placeholder="Buscar..." oninput="renderVentas()" />
   <div id="lista-ventas" class="space-y-4"></div>
 </section>
 
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxI5OLUYHl-baPQqJTz3JfaLP0df1cATY8IPcby-wNO_Rlc9P7MrgskizAvFj4m2KY/exec";
+const API_URL = "PEGA_AQUI_TU_URL_EXEC";
 
 let clientes = [];
 let config = [];
@@ -177,7 +195,7 @@ async function cargarTodo() {
 
   clientes = c.clientes || [];
   config = conf.configuracion || [];
-  inventario = inv.inventario || [];
+  inventario = limpiarInventario(inv.inventario || []);
   ventas = ven.ventas || [];
   compras = comp.compras || [];
   dashboard = dash.dashboard || {};
@@ -189,6 +207,17 @@ async function cargarTodo() {
   renderDashboard();
   renderVentas();
   renderCuentas();
+}
+
+function limpiarInventario(lista) {
+  const map = new Map();
+  lista.forEach(c => {
+    const id = String(c.ID_Cuenta || "").trim();
+    const correo = normalizar(c.Correo_Cuenta || c.Correo_cuenta);
+    const key = id || correo;
+    if (key && !map.has(key)) map.set(key, c);
+  });
+  return Array.from(map.values());
 }
 
 function showTab(id, btn) {
@@ -226,15 +255,13 @@ function cargarPlataformasCompra() {
   const plataformas = [...new Set(serviciosCuenta.map(s => s.Plataforma))];
 
   sel.innerHTML = `<option value="">Seleccione plataforma</option>`;
-  plataformas.forEach(p => {
-    sel.innerHTML += `<option value="${p}">${p}</option>`;
-  });
+  plataformas.forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
 }
 
 function cargarFiltroCuentas() {
   const sel = document.getElementById("filtro-plataforma-cuentas");
   const plataformas = [...new Set(inventario.map(c => {
-    const s = config.find(x => x.ID_Servicio === c.ID_Servicio);
+    const s = servicioDeCuenta(c);
     return s ? s.Plataforma : "";
   }).filter(Boolean))];
 
@@ -250,54 +277,16 @@ function seleccionarServicioCuenta() {
   );
 
   if (!servicioCuentaSeleccionado) {
-    alert("No existe un servicio tipo cuenta para esta plataforma");
+    alert("No existe un servicio tipo cuenta para esta plataforma en Configuracion");
   }
-}
-
-function servicioPorId(id) {
-  return config.find(s => s.ID_Servicio === id);
-}
-
-function servicioPerfilPorPlataforma(plataforma) {
-  return config.find(s =>
-    s.Plataforma === plataforma &&
-    String(s.Tipo_Inventario).toLowerCase() === "perfiles"
-  );
-}
-
-function correoCuenta(cuenta) {
-  return cuenta.Correo_Cuenta || cuenta.Correo_cuenta || "";
-}
-
-function ventasActivasDeCuenta(cuenta) {
-  const correo = normalizar(correoCuenta(cuenta));
-
-  return ventas.filter(v =>
-    v.Estado === "Activa" &&
-    (
-      v.ID_Cuenta === cuenta.ID_Cuenta ||
-      (correo && normalizar(v.Correo_Cuenta) === correo)
-    )
-  );
-}
-
-function normalizar(v) {
-  return String(v || "").trim().toLowerCase();
 }
 
 async function guardarCliente() {
   const nombre = document.getElementById("c-nombre").value.trim();
   const whatsapp = document.getElementById("c-whatsapp").value.trim();
-
   if (!nombre) return alert("Falta nombre");
 
-  const r = await apiPost({
-    action: "addCliente",
-    nombre,
-    whatsapp,
-    observaciones: ""
-  });
-
+  const r = await apiPost({ action: "addCliente", nombre, whatsapp, observaciones: "" });
   if (!r.ok) return alert(r.error || "Error");
 
   alert("Cliente guardado");
@@ -308,22 +297,21 @@ async function guardarCliente() {
 
 async function registrarCompraConInventario() {
   seleccionarServicioCuenta();
-
   if (!servicioCuentaSeleccionado) return;
 
-  const correoCuentaValue = document.getElementById("comp-correo").value.trim();
+  const correoCuenta = document.getElementById("comp-correo").value.trim();
   const proveedor = document.getElementById("comp-proveedor").value.trim();
   const fechaCompra = document.getElementById("comp-fecha-compra").value;
   const fechaVencimiento = document.getElementById("comp-fecha-vencimiento").value;
 
-  if (!correoCuentaValue || !proveedor || !fechaCompra || !fechaVencimiento) {
+  if (!correoCuenta || !proveedor || !fechaCompra || !fechaVencimiento) {
     return alert("Completa correo, proveedor y fechas");
   }
 
   const r = await apiPost({
     action: "registrarCompraConInventario",
     idServicio: servicioCuentaSeleccionado.ID_Servicio,
-    correoCuenta: correoCuentaValue,
+    correoCuenta,
     proveedor,
     fechaCompra,
     fechaVencimiento,
@@ -351,9 +339,7 @@ function detectarTextoVenta() {
   if (correo) document.getElementById("v-correo").value = correo[0];
 
   const perfilMatch = texto.match(/Perfil\s+([^\-\n\r]+)/i);
-  if (perfilMatch) {
-    document.getElementById("v-perfil").value = perfilMatch[1].trim();
-  }
+  if (perfilMatch) document.getElementById("v-perfil").value = perfilMatch[1].trim();
 
   const fecha = detectarFecha(texto);
   if (fecha) document.getElementById("v-fecha-vencimiento").value = fecha;
@@ -384,9 +370,10 @@ function detectarServicio(upper) {
 
 function detectarFecha(texto) {
   const meses = {
-    ene:0, enero:0, feb:1, febrero:1, mar:2, marzo:2, abr:3, abril:3,
-    may:4, mayo:4, jun:5, junio:5, jul:6, julio:6, ago:7, agosto:7,
-    sep:8, septiembre:8, oct:9, octubre:9, nov:10, noviembre:10, dic:11, diciembre:11
+    ene: 0, enero: 0, feb: 1, febrero: 1, mar: 2, marzo: 2,
+    abr: 3, abril: 3, may: 4, mayo: 4, jun: 5, junio: 5,
+    jul: 6, julio: 6, ago: 7, agosto: 7, sep: 8, septiembre: 8,
+    oct: 9, octubre: 9, nov: 10, noviembre: 10, dic: 11, diciembre: 11
   };
 
   const match = texto.match(/(\d{1,2})\s+([A-Za-zÁÉÍÓÚáéíóú]+)\s+(\d{4})/);
@@ -398,8 +385,7 @@ function detectarFecha(texto) {
   const mes = meses[mesTxt];
 
   if (mes === undefined) return "";
-
-  return `${anio}-${String(mes + 1).padStart(2,"0")}-${String(dia).padStart(2,"0")}`;
+  return `${anio}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 }
 
 function limpiarPegado() {
@@ -412,22 +398,22 @@ function limpiarPegado() {
 async function registrarVenta() {
   const idCliente = document.getElementById("v-cliente").value;
   const idServicio = document.getElementById("v-servicio").value;
-  const correoCuentaValue = document.getElementById("v-correo").value.trim();
+  const correoCuenta = document.getElementById("v-correo").value.trim();
   const perfil = document.getElementById("v-perfil").value.trim();
   const fechaVencimiento = document.getElementById("v-fecha-vencimiento").value;
   const ganancia = document.getElementById("v-ganancia").value;
 
-  if (!idCliente || !idServicio || !correoCuentaValue || !fechaVencimiento) {
+  if (!idCliente || !idServicio || !correoCuenta || !fechaVencimiento) {
     return alert("Completa cliente, servicio, correo y fecha de vencimiento");
   }
 
-  const servicio = servicioPorId(idServicio);
+  const servicio = config.find(s => s.ID_Servicio === idServicio);
 
   const r = await apiPost({
     action: "registrarVenta",
     idCliente,
     idServicio,
-    correoCuenta: correoCuentaValue,
+    correoCuenta,
     perfil,
     fechaVencimiento,
     ganancia,
@@ -447,39 +433,6 @@ async function registrarVenta() {
 
 function renderDashboard() {
   const ventasActivas = ventas.filter(v => v.Estado === "Activa");
-  const inventarioReal = inventario;
-
-  const cuentasConEspacio = inventarioReal.filter(c => {
-    const sCuenta = servicioPorId(c.ID_Servicio);
-    if (!sCuenta) return false;
-
-    const sPerfil = servicioPerfilPorPlataforma(sCuenta.Plataforma);
-    const capacidad = Number((sPerfil || sCuenta).Capacidad || 1);
-    const usadas = ventasActivasDeCuenta(c).length;
-
-    return capacidad - usadas > 0;
-  }).length;
-
-  const cuentasLlenas = inventarioReal.filter(c => {
-    const sCuenta = servicioPorId(c.ID_Servicio);
-    if (!sCuenta) return false;
-
-    const sPerfil = servicioPerfilPorPlataforma(sCuenta.Plataforma);
-    const capacidad = Number((sPerfil || sCuenta).Capacidad || 1);
-    const usadas = ventasActivasDeCuenta(c).length;
-
-    return capacidad - usadas <= 0;
-  }).length;
-
-  const clientesActivos = new Set(ventasActivas.map(v => v.ID_Cliente).filter(Boolean)).size;
-
-  const porVencer = ventasActivas.filter(v => {
-    const d = diasHasta(v.Fecha_Vencimiento);
-    return d >= 0 && d <= 3;
-  }).length;
-
-  const vencidos = ventasActivas.filter(v => diasHasta(v.Fecha_Vencimiento) < 0).length;
-
   const hoy = new Date();
   const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const inicioSemana = new Date(hoy);
@@ -489,18 +442,20 @@ function renderDashboard() {
   const ventasSemana = ventas.filter(v => new Date(v.Fecha_Registro) >= inicioSemana);
   const ventasMes = ventas.filter(v => new Date(v.Fecha_Registro) >= inicioMes);
 
+  const porVencer = ventasActivas.filter(v => {
+    const d = diasHasta(v.Fecha_Vencimiento);
+    return d >= 0 && d <= 3;
+  }).length;
+
+  const vencidos = ventasActivas.filter(v => diasHasta(v.Fecha_Vencimiento) < 0).length;
+
   const gananciaSemana = ventasSemana.reduce((s,v) => s + Number(v.Ganancia || 0), 0);
   const gananciaMes = ventasMes.reduce((s,v) => s + Number(v.Ganancia || 0), 0);
 
-  const comprasActivas = compras.filter(c => c.Estado === "Activa");
-  const proveedorPorVencer = comprasActivas.filter(c => {
-    const d = diasHasta(c.Fecha_Vencimiento);
-    return d >= 0 && d <= 3;
-  }).length;
-  const proveedorVencidas = comprasActivas.filter(c => diasHasta(c.Fecha_Vencimiento) < 0).length;
+  const statsCuentas = calcularStatsCuentas();
 
   document.getElementById("dash-clientes").innerHTML = `
-    ${card("Clientes activos", clientesActivos)}
+    ${card("Clientes activos", new Set(ventasActivas.map(v => v.ID_Cliente).filter(Boolean)).size)}
     ${card("Ventas activas", ventasActivas.length)}
     ${card("Por vencer", porVencer)}
     ${card("Vencidos", vencidos)}
@@ -509,22 +464,53 @@ function renderDashboard() {
   `;
 
   document.getElementById("dash-proveedor").innerHTML = `
-    ${card("Cuentas", inventarioReal.length)}
-    ${card("Compras activas", comprasActivas.length)}
-    ${card("Por renovar", proveedorPorVencer)}
-    ${card("Vencidas", proveedorVencidas)}
-    ${card("Llenas", cuentasLlenas)}
-    ${card("Con espacio", cuentasConEspacio)}
+    ${card("Cuentas reales", statsCuentas.total)}
+    ${card("Con espacio", statsCuentas.conEspacio)}
+    ${card("Llenas", statsCuentas.llenas)}
+    ${card("Cupos libres", statsCuentas.cuposLibres)}
+    ${card("Por renovar", comprasPorVencer())}
+    ${card("Proveedor vencidas", comprasVencidas())}
   `;
 }
 
 function card(t, v) {
   return `
-    <div class="card p-4">
+    <div class="soft-card rounded-3xl p-4">
       <p class="text-[10px] text-slate-400 font-black uppercase">${t}</p>
       <p class="text-2xl font-black text-yellow-400">${v}</p>
     </div>
   `;
+}
+
+function calcularStatsCuentas() {
+  let total = inventario.length;
+  let conEspacio = 0;
+  let llenas = 0;
+  let cuposLibres = 0;
+
+  inventario.forEach(cuenta => {
+    const info = infoCuenta(cuenta);
+    if (info.libres > 0) conEspacio++;
+    else llenas++;
+    cuposLibres += info.libres;
+  });
+
+  return { total, conEspacio, llenas, cuposLibres };
+}
+
+function comprasPorVencer() {
+  return compras.filter(c => {
+    if (c.Estado !== "Activa") return false;
+    const d = diasHasta(c.Fecha_Vencimiento);
+    return d >= 0 && d <= 3;
+  }).length;
+}
+
+function comprasVencidas() {
+  return compras.filter(c => {
+    if (c.Estado !== "Activa") return false;
+    return diasHasta(c.Fecha_Vencimiento) < 0;
+  }).length;
 }
 
 function renderCuentas() {
@@ -532,7 +518,7 @@ function renderCuentas() {
   const filtro = document.getElementById("filtro-plataforma-cuentas").value;
 
   const lista = inventario.filter(cuenta => {
-    const s = servicioPorId(cuenta.ID_Servicio);
+    const s = servicioDeCuenta(cuenta);
     if (!s) return false;
     if (filtro && s.Plataforma !== filtro) return false;
     return true;
@@ -544,35 +530,123 @@ function renderCuentas() {
   }
 
   cont.innerHTML = lista.map(cuenta => {
-    const sCuenta = servicioPorId(cuenta.ID_Servicio);
-    const sPerfil = servicioPerfilPorPlataforma(sCuenta.Plataforma);
-    const servicioUso = sPerfil || sCuenta;
-
-    const usadas = ventasActivasDeCuenta(cuenta).length;
-    const capacidad = Number(servicioUso.Capacidad || 1);
-    const libres = Math.max(capacidad - usadas, 0);
-    const llena = libres <= 0;
-    const correo = correoCuenta(cuenta);
+    const s = servicioDeCuenta(cuenta);
+    const info = infoCuenta(cuenta);
+    const correo = cuenta.Correo_Cuenta || cuenta.Correo_cuenta || "";
+    const compra = compraDeCuenta(cuenta.ID_Cuenta);
+    const venceProveedor = compra ? formatoFecha(compra.Fecha_Vencimiento) : "Sin fecha";
 
     return `
-      <div class="card p-4">
+      <div class="soft-card rounded-3xl p-4">
         <div class="flex justify-between items-start gap-2">
-          <div>
-            <p class="font-black">${correo}</p>
-            <p class="text-xs text-slate-400">${sCuenta.Plataforma} · ${sCuenta.Tipo_Servicio}</p>
+          <div class="min-w-0">
+            <p class="font-black truncate">${correo}</p>
+            <p class="text-xs text-slate-400">${s.Plataforma} · ${s.Tipo_Servicio}</p>
           </div>
-          <span class="w-4 h-4 rounded-full ${llena ? 'bg-red-500' : 'bg-green-500'}"></span>
+          <span class="w-4 h-4 rounded-full mt-1 ${info.libres <= 0 ? 'bg-red-500' : 'bg-green-500'}"></span>
         </div>
 
-        <div class="mt-3 flex justify-between items-center">
-          <p class="text-sm font-black ${llena ? 'text-red-400' : 'text-green-400'}">
-            ${usadas}/${capacidad} usado · ${libres} libre(s)
-          </p>
-          <span class="text-[10px] text-slate-500 font-black">${cuenta.Estado || 'Activa'}</span>
+        <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+          <div class="bg-slate-950/60 rounded-2xl p-3">
+            <p class="text-slate-400 font-black">Uso</p>
+            <p class="font-black text-yellow-400">${info.usadas}/${info.capacidad} usados</p>
+          </div>
+          <div class="bg-slate-950/60 rounded-2xl p-3">
+            <p class="text-slate-400 font-black">Libres</p>
+            <p class="font-black ${info.libres > 0 ? 'text-green-400' : 'text-red-400'}">${info.libres}</p>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-400 mt-3"><b>Proveedor vence:</b> ${venceProveedor}</p>
+
+        <div class="grid grid-cols-2 gap-2 mt-4">
+          <button onclick="verDetalleCuenta('${cuenta.ID_Cuenta}')" class="btn-dark">VER DUEÑOS</button>
+          <button onclick="editarCuenta('${cuenta.ID_Cuenta}')" class="btn-dark">EDITAR</button>
         </div>
       </div>
     `;
   }).join("");
+}
+
+function servicioDeCuenta(cuenta) {
+  const servicioBase = config.find(x => x.ID_Servicio === cuenta.ID_Servicio);
+  if (!servicioBase) return null;
+
+  const servicioPerfil = config.find(x =>
+    x.Plataforma === servicioBase.Plataforma &&
+    String(x.Tipo_Inventario).toLowerCase() === "perfiles"
+  );
+
+  return servicioPerfil || servicioBase;
+}
+
+function infoCuenta(cuenta) {
+  const s = servicioDeCuenta(cuenta);
+  const correo = normalizar(cuenta.Correo_Cuenta || cuenta.Correo_cuenta);
+
+  const capacidad = Number(s?.Capacidad || 1);
+
+  const usadas = ventas.filter(v =>
+    v.Estado === "Activa" &&
+    normalizar(v.Correo_Cuenta) === correo
+  ).length;
+
+  const libres = Math.max(capacidad - usadas, 0);
+
+  return { capacidad, usadas, libres };
+}
+
+function compraDeCuenta(idCuenta) {
+  return compras
+    .filter(c => c.ID_Cuenta === idCuenta)
+    .sort((a,b) => new Date(b.Fecha_Compra) - new Date(a.Fecha_Compra))[0];
+}
+
+function verDetalleCuenta(idCuenta) {
+  const cuenta = inventario.find(c => c.ID_Cuenta === idCuenta);
+  if (!cuenta) return;
+
+  const correo = normalizar(cuenta.Correo_Cuenta || cuenta.Correo_cuenta);
+  const relacionadas = ventas.filter(v => v.Estado === "Activa" && normalizar(v.Correo_Cuenta) === correo);
+
+  if (!relacionadas.length) {
+    alert("Esta cuenta no tiene clientes activos.");
+    return;
+  }
+
+  const texto = relacionadas.map(v => {
+    const c = clientes.find(x => x.ID_Cliente === v.ID_Cliente);
+    return `${c?.Nombre || v.ID_Cliente} - ${v.Perfil || "-"} - vence ${formatoFecha(v.Fecha_Vencimiento)}`;
+  }).join("\n");
+
+  alert(texto);
+}
+
+async function editarCuenta(idCuenta) {
+  const cuenta = inventario.find(c => c.ID_Cuenta === idCuenta);
+  if (!cuenta) return;
+
+  const correoActual = cuenta.Correo_Cuenta || cuenta.Correo_cuenta || "";
+  const nuevoCorreo = prompt("Nuevo correo de cuenta:", correoActual);
+  if (!nuevoCorreo) return;
+
+  const nuevaFecha = prompt("Nueva fecha vencimiento proveedor AAAA-MM-DD. Deja vacío si no cambia:");
+  
+  const r = await apiPost({
+    action: "editarCuentaInventario",
+    idCuenta,
+    nuevoCorreo,
+    nuevaFechaProveedor: nuevaFecha || "",
+    observaciones: "Editado desde web"
+  });
+
+  if (!r.ok) {
+    alert("Falta agregar la acción editarCuentaInventario en Apps Script.");
+    return;
+  }
+
+  alert("Cuenta editada");
+  cargarTodo();
 }
 
 function renderVentas() {
@@ -581,4 +655,141 @@ function renderVentas() {
 
   const lista = ventas
     .filter(v => JSON.stringify(v).toLowerCase().includes(q))
-    .sort((a,b) => new Date(b.Fecha_Registro) -
+    .sort((a,b) => new Date(b.Fecha_Registro) - new Date(a.Fecha_Registro));
+
+  if (!lista.length) {
+    cont.innerHTML = `<p class="text-slate-500 text-center py-8">Sin ventas</p>`;
+    return;
+  }
+
+  cont.innerHTML = lista.map(v => {
+    const cliente = clientes.find(c => c.ID_Cliente === v.ID_Cliente) || {};
+    const diff = diasHasta(v.Fecha_Vencimiento);
+
+    let border = "border-slate-700";
+    let label = v.Estado || "Activa";
+
+    if (v.Estado === "Activa" && diff <= 0) {
+      border = "border-red-500";
+      label = "Vencido";
+    } else if (v.Estado === "Activa" && diff <= 3) {
+      border = "border-yellow-400";
+      label = `Vence en ${diff} día(s)`;
+    }
+
+    const msg = encodeURIComponent(
+      `Hola ${cliente.Nombre || ""}, Bull Streaming te informa que tu ${v.Servicio_Entregado} (${v.Correo_Cuenta} / ${v.Perfil}) vence el ${formatoFecha(v.Fecha_Vencimiento)}. ¿Deseas renovar?`
+    );
+
+    return `
+      <div class="glass border-l-8 ${border} rounded-3xl p-4">
+        <div class="flex justify-between gap-2">
+          <div>
+            <h3 class="font-black">${cliente.Nombre || v.ID_Cliente}</h3>
+            <p class="text-xs text-yellow-400 font-black">${v.Servicio_Entregado || v.Plataforma}</p>
+          </div>
+          <span class="text-[10px] font-black">${label}</span>
+        </div>
+
+        <div class="mt-3 text-xs text-slate-300 space-y-1">
+          <p><b>Correo:</b> ${v.Correo_Cuenta}</p>
+          <p><b>Perfil:</b> ${v.Perfil || '-'}</p>
+          <p><b>Vence:</b> ${formatoFecha(v.Fecha_Vencimiento)}</p>
+          <p><b>Ganancia:</b> $${Number(v.Ganancia || 0).toFixed(2)}</p>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2 mt-4">
+          <button onclick="renovarVenta('${v.ID_Venta}')" class="btn-dark">RENOVAR</button>
+          <button onclick="liberarVenta('${v.ID_Venta}')" class="btn-dark">LIBERAR</button>
+          <button onclick="eliminarVenta('${v.ID_Venta}')" class="btn-dark bg-red-900/70">ELIMINAR</button>
+          <a class="btn-dark text-center bg-green-600" target="_blank" href="https://wa.me/${cliente.WhatsApp || ''}?text=${msg}">WA</a>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function renovarVenta(idVenta) {
+  const v = ventas.find(x => x.ID_Venta === idVenta);
+  if (!v) return;
+
+  const fecha = prompt("Nueva fecha de vencimiento AAAA-MM-DD:");
+  if (!fecha) return;
+
+  const ganancia = prompt("Ganancia:");
+  if (ganancia === null) return;
+
+  const r = await apiPost({
+    action: "renovarVenta",
+    idCliente: v.ID_Cliente,
+    idCuenta: v.ID_Cuenta,
+    plataforma: v.Plataforma,
+    servicioEntregado: v.Servicio_Entregado,
+    perfil: v.Perfil,
+    correoCuenta: v.Correo_Cuenta,
+    fechaVencimiento: fecha,
+    ganancia,
+    observaciones: "Renovación desde web"
+  });
+
+  if (!r.ok) return alert(r.error || "Error");
+
+  alert("Renovado");
+  cargarTodo();
+}
+
+async function liberarVenta(idVenta) {
+  if (!confirm("¿Liberar/cancelar esta venta?")) return;
+
+  const r = await apiPost({
+    action: "liberarVenta",
+    idVenta,
+    estado: "Cancelada",
+    observaciones: "Liberado desde web"
+  });
+
+  if (!r.ok) return alert(r.error || "Error");
+
+  alert("Liberado");
+  cargarTodo();
+}
+
+async function eliminarVenta(idVenta) {
+  if (!confirm("¿Eliminar definitivamente esta venta del registro?")) return;
+
+  const r = await apiPost({
+    action: "deleteVenta",
+    idVenta
+  });
+
+  if (!r.ok) {
+    alert("Falta agregar la acción deleteVenta en Apps Script.");
+    return;
+  }
+
+  alert("Venta eliminada");
+  cargarTodo();
+}
+
+function diasHasta(fecha) {
+  const hoy = new Date();
+  const f = new Date(fecha);
+  if (isNaN(f)) return 9999;
+  const a = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const b = new Date(f.getFullYear(), f.getMonth(), f.getDate());
+  return Math.ceil((b - a) / (1000 * 60 * 60 * 24));
+}
+
+function formatoFecha(fecha) {
+  const d = new Date(fecha);
+  if (isNaN(d)) return fecha;
+  return d.toLocaleDateString("es-EC");
+}
+
+function normalizar(v) {
+  return String(v || "").trim().toLowerCase();
+}
+</script>
+
+</body>
+</html>
