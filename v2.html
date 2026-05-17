@@ -6,14 +6,15 @@
     <title>Bull Streaming – Gestión y Dashboard</title>
     <style>
       :root {
-        --bg: #f5f6fa;
-        --primary: #007bff;
-        --primary-dark: #0056b3;
-        --success: #28a745;
-        --warning: #ffc107;
-        --danger: #dc3545;
-        --text-dark: #343a40;
-        --card-bg: #ffffff;
+        /* Paleta de colores oscuros inspirada en un servicio de streaming */
+        --bg: #0d0d0d;
+        --card-bg: #1a1a1a;
+        --primary: #e50914; /* rojo intenso tipo Netflix */
+        --primary-dark: #a40810;
+        --success: #00c851;
+        --warning: #ffbb33;
+        --danger: #ff4444;
+        --text-dark: #f5f5f5;
         --border-radius: 6px;
       }
       * {
@@ -60,9 +61,10 @@
       .card {
         background-color: var(--card-bg);
         border-radius: var(--border-radius);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
         padding: 1rem;
         margin-bottom: 1rem;
+        color: var(--text-dark);
       }
       label {
         display: block;
@@ -76,9 +78,14 @@
         width: 100%;
         padding: 0.5rem;
         margin-top: 0.25rem;
-        border: 1px solid #ced4da;
+        border: 1px solid #333;
         border-radius: var(--border-radius);
         font-size: 1rem;
+        background-color: #262626;
+        color: var(--text-dark);
+      }
+      input::placeholder, textarea::placeholder {
+        color: #888;
       }
       button {
         cursor: pointer;
@@ -116,8 +123,8 @@
         min-width: 200px;
       }
       .preview {
-        background-color: #f1f3f5;
-        border: 1px solid #dee2e6;
+        background-color: #262626;
+        border: 1px solid #444;
         padding: 0.5rem;
         border-radius: var(--border-radius);
         min-height: 60px;
@@ -129,26 +136,31 @@
         border-collapse: collapse;
         margin-top: 0.5rem;
       }
-      th, td {
-        border: 1px solid #dee2e6;
+      th,
+      td {
+        border: 1px solid #333;
         padding: 0.5rem;
         text-align: left;
         font-size: 0.9rem;
       }
       th {
-        background-color: #e9ecef;
+        background-color: var(--primary-dark);
+        color: #fff;
       }
       tr.libre {
-        background-color: #e6ffed;
+        background-color: rgba(40, 167, 69, 0.2);
       }
       tr.lleno {
-        background-color: #ffeaea;
+        background-color: rgba(220, 53, 69, 0.2);
       }
       tr.vence-pronto {
-        background-color: #fff3cd;
+        background-color: rgba(255, 193, 7, 0.2);
       }
       tr.vence-hoy {
-        background-color: #f8d7da;
+        background-color: rgba(220, 53, 69, 0.4);
+      }
+      a {
+        color: var(--primary);
       }
       .kpi-row {
         display: flex;
@@ -162,7 +174,8 @@
         flex: 1 1 30%;
         min-width: 200px;
         padding: 1rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+        color: var(--text-dark);
       }
       .kpi h3 {
         margin: 0;
@@ -235,6 +248,26 @@
         </div>
       </section>
 
+      <!-- Sección para agregar clientes -->
+      <section id="clientes">
+        <h2>Agregar nuevo cliente</h2>
+        <div class="card">
+          <div class="row">
+            <div class="col-half">
+              <label for="nombreCliente">Nombre</label>
+              <input type="text" id="nombreCliente" placeholder="Nombre del cliente" />
+            </div>
+            <div class="col-half">
+              <label for="telefonoCliente">WhatsApp</label>
+              <input type="text" id="telefonoCliente" placeholder="Ej: 593987654321" />
+            </div>
+          </div>
+          <label for="observacionesCliente">Observaciones</label>
+          <input type="text" id="observacionesCliente" placeholder="Opcional" />
+          <button class="btn-success" id="agregarCliente" style="margin-top:0.75rem;">Agregar cliente</button>
+        </div>
+      </section>
+
       <!-- Sección de dashboard -->
       <section id="dashboard">
         <h2>Dashboard</h2>
@@ -282,121 +315,86 @@
       // URL del Apps Script (reemplazar por tu enlace desplegado)
       const API_URL = 'https://script.google.com/macros/s/AKfycbzC2RkRnHzyzlFhi55lIZdCenQNhD3feX-BlXZYaW1Emt7WhEKQd4fSh0XMh7IVx9A/exec';
 
-      // Lista de clientes (id, nombre, teléfono) extraída de la hoja "Clientes".
-      const clients = [
-        { id: 'Cl_0001', name: 'Rev. Salome', phone: '593987891615' },
-        { id: 'Cl_0002', name: 'Rev. Pedro', phone: '593995208735' },
-        { id: 'Cl_0003', name: 'Rev. Wolf Streaming', phone: '593992822233' },
-        { id: 'Cl_0004', name: 'Rev. Ave Fenix', phone: '593985456951' },
-        { id: 'Cl_0005', name: 'Rev Josselyn', phone: '593961031949' },
-        { id: 'Cl_0006', name: 'Rev. Avii', phone: '593982287031' },
-        { id: 'Cl_0007', name: 'Cl. Carlos Alberto', phone: '593980974863' },
-        { id: 'Cl_0008', name: 'Cl. Cinthia Gonzales', phone: '593994440557' },
-        { id: 'Cl_0009', name: 'Cl. Estefania Soledad', phone: '593996222458' },
-        { id: 'Cl_0010', name: 'Rev. Santistreaming', phone: '593989264018' },
-        { id: 'Cl_0011', name: 'Rev. Jony', phone: '593982870132' },
-        { id: 'Cl_0012', name: 'Cl. Fredd', phone: '17185764730' },
-        { id: 'Cl_0013', name: 'Rev. Pao', phone: '593961126921' },
-        { id: 'Cl_0014', name: 'Cl. Ger', phone: '593986207073' },
-        { id: 'Cl_0015', name: 'Cl. Flak', phone: '593997299828' },
-        { id: 'Cl_0016', name: 'Cl. Entretenimiento store', phone: '593987937218' },
-        { id: 'Cl_0017', name: 'Cl. LM', phone: '593939508136' },
-        { id: 'Cl_0018', name: 'Cl. César', phone: '593992323303' },
-        { id: 'Cl_0019', name: 'Rev. Flash', phone: '593981255479' },
-        { id: 'Cl_0020', name: 'Cl. Rom', phone: '593984530775' },
-        { id: 'Cl_0021', name: 'Cl. Josue', phone: '593981226858' },
-        { id: 'Cl_0022', name: 'Cl. Arnold', phone: '491634766127' },
-        { id: 'Cl_0023', name: 'Cl. Karen Mishell', phone: '593959551916' },
-        { id: 'Cl_0024', name: 'Cl. Hugo', phone: '593990988739' },
-        { id: 'Cl_0025', name: 'Cl. Jeicob', phone: '593998162610' },
-        { id: 'Cl_0026', name: 'Cl. Mario', phone: '593958934873' },
-        { id: 'Cl_0027', name: 'Cl. Pablo Andrade', phone: '593992053102' },
-        { id: 'Cl_0028', name: 'Cl. Jessy Cargua', phone: '593985981008' },
-        { id: 'Cl_0029', name: 'Cl. Christian', phone: '593996777285' },
-        { id: 'Cl_0030', name: 'Cl. Novedades Sarami', phone: '593996709127' },
-        { id: 'Cl_0031', name: 'Rev. Liz', phone: '593983020718' },
-        { id: 'Cl_0032', name: 'Cl. Denis', phone: '593994285422' },
-        { id: 'Cl_0033', name: 'Cl. Fanny', phone: '593993115837' },
-        { id: 'Cl_0034', name: 'Cl. Fernando Guerrero', phone: '593989513476' },
-        { id: 'Cl_0035', name: 'Cl. Andy Antonio', phone: '593989392567' },
-        { id: 'Cl_0036', name: 'Cl. Cristian Leonardo', phone: '593988542227' },
-        { id: 'Cl_0037', name: 'Cl. P. Belen', phone: '593994340301' },
-        { id: 'Cl_0038', name: 'Cl. Lindita', phone: '593983503781' },
-        { id: 'Cl_0039', name: 'Cl. Nayeli Herreria', phone: '593984817170' },
-        { id: 'Cl_0040', name: 'Cl. Ibeth', phone: '593985923485' },
-        { id: 'Cl_0041', name: 'Cl. Paula Portilla', phone: '593996267338' },
-        { id: 'Cl_0042', name: 'Cl. Triko', phone: '593961570799' },
-        { id: 'Cl_0043', name: 'Cl. Anderson', phone: '593993803670' },
-        { id: 'Cl_0044', name: 'Cl. Miriam', phone: '593959253354' },
-        { id: 'Cl_0045', name: 'Cl. Micaela', phone: '593962941503' },
-        { id: 'Cl_0046', name: 'Cl. Diego Valdiviezo', phone: '593982292195' },
-        { id: 'Cl_0047', name: 'Rev. Felix', phone: '593969949616' },
-        { id: 'Cl_0048', name: 'Cl. Isaac Lazo', phone: '593969968535' },
-        { id: 'Cl_0049', name: 'Cl. Rosita Daniela', phone: '593998427908' },
-        { id: 'Cl_0050', name: 'Cl. Sani', phone: '593981775115' },
-        { id: 'Cl_0051', name: 'Cl. George Urresta', phone: '593999565564' },
-        { id: 'Cl_0052', name: 'Cl. Katy', phone: '593983649751' },
-        { id: 'Cl_0053', name: 'Rev. Anahi', phone: '593999202931' },
-        { id: 'Cl_0054', name: 'Cl. Juan Carlos', phone: '593981740836' },
-        { id: 'Cl_0055', name: 'Cl.Alex', phone: '593992713007' },
-        { id: 'Cl_0056', name: 'Cl Sebas', phone: '593995428405' },
-        { id: 'Cl_0057', name: 'Cl Pablo', phone: '593992053102' },
-        { id: 'Cl_0058', name: 'Cl ronald', phone: '593989663936' },
-        { id: 'Cl_0059', name: 'Cl Xavier', phone: '593998792216' },
-        { id: 'Cl_0060', name: 'Rev. Carlos Alberto', phone: '593980974863' },
-        { id: 'Cl_0061', name: 'CL Jhoan', phone: '593985550082' },
-        { id: 'Cl_0062', name: 'Cl. Mesias Vallejo', phone: '593960993906' },
-        { id: 'Cl_0063', name: 'Cl. Danny Pantoja', phone: '593987879969' },
-        { id: 'Cl_0064', name: 'Cl. Edwin', phone: '593984484515' },
-        { id: 'Cl_0065', name: 'Cl Sebastian Navas', phone: '593962949030' },
-        { id: 'Cl_0066', name: 'Cl. Margarita', phone: '593998568221' },
-        { id: 'Cl_0067', name: 'Cl. Jenny', phone: '593985048941' },
-        { id: 'Cl_0068', name: 'Cl. Karen Pineda', phone: '593959551916' },
-        { id: 'Cl_0069', name: 'Cl. Luis Mafla', phone: '593994654430' },
-        { id: 'Cl_0070', name: 'Cl Herrera P', phone: '593984605642' },
-        { id: 'Cl_0071', name: 'Cl Paola Estefania', phone: '593962927911' },
-        { id: 'Cl_0072', name: 'Cl. Mabe Vinueza', phone: '593996378857' },
-        { id: 'Cl_0073', name: 'Rev. Jonathan', phone: '593995931393' },
-        { id: 'Cl_0074', name: 'Cl. Victor Romero', phone: '593993158882' },
-        { id: 'Cl_0075', name: 'Cl. Addy Parra', phone: '593999796361' },
-        { id: 'Cl_0076', name: 'Cl. Rudolf Morales', phone: '593997730004' },
-        { id: 'Cl_0077', name: 'Cl. Ramiro Velasco', phone: '18454941645' },
-        { id: 'Cl_0078', name: 'Cl Paul', phone: '593992851937' },
-        { id: 'Cl_0079', name: 'Cl kelly Aliha', phone: '593939299549' },
-        { id: 'Cl_0080', name: 'Cl Jessy02', phone: '593969862996' },
-        { id: 'Cl_0081', name: 'CL LUIS CHAMORRO', phone: '593986913270' },
-        { id: 'Cl_0082', name: 'Cl Dav', phone: '50761617771' },
-        { id: 'Cl_0083', name: 'Cl Carlos', phone: '593969583785' },
-        { id: 'Cl_0084', name: 'Cl Paul', phone: '593992851937' },
-        { id: 'Cl_0085', name: 'Cl Johanan', phone: '593984865103' },
-        { id: 'Cl_0086', name: 'Cl fer', phone: '593990593219' }
-      ];
+      // Lista de clientes obtenida dinámicamente desde la API. Se inicializa vacía y se rellenará con loadClients().
+      let clients = [];
 
       // Variables para nueva venta
       let selectedClient = null;
       let parsedData = null;
 
-      // Población inicial del select de clientes
-      function loadClients() {
+      // Población inicial del select de clientes.
+      async function loadClients() {
         const select = document.getElementById('cliente');
-        clients.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c.id;
-          opt.textContent = `${c.id} – ${c.name}`;
-          select.appendChild(opt);
-        });
+        select.innerHTML = '<option value="" disabled selected>Seleccione un cliente…</option>';
+        try {
+          // Obtener lista completa de clientes a través de la API
+          const res = await fetch(API_URL);
+          const data = await res.json();
+          // data.clientes es un array de filas [ID, Nombre, WhatsApp]
+          clients = data.clientes.map(row => ({ id: row[0], name: row[1], phone: row[2] }));
+          clients.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = `${c.id} – ${c.name}`;
+            select.appendChild(opt);
+          });
+        } catch (err) {
+          console.error('Error al cargar clientes:', err);
+        }
       }
 
-      // Extrae plataforma, correo/perfil y fecha del mensaje
+      // Extrae plataforma, correo/perfil y fecha de expiración del mensaje.
       function parseMessage(msg) {
-        const regex = /(.*?)\s*,\s*([^,]+)\s*,\s*(\d{1,2}\/\d{1,2}\/\d{4})/;
-        const m = msg.match(regex);
-        if (!m) return null;
-        const plataforma = m[1].trim();
-        const correoPerfil = m[2].trim();
-        const [d, mth, y] = m[3].trim().split('/');
-        const fechaVenta = new Date(y, mth - 1, d);
-        return { plataforma, correoPerfil, fechaVenta };
+        // Separar por líneas y limpiar caracteres de control
+        const lines = msg.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+        let plataforma = '';
+        let servicio = '';
+        let correoPerfil = '';
+        let fechaExpira = null;
+        // Mapeo de meses en español a abreviaturas en inglés para parseo
+        const mesesMap = {
+          'ene': 'Jan', 'enero': 'Jan', 'feb': 'Feb', 'febrero': 'Feb', 'mar': 'Mar', 'marzo': 'Mar',
+          'abr': 'Apr', 'abril': 'Apr', 'may': 'May', 'mayo': 'May', 'jun': 'Jun', 'junio': 'Jun',
+          'jul': 'Jul', 'julio': 'Jul', 'ago': 'Aug', 'agosto': 'Aug', 'sep': 'Sep', 'sept': 'Sep', 'septiembre': 'Sep',
+          'oct': 'Oct', 'octubre': 'Oct', 'nov': 'Nov', 'noviembre': 'Nov', 'dic': 'Dec', 'diciembre': 'Dec'
+        };
+        for (const line of lines) {
+          // Detectar plataforma y tipo de servicio
+          if (!plataforma) {
+            const platMatch = line.match(/(Netflix|Disney\+?|HBO\s*Max|Amazon\s*Prime|Star\+|Paramount|Crunchyroll|Spotify|YouTube|Apple\s*TV|Prime\s*Video|Vix|Claro|Starz|YouTube\s*Premium)/i);
+            if (platMatch) {
+              plataforma = platMatch[1].toUpperCase();
+              servicio = /cuenta|completa/i.test(line) ? 'Cuenta completa' : (/perfil/i.test(line) ? 'Perfil' : '');
+            }
+          }
+          // Detectar correo/perfil (línea con arroba)
+          if (!correoPerfil && /@/.test(line)) {
+            // eliminar caracteres de iconos al inicio
+            correoPerfil = line.replace(/^[^\w]+/, '').trim();
+          }
+          // Detectar fecha de expiración
+          if (!fechaExpira && /Expira/i.test(line)) {
+            const parts = line.split(/Expira[:\s]*/i).pop().trim().split(/\s+/);
+            if (parts.length >= 3) {
+              let day = parts[0];
+              let month = parts[1];
+              const year = parts[2];
+              const key = month.toLowerCase();
+              if (mesesMap[key]) {
+                month = mesesMap[key];
+              }
+              // Convertir a fecha válida
+              fechaExpira = new Date(`${day} ${month} ${year}`);
+            } else {
+              fechaExpira = new Date(parts.join(' '));
+            }
+          }
+        }
+        if (!plataforma || !correoPerfil || !fechaExpira || isNaN(fechaExpira)) {
+          return null;
+        }
+        const plataformaCompleta = `${plataforma} ${servicio}`.trim();
+        return { plataforma: plataformaCompleta, correoPerfil, fechaExpira };
       }
 
       function calcularVencimiento(fechaVenta, meses) {
@@ -421,17 +419,23 @@
         const res = parseMessage(msg);
         const preview = document.getElementById('preview');
         if (!res) {
-          preview.textContent = 'No se pudo interpretar el mensaje. Asegúrate de que tenga la forma: Plataforma, correo/perfil, DD/MM/AAAA';
+          preview.textContent = 'No se pudo interpretar el mensaje. Asegúrate de que tu mensaje tenga un correo y una línea con “Expira: DD Mon YYYY”.';
           parsedData = null;
           document.getElementById('guardar').disabled = true;
           document.getElementById('whatsapp').disabled = true;
           return;
         }
+        // res contiene {plataforma, correoPerfil, fechaExpira}
         const durMeses = parseInt(document.getElementById('duracion').value) || 1;
-        const venc = calcularVencimiento(res.fechaVenta, durMeses);
-        document.getElementById('vencimiento').value = formatDateForInput(venc);
-        preview.textContent = `Cliente: ${selectedClient.name}\nPlataforma: ${res.plataforma}\nCorreo/Perfil: ${res.correoPerfil}\nFecha venta: ${res.fechaVenta.toLocaleDateString()}\nFecha vencimiento: ${venc.toLocaleDateString()}`;
-        parsedData = { ...res, fechaVencimiento: venc };
+        // Calculamos la fecha de venta restando meses a la fecha de expiración
+        const fechaVenc = res.fechaExpira;
+        const fechaVenta = new Date(fechaVenc.getTime());
+        fechaVenta.setMonth(fechaVenta.getMonth() - durMeses);
+        // Establecer la fecha de vencimiento en el input (permitiendo edición manual)
+        document.getElementById('vencimiento').value = formatDateForInput(fechaVenc);
+        // Previsualización
+        preview.textContent = `Cliente: ${selectedClient.name}\nPlataforma: ${res.plataforma}\nCorreo/Perfil: ${res.correoPerfil}\nFecha venta: ${fechaVenta.toLocaleDateString()}\nFecha vencimiento: ${fechaVenc.toLocaleDateString()}`;
+        parsedData = { plataforma: res.plataforma, correoPerfil: res.correoPerfil, fechaVenta: fechaVenta, fechaExpira: fechaVenc };
         document.getElementById('guardar').disabled = false;
         document.getElementById('whatsapp').disabled = false;
       });
@@ -441,11 +445,15 @@
         const ganancia = parseFloat(document.getElementById('ganancia').value) || 0;
         const fechaVencInput = document.getElementById('vencimiento').value;
         const fechaVenc = new Date(fechaVencInput);
+        // Calcular de nuevo la fecha de venta en función de la duración (por si el usuario la modificó)
+        const durMesesGuardar = parseInt(document.getElementById('duracion').value) || 1;
+        const fechaVenta = new Date(fechaVenc.getTime());
+        fechaVenta.setMonth(fechaVenta.getMonth() - durMesesGuardar);
         const payload = {
           clienteId: selectedClient.id,
           plataforma: parsedData.plataforma,
           correoPerfil: parsedData.correoPerfil,
-          fechaVenta: parsedData.fechaVenta.toISOString(),
+          fechaVenta: fechaVenta.toISOString(),
           fechaVencimiento: fechaVenc.toISOString(),
           ganancia: ganancia
         };
@@ -480,6 +488,38 @@
 
       document.getElementById('reset').addEventListener('click', resetForm);
       document.getElementById('refrescar').addEventListener('click', refreshDashboard);
+
+      // Evento para agregar un nuevo cliente
+      document.getElementById('agregarCliente').addEventListener('click', async () => {
+        const nombre = document.getElementById('nombreCliente').value.trim();
+        const telefono = document.getElementById('telefonoCliente').value.trim();
+        const obs = document.getElementById('observacionesCliente').value.trim();
+        if (!nombre || !telefono) {
+          alert('Ingrese al menos el nombre y el número de WhatsApp del cliente.');
+          return;
+        }
+        try {
+          const resp = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addClient', nombre: nombre, whatsapp: telefono, observaciones: obs })
+          });
+          const result = await resp.json();
+          if (result.status === 'ok') {
+            alert('Cliente agregado correctamente (ID: ' + result.idCliente + ').');
+            // Limpiar campos
+            document.getElementById('nombreCliente').value = '';
+            document.getElementById('telefonoCliente').value = '';
+            document.getElementById('observacionesCliente').value = '';
+            // Recargar lista de clientes
+            loadClients();
+          } else {
+            alert('Error: ' + JSON.stringify(result));
+          }
+        } catch (err) {
+          alert('No se pudo agregar el cliente. Verifique la URL del Apps Script.');
+        }
+      });
 
       function resetForm() {
         document.getElementById('cliente').selectedIndex = 0;
@@ -546,9 +586,10 @@
         }
       }
 
-      // Inicialización
-      loadClients();
-      refreshDashboard();
+      // Inicialización: primero cargamos clientes y luego el dashboard para asegurarnos de que los nombres estén disponibles.
+      loadClients().then(() => {
+        refreshDashboard();
+      });
     </script>
   </body>
 </html>
