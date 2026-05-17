@@ -532,7 +532,7 @@ function renderCuentas() {
   cont.innerHTML = lista.map(cuenta => {
     const s = servicioDeCuenta(cuenta);
     const info = infoCuenta(cuenta);
-    const correo = cuenta.Correo_Cuenta || cuenta.Correo_cuenta || "";
+    const correo = cuenta.Correo_Cuenta || cuenta.Correo_cuenta || cuenta.correoCuenta || "";
     const compra = compraDeCuenta(cuenta.ID_Cuenta);
     const venceProveedor = compra ? formatoFecha(compra.Fecha_Vencimiento) : "Sin fecha";
 
@@ -541,7 +541,7 @@ function renderCuentas() {
         <div class="flex justify-between items-start gap-2">
           <div class="min-w-0">
             <p class="font-black truncate">${correo}</p>
-            <p class="text-xs text-slate-400">${s.Plataforma} · ${s.Tipo_Servicio}</p>
+            <p class="text-xs text-slate-400">${s.Plataforma} · Cuenta en inventario</p>
           </div>
           <span class="w-4 h-4 rounded-full mt-1 ${info.libres <= 0 ? 'bg-red-500' : 'bg-green-500'}"></span>
         </div>
@@ -569,25 +569,29 @@ function renderCuentas() {
 }
 
 function servicioDeCuenta(cuenta) {
-  const servicioBase = config.find(x => x.ID_Servicio === cuenta.ID_Servicio);
+  return config.find(x => x.ID_Servicio === cuenta.ID_Servicio) || null;
+}
+
+function servicioCapacidadCuenta(cuenta) {
+  const servicioBase = servicioDeCuenta(cuenta);
   if (!servicioBase) return null;
 
-  const servicioPerfil = config.find(x =>
-    x.Plataforma === servicioBase.Plataforma &&
-    String(x.Tipo_Inventario).toLowerCase() === "perfiles"
+  const servicioPerfiles = config.find(x =>
+    normalizar(x.Plataforma) === normalizar(servicioBase.Plataforma) &&
+    normalizar(x.Tipo_Inventario) === "perfiles"
   );
 
-  return servicioPerfil || servicioBase;
+  return servicioPerfiles || servicioBase;
 }
 
 function infoCuenta(cuenta) {
-  const s = servicioDeCuenta(cuenta);
+  const servicioCapacidad = servicioCapacidadCuenta(cuenta);
   const correo = normalizar(cuenta.Correo_Cuenta || cuenta.Correo_cuenta);
 
-  const capacidad = Number(s?.Capacidad || 1);
+  const capacidad = Number(servicioCapacidad?.Capacidad || 1);
 
   const usadas = ventas.filter(v =>
-    v.Estado === "Activa" &&
+    normalizar(v.Estado) === "activa" &&
     normalizar(v.Correo_Cuenta) === correo
   ).length;
 
