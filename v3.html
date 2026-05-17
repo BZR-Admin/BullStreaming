@@ -4,107 +4,157 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bull Streaming Pro</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+
   <style>
-    .tab-content { display:none; }
-    .tab-content.active { display:block; }
-    .no-scrollbar::-webkit-scrollbar { display:none; }
-    .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+    body { font-family: 'Inter', sans-serif; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .glass { background: rgba(15, 23, 42, .78); backdrop-filter: blur(18px); }
+    .input {
+      width: 100%;
+      padding: 14px;
+      background: rgba(15, 23, 42, .9);
+      border: 1px solid rgb(51,65,85);
+      border-radius: 18px;
+      outline: none;
+      font-size: 14px;
+    }
+    .input:focus { border-color: #facc15; }
+    .btn-main {
+      width: 100%;
+      padding: 15px;
+      border-radius: 18px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #facc15, #f97316);
+      color: #111827;
+    }
+    .btn-dark {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgb(30,41,59);
+      font-weight: 800;
+      font-size: 12px;
+    }
   </style>
 </head>
 
-<body class="bg-slate-950 text-slate-100 min-h-screen pb-24 font-sans">
+<body class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black text-slate-100 pb-28">
 
-<nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 flex justify-around p-3 z-50">
-  <button onclick="showTab('tab-dashboard')" class="nav-btn text-yellow-500 text-xs font-bold">📊<br>Dashboard</button>
-  <button onclick="showTab('tab-venta')" class="nav-btn text-slate-400 text-xs font-bold">🛒<br>Venta</button>
-  <button onclick="showTab('tab-clientes')" class="nav-btn text-slate-400 text-xs font-bold">👥<br>Clientes</button>
-  <button onclick="showTab('tab-compras')" class="nav-btn text-slate-400 text-xs font-bold">📦<br>Compras</button>
-  <button onclick="showTab('tab-registro')" class="nav-btn text-slate-400 text-xs font-bold">📂<br>Historial</button>
+<nav class="fixed bottom-3 left-3 right-3 z-50 glass border border-slate-700 rounded-3xl px-2 py-3 shadow-2xl">
+  <div class="grid grid-cols-5 text-center text-[10px] font-black">
+    <button onclick="showTab('tab-dashboard', this)" class="nav-btn text-yellow-400">📊<br>Inicio</button>
+    <button onclick="showTab('tab-venta', this)" class="nav-btn text-slate-400">⚡<br>Venta</button>
+    <button onclick="showTab('tab-cuentas', this)" class="nav-btn text-slate-400">🧩<br>Cuentas</button>
+    <button onclick="showTab('tab-compras', this)" class="nav-btn text-slate-400">📦<br>Compra</button>
+    <button onclick="showTab('tab-registro', this)" class="nav-btn text-slate-400">📂<br>Ventas</button>
+  </div>
 </nav>
 
-<div class="p-4 max-w-md mx-auto">
+<div class="max-w-md mx-auto p-4">
 
-<header class="text-center py-5">
-  <h1 class="text-3xl font-black text-yellow-500 italic uppercase">Bull Streaming 🐂</h1>
+<header class="py-6">
+  <p class="text-xs text-slate-400 font-black uppercase">Panel privado</p>
+  <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 italic">
+    Bull Streaming
+  </h1>
 </header>
 
-<section id="tab-dashboard" class="tab-content active space-y-4">
-  <h2 class="text-lg font-black">📊 Dashboard</h2>
-  <div id="dashboard-cards" class="grid grid-cols-2 gap-3"></div>
-  <button onclick="cargarTodo()" class="w-full py-4 bg-yellow-600 rounded-2xl font-black">REFRESCAR</button>
+<section id="tab-dashboard" class="tab-content active space-y-5">
+  <h2 class="text-xl font-black">📊 Dashboard</h2>
+
+  <div>
+    <h3 class="text-sm font-black text-yellow-400 mb-2">Clientes</h3>
+    <div id="dash-clientes" class="grid grid-cols-2 gap-3"></div>
+  </div>
+
+  <div>
+    <h3 class="text-sm font-black text-cyan-400 mb-2">Para mí / proveedor</h3>
+    <div id="dash-proveedor" class="grid grid-cols-2 gap-3"></div>
+  </div>
+
+  <button onclick="cargarTodo()" class="btn-main">REFRESCAR TODO</button>
 </section>
 
-<section id="tab-venta" class="tab-content">
-  <div class="bg-slate-900 p-5 rounded-3xl border border-slate-800 space-y-4">
-    <h2 class="text-lg font-black">🛒 Nueva Venta</h2>
+<section id="tab-venta" class="tab-content space-y-4">
+  <div class="glass border border-slate-700 rounded-3xl p-5 space-y-4">
+    <h2 class="text-xl font-black">⚡ Nueva venta</h2>
 
-    <select id="sel-cliente" class="input"></select>
-    <select id="v-servicio" onchange="cargarInventarioDisponible()" class="input"></select>
-    <select id="v-cuenta" onchange="sugerirPerfil()" class="input"></select>
+    <select id="v-cliente" class="input"></select>
 
-    <input id="v-perfil" placeholder="Perfil: P1, P2, Completa..." class="input" />
+    <div class="bg-slate-950/80 border border-slate-700 rounded-3xl p-3 space-y-3">
+      <div class="flex justify-between items-center">
+        <p class="text-xs font-black text-yellow-400 uppercase">Pegado inteligente</p>
+        <button onclick="limpiarPegado()" class="text-[10px] font-black text-slate-400">LIMPIAR</button>
+      </div>
+
+      <textarea id="v-texto" class="input h-44" placeholder="Pega aquí el texto de entrega..." oninput="detectarTextoVenta()"></textarea>
+    </div>
+
+    <select id="v-servicio" class="input"></select>
+    <input id="v-correo" class="input" placeholder="Correo / usuario de cuenta" />
+    <input id="v-perfil" class="input" placeholder="Perfil / usuario entregado" />
     <input id="v-fecha-vencimiento" type="date" class="input" />
-    <input id="v-ganancia" type="number" step="0.01" placeholder="Ganancia" class="input" />
-    <textarea id="v-observaciones" placeholder="Observaciones" class="input h-20"></textarea>
+    <input id="v-ganancia" type="number" step="0.01" class="input" placeholder="Ganancia" />
+    <textarea id="v-observaciones" class="input h-20" placeholder="Observaciones"></textarea>
 
-    <button onclick="registrarVenta()" class="w-full py-4 bg-yellow-600 rounded-2xl font-black">
-      REGISTRAR VENTA
-    </button>
+    <button onclick="registrarVenta()" class="btn-main">REGISTRAR VENTA</button>
   </div>
 </section>
 
-<section id="tab-clientes" class="tab-content">
-  <div class="bg-slate-900 p-5 rounded-3xl border border-slate-800 space-y-4">
-    <h2 class="text-lg font-black">👤 Nuevo Cliente</h2>
-    <input id="c-nombre" placeholder="Nombre" class="input" />
-    <input id="c-whatsapp" placeholder="WhatsApp: 5939..." class="input" />
-    <textarea id="c-observaciones" placeholder="Observaciones" class="input h-20"></textarea>
-    <button onclick="guardarCliente()" class="w-full py-4 bg-indigo-600 rounded-2xl font-black">
-      GUARDAR CLIENTE
-    </button>
-  </div>
+<section id="tab-cuentas" class="tab-content space-y-4">
+  <h2 class="text-xl font-black">🧩 Mis cuentas</h2>
+  <select id="filtro-plataforma-cuentas" onchange="renderCuentas()" class="input"></select>
+  <div id="lista-cuentas" class="space-y-3"></div>
 </section>
 
-<section id="tab-compras" class="tab-content">
-  <div class="bg-slate-900 p-5 rounded-3xl border border-slate-800 space-y-4">
-    <h2 class="text-lg font-black">📦 Compra a Proveedor</h2>
+<section id="tab-compras" class="tab-content space-y-4">
+  <div class="glass border border-slate-700 rounded-3xl p-5 space-y-4">
+    <h2 class="text-xl font-black">📦 Compra a proveedor</h2>
 
-    <select id="comp-cuenta" class="input"></select>
-    <input id="comp-proveedor" placeholder="Proveedor" class="input" />
-    <label class="text-xs text-slate-400">Fecha compra</label>
+    <select id="comp-plataforma" onchange="seleccionarServicioCuenta()" class="input"></select>
+    <input id="comp-correo" class="input" placeholder="Correo de la cuenta comprada" />
+    <input id="comp-proveedor" class="input" placeholder="Proveedor" />
+
+    <label class="text-xs text-slate-400 font-black">Fecha compra</label>
     <input id="comp-fecha-compra" type="date" class="input" />
-    <label class="text-xs text-slate-400">Fecha vencimiento proveedor</label>
-    <input id="comp-fecha-vencimiento" type="date" class="input" />
-    <textarea id="comp-observaciones" placeholder="Observaciones" class="input h-20"></textarea>
 
-    <button onclick="registrarCompraProveedor()" class="w-full py-4 bg-emerald-600 rounded-2xl font-black">
-      REGISTRAR COMPRA
-    </button>
+    <label class="text-xs text-slate-400 font-black">Vencimiento proveedor</label>
+    <input id="comp-fecha-vencimiento" type="date" class="input" />
+
+    <textarea id="comp-observaciones" class="input h-20" placeholder="Observaciones"></textarea>
+
+    <button onclick="registrarCompraConInventario()" class="btn-main">GUARDAR COMPRA + INVENTARIO</button>
   </div>
 </section>
 
-<section id="tab-registro" class="tab-content space-y-3">
-  <div class="sticky top-0 bg-slate-950 py-3 z-40">
-    <h2 class="text-lg font-black mb-3">📂 Historial</h2>
-    <input id="buscar" oninput="renderVentas()" placeholder="Buscar cliente, servicio, correo..." class="input" />
-  </div>
+<section id="tab-registro" class="tab-content space-y-4">
+  <h2 class="text-xl font-black">📂 Registro de ventas</h2>
+  <input id="buscar-ventas" class="input" placeholder="Buscar..." oninput="renderVentas()" />
   <div id="lista-ventas" class="space-y-4"></div>
+</section>
+
+<section class="mt-8 glass border border-slate-700 rounded-3xl p-5 space-y-3">
+  <h2 class="text-lg font-black">👥 Cliente rápido</h2>
+  <input id="c-nombre" class="input" placeholder="Nombre" />
+  <input id="c-whatsapp" class="input" placeholder="WhatsApp 5939..." />
+  <button onclick="guardarCliente()" class="btn-dark w-full">GUARDAR CLIENTE</button>
 </section>
 
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxI5OLUYHl-baPQqJTz3JfaLP0df1cATY8IPcby-wNO_Rlc9P7MrgskizAvFj4m2KY/exec";
+const API_URL = "PEGA_AQUI_TU_URL_EXEC";
 
 let clientes = [];
-let configuracion = [];
+let config = [];
 let inventario = [];
 let ventas = [];
-
-document.querySelectorAll(".input").forEach(el => {
-  el.className += " w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 outline-none text-sm";
-});
+let compras = [];
+let dashboard = {};
+let servicioCuentaSeleccionado = null;
 
 window.onload = cargarTodo;
 
@@ -114,133 +164,99 @@ async function apiGet(action) {
 }
 
 async function apiPost(payload) {
-  await fetch(API_URL, {
+  const res = await fetch(API_URL, {
     method: "POST",
     body: JSON.stringify(payload)
   });
+  return await res.json();
 }
 
 async function cargarTodo() {
-  const [c, conf, inv, ven, dash] = await Promise.all([
+  const [c, conf, inv, ven, comp, dash] = await Promise.all([
     apiGet("getClientes"),
     apiGet("getConfiguracion"),
     apiGet("getInventario"),
     apiGet("getVentas"),
+    apiGet("getComprasProveedor"),
     apiGet("getDashboard")
   ]);
 
   clientes = c.clientes || [];
-  configuracion = conf.configuracion || [];
+  config = conf.configuracion || [];
   inventario = inv.inventario || [];
   ventas = ven.ventas || [];
+  compras = comp.compras || [];
+  dashboard = dash.dashboard || {};
 
-  cargarClientesSelect();
-  cargarServiciosSelect();
-  cargarCuentasCompraSelect();
+  cargarClientes();
+  cargarServiciosVenta();
+  cargarPlataformasCompra();
+  cargarFiltroCuentas();
+  renderDashboard();
   renderVentas();
-  renderDashboard(dash.dashboard || {});
+  renderCuentas();
 }
 
-function showTab(id) {
+function showTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+
   document.querySelectorAll(".nav-btn").forEach(b => {
-    b.classList.remove("text-yellow-500");
+    b.classList.remove("text-yellow-400");
     b.classList.add("text-slate-400");
   });
 
-  document.getElementById(id).classList.add("active");
-  event.currentTarget.classList.remove("text-slate-400");
-  event.currentTarget.classList.add("text-yellow-500");
+  btn.classList.remove("text-slate-400");
+  btn.classList.add("text-yellow-400");
 }
 
-function cargarClientesSelect() {
-  const sel = document.getElementById("sel-cliente");
+function cargarClientes() {
+  const sel = document.getElementById("v-cliente");
   sel.innerHTML = `<option value="">Seleccione cliente</option>`;
   clientes.forEach(c => {
     sel.innerHTML += `<option value="${c.ID_Cliente}">${c.Nombre}</option>`;
   });
 }
 
-function cargarServiciosSelect() {
+function cargarServiciosVenta() {
   const sel = document.getElementById("v-servicio");
-  sel.innerHTML = `<option value="">Seleccione servicio</option>`;
-  configuracion.forEach(s => {
+  sel.innerHTML = `<option value="">Servicio detectado / seleccionar</option>`;
+  config.forEach(s => {
     sel.innerHTML += `<option value="${s.ID_Servicio}">${s.Tipo_Servicio}</option>`;
   });
 }
 
-function cargarCuentasCompraSelect() {
-  const sel = document.getElementById("comp-cuenta");
-  sel.innerHTML = `<option value="">Seleccione cuenta</option>`;
-  inventario.forEach(c => {
-    sel.innerHTML += `<option value="${c.ID_Cuenta}">${c.Correo_Cuenta || c.Correo_cuenta || ""}</option>`;
+function cargarPlataformasCompra() {
+  const sel = document.getElementById("comp-plataforma");
+  const serviciosCuenta = config.filter(s => String(s.Tipo_Inventario).toLowerCase() === "cuenta");
+  const plataformas = [...new Set(serviciosCuenta.map(s => s.Plataforma))];
+
+  sel.innerHTML = `<option value="">Seleccione plataforma</option>`;
+  plataformas.forEach(p => {
+    sel.innerHTML += `<option value="${p}">${p}</option>`;
   });
 }
 
-function getServicio(idServicio) {
-  return configuracion.find(s => s.ID_Servicio === idServicio);
+function cargarFiltroCuentas() {
+  const sel = document.getElementById("filtro-plataforma-cuentas");
+  const plataformas = [...new Set(inventario.map(c => {
+    const s = config.find(x => x.ID_Servicio === c.ID_Servicio);
+    return s ? s.Plataforma : "";
+  }).filter(Boolean))];
+
+  sel.innerHTML = `<option value="">Todas las plataformas</option>`;
+  plataformas.forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
 }
 
-function ventasActivasPorCuenta(idCuenta) {
-  return ventas.filter(v => v.ID_Cuenta === idCuenta && v.Estado === "Activa");
-}
+function seleccionarServicioCuenta() {
+  const plataforma = document.getElementById("comp-plataforma").value;
+  servicioCuentaSeleccionado = config.find(s =>
+    s.Plataforma === plataforma &&
+    String(s.Tipo_Inventario).toLowerCase() === "cuenta"
+  );
 
-function cargarInventarioDisponible() {
-  const idServicio = document.getElementById("v-servicio").value;
-  const servicio = getServicio(idServicio);
-  const sel = document.getElementById("v-cuenta");
-
-  sel.innerHTML = `<option value="">Seleccione cuenta disponible</option>`;
-
-  if (!servicio) return;
-
-  const cuentasServicio = inventario.filter(c => {
-    const estado = String(c.Estado || "Activa").toLowerCase();
-    return c.ID_Servicio === idServicio && estado !== "caída" && estado !== "caida" && estado !== "pausada";
-  });
-
-  cuentasServicio.forEach(cuenta => {
-    const usadas = ventasActivasPorCuenta(cuenta.ID_Cuenta).length;
-    const capacidad = Number(servicio.Capacidad || 1);
-    const libres = capacidad - usadas;
-
-    if (libres > 0) {
-      const correo = cuenta.Correo_Cuenta || cuenta.Correo_cuenta || "";
-      sel.innerHTML += `
-        <option value="${cuenta.ID_Cuenta}">
-          ${correo} - ${libres}/${capacidad} libre(s)
-        </option>
-      `;
-    }
-  });
-
-  sugerirPerfil();
-}
-
-function sugerirPerfil() {
-  const idCuenta = document.getElementById("v-cuenta").value;
-  const idServicio = document.getElementById("v-servicio").value;
-  const servicio = getServicio(idServicio);
-
-  if (!idCuenta || !servicio) return;
-
-  const tipo = String(servicio.Tipo_Inventario || "").toLowerCase();
-  const activas = ventasActivasPorCuenta(idCuenta);
-
-  if (tipo === "cuenta") {
-    document.getElementById("v-perfil").value = "Completa";
-    return;
-  }
-
-  const usados = activas.map(v => String(v.Perfil || "").toUpperCase());
-  const capacidad = Number(servicio.Capacidad || 1);
-
-  for (let i = 1; i <= capacidad; i++) {
-    const perfil = "P" + i;
-    if (!usados.includes(perfil)) {
-      document.getElementById("v-perfil").value = perfil;
-      return;
-    }
+  if (!servicioCuentaSeleccionado) {
+    alert("No existe un servicio tipo cuenta para esta plataforma en Configuracion");
   }
 }
 
@@ -250,131 +266,268 @@ async function guardarCliente() {
 
   if (!nombre) return alert("Falta nombre");
 
-  await apiPost({
+  const r = await apiPost({
     action: "addCliente",
     nombre,
     whatsapp,
-    observaciones: document.getElementById("c-observaciones").value
+    observaciones: ""
   });
+
+  if (!r.ok) return alert(r.error || "Error");
 
   alert("Cliente guardado");
   document.getElementById("c-nombre").value = "";
   document.getElementById("c-whatsapp").value = "";
-  document.getElementById("c-observaciones").value = "";
   cargarTodo();
 }
 
-async function registrarVenta() {
-  const idCliente = document.getElementById("sel-cliente").value;
-  const idServicio = document.getElementById("v-servicio").value;
-  const idCuenta = document.getElementById("v-cuenta").value;
-  const perfil = document.getElementById("v-perfil").value.trim();
-  const fechaVencimiento = document.getElementById("v-fecha-vencimiento").value;
-  const ganancia = document.getElementById("v-ganancia").value;
+async function registrarCompraConInventario() {
+  seleccionarServicioCuenta();
 
-  if (!idCliente || !idServicio || !idCuenta || !perfil || !fechaVencimiento) {
-    return alert("Completa cliente, servicio, cuenta, perfil y vencimiento");
-  }
+  if (!servicioCuentaSeleccionado) return;
 
-  const servicio = getServicio(idServicio);
-  const cuenta = inventario.find(c => c.ID_Cuenta === idCuenta);
-  const correoCuenta = cuenta.Correo_Cuenta || cuenta.Correo_cuenta || "";
-
-  await apiPost({
-    action: "registrarVenta",
-    idCliente,
-    idCuenta,
-    plataforma: servicio.Plataforma,
-    servicioEntregado: servicio.Tipo_Servicio,
-    perfil,
-    correoCuenta,
-    fechaVencimiento,
-    ganancia,
-    observaciones: document.getElementById("v-observaciones").value
-  });
-
-  alert("Venta registrada");
-  document.getElementById("v-perfil").value = "";
-  document.getElementById("v-fecha-vencimiento").value = "";
-  document.getElementById("v-ganancia").value = "";
-  document.getElementById("v-observaciones").value = "";
-  cargarTodo();
-}
-
-async function registrarCompraProveedor() {
-  const idCuenta = document.getElementById("comp-cuenta").value;
+  const correoCuenta = document.getElementById("comp-correo").value.trim();
   const proveedor = document.getElementById("comp-proveedor").value.trim();
   const fechaCompra = document.getElementById("comp-fecha-compra").value;
   const fechaVencimiento = document.getElementById("comp-fecha-vencimiento").value;
 
-  if (!idCuenta || !proveedor || !fechaCompra || !fechaVencimiento) {
-    return alert("Completa cuenta, proveedor y fechas");
+  if (!correoCuenta || !proveedor || !fechaCompra || !fechaVencimiento) {
+    return alert("Completa correo, proveedor y fechas");
   }
 
-  await apiPost({
-    action: "registrarCompraProveedor",
-    idCuenta,
+  const r = await apiPost({
+    action: "registrarCompraConInventario",
+    idServicio: servicioCuentaSeleccionado.ID_Servicio,
+    correoCuenta,
     proveedor,
     fechaCompra,
     fechaVencimiento,
     observaciones: document.getElementById("comp-observaciones").value
   });
 
-  alert("Compra registrada");
+  if (!r.ok) return alert(r.error || "Error");
+
+  alert("Compra e inventario guardados");
+  document.getElementById("comp-correo").value = "";
+  document.getElementById("comp-proveedor").value = "";
+  document.getElementById("comp-fecha-compra").value = "";
+  document.getElementById("comp-fecha-vencimiento").value = "";
+  document.getElementById("comp-observaciones").value = "";
   cargarTodo();
 }
 
-function renderDashboard(d) {
-  const cont = document.getElementById("dashboard-cards");
-  cont.innerHTML = `
-    ${card("Clientes activos", d.clientesActivos || 0)}
-    ${card("Ventas activas", d.ventasActivas || 0)}
-    ${card("Ganancia total", "$" + Number(d.gananciaTotal || 0).toFixed(2))}
-    ${card("Por vencer", d.porVencer || 0)}
-    ${card("Vencidas", d.vencidas || 0)}
-    ${card("Cuentas inventario", inventario.length)}
+function detectarTextoVenta() {
+  const texto = document.getElementById("v-texto").value;
+  const upper = texto.toUpperCase();
+
+  if (!texto.trim()) return;
+
+  const correo = texto.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  if (correo) document.getElementById("v-correo").value = correo[0];
+
+  const perfilMatch = texto.match(/Perfil\s+([^\-\n\r]+)/i);
+  if (perfilMatch) {
+    document.getElementById("v-perfil").value = perfilMatch[1].trim();
+  }
+
+  const fecha = detectarFecha(texto);
+  if (fecha) document.getElementById("v-fecha-vencimiento").value = fecha;
+
+  const servicio = detectarServicio(upper);
+  if (servicio) document.getElementById("v-servicio").value = servicio.ID_Servicio;
+}
+
+function detectarServicio(upper) {
+  const candidatos = config.filter(s => {
+    const plataforma = String(s.Plataforma || "").toUpperCase();
+    const tipo = String(s.Tipo_Servicio || "").toUpperCase();
+    return upper.includes(plataforma) || upper.includes(tipo);
+  });
+
+  if (!candidatos.length) return null;
+
+  if (upper.includes("PERFIL EXTRA")) {
+    return candidatos.find(s => String(s.Tipo_Servicio).toUpperCase().includes("EXTRA")) || candidatos[0];
+  }
+
+  if (upper.includes("CUENTA COMPLETA")) {
+    return candidatos.find(s => String(s.Tipo_Inventario).toLowerCase() === "cuenta") || candidatos[0];
+  }
+
+  return candidatos.find(s => String(s.Tipo_Inventario).toLowerCase() === "perfiles") || candidatos[0];
+}
+
+function detectarFecha(texto) {
+  const meses = {
+    ene: 0, enero: 0,
+    feb: 1, febrero: 1,
+    mar: 2, marzo: 2,
+    abr: 3, abril: 3,
+    may: 4, mayo: 4,
+    jun: 5, junio: 5,
+    jul: 6, julio: 6,
+    ago: 7, agosto: 7,
+    sep: 8, septiembre: 8,
+    oct: 9, octubre: 9,
+    nov: 10, noviembre: 10,
+    dic: 11, diciembre: 11
+  };
+
+  const match = texto.match(/(\d{1,2})\s+([A-Za-zÁÉÍÓÚáéíóú]+)\s+(\d{4})/);
+  if (!match) return "";
+
+  const dia = Number(match[1]);
+  const mesTxt = match[2].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const anio = Number(match[3]);
+  const mes = meses[mesTxt];
+
+  if (mes === undefined) return "";
+
+  return `${anio}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+}
+
+function limpiarPegado() {
+  document.getElementById("v-texto").value = "";
+  document.getElementById("v-correo").value = "";
+  document.getElementById("v-perfil").value = "";
+  document.getElementById("v-fecha-vencimiento").value = "";
+}
+
+async function registrarVenta() {
+  const idCliente = document.getElementById("v-cliente").value;
+  const idServicio = document.getElementById("v-servicio").value;
+  const correoCuenta = document.getElementById("v-correo").value.trim();
+  const perfil = document.getElementById("v-perfil").value.trim();
+  const fechaVencimiento = document.getElementById("v-fecha-vencimiento").value;
+  const ganancia = document.getElementById("v-ganancia").value;
+
+  if (!idCliente || !idServicio || !correoCuenta || !fechaVencimiento) {
+    return alert("Completa cliente, servicio, correo y fecha de vencimiento");
+  }
+
+  const servicio = config.find(s => s.ID_Servicio === idServicio);
+
+  const r = await apiPost({
+    action: "registrarVenta",
+    idCliente,
+    idServicio,
+    correoCuenta,
+    perfil,
+    fechaVencimiento,
+    ganancia,
+    observaciones: document.getElementById("v-observaciones").value,
+    plataforma: servicio ? servicio.Plataforma : "",
+    servicioEntregado: servicio ? servicio.Tipo_Servicio : ""
+  });
+
+  if (!r.ok) return alert(r.error || "Error");
+
+  alert("Venta registrada");
+  limpiarPegado();
+  document.getElementById("v-ganancia").value = "";
+  document.getElementById("v-observaciones").value = "";
+  cargarTodo();
+}
+
+function renderDashboard() {
+  const c = dashboard.clientes || {};
+  const p = dashboard.proveedor || {};
+
+  document.getElementById("dash-clientes").innerHTML = `
+    ${card("Clientes activos", c.clientesActivos || 0)}
+    ${card("Ventas activas", c.ventasActivas || 0)}
+    ${card("Por vencer", c.porVencer || 0)}
+    ${card("Vencidos", c.vencidos || 0)}
+    ${card("Ganancia semana", "$" + Number(c.gananciaSemana || 0).toFixed(2))}
+    ${card("Ganancia mes", "$" + Number(c.gananciaMes || 0).toFixed(2))}
+  `;
+
+  document.getElementById("dash-proveedor").innerHTML = `
+    ${card("Cuentas", p.cuentasInventario || 0)}
+    ${card("Compras activas", p.comprasActivas || 0)}
+    ${card("Por renovar", p.porVencer || 0)}
+    ${card("Vencidas", p.vencidas || 0)}
+    ${card("Llenas", p.cuentasLlenas || 0)}
+    ${card("Con espacio", p.cuentasConEspacio || 0)}
   `;
 }
 
-function card(titulo, valor) {
+function card(t, v) {
   return `
-    <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl">
-      <p class="text-[10px] text-slate-400 uppercase font-black">${titulo}</p>
-      <p class="text-2xl font-black text-yellow-500">${valor}</p>
+    <div class="glass border border-slate-700 rounded-3xl p-4">
+      <p class="text-[10px] text-slate-400 font-black uppercase">${t}</p>
+      <p class="text-2xl font-black text-yellow-400">${v}</p>
     </div>
   `;
 }
 
+function renderCuentas() {
+  const cont = document.getElementById("lista-cuentas");
+  const filtro = document.getElementById("filtro-plataforma-cuentas").value;
+
+  const lista = inventario.filter(cuenta => {
+    const s = config.find(x => x.ID_Servicio === cuenta.ID_Servicio);
+    if (!s) return false;
+    if (filtro && s.Plataforma !== filtro) return false;
+    return String(s.Tipo_Inventario).toLowerCase() === "cuenta";
+  });
+
+  if (!lista.length) {
+    cont.innerHTML = `<p class="text-slate-500 text-center py-8">Sin cuentas</p>`;
+    return;
+  }
+
+  cont.innerHTML = lista.map(cuenta => {
+    const s = config.find(x => x.ID_Servicio === cuenta.ID_Servicio);
+    const usadas = ventas.filter(v => v.ID_Cuenta === cuenta.ID_Cuenta && v.Estado === "Activa").length;
+    const capacidad = Number(s.Capacidad || 1);
+    const libres = Math.max(capacidad - usadas, 0);
+    const llena = libres <= 0;
+    const correo = cuenta.Correo_Cuenta || cuenta.Correo_cuenta || "";
+
+    return `
+      <div class="glass border border-slate-700 rounded-3xl p-4">
+        <div class="flex justify-between items-start gap-2">
+          <div>
+            <p class="font-black">${correo}</p>
+            <p class="text-xs text-slate-400">${s.Plataforma} · ${s.Tipo_Servicio}</p>
+          </div>
+          <span class="w-4 h-4 rounded-full ${llena ? 'bg-red-500' : 'bg-green-500'}"></span>
+        </div>
+        <p class="mt-3 text-sm font-black ${llena ? 'text-red-400' : 'text-green-400'}">
+          ${libres}/${capacidad} disponible
+        </p>
+      </div>
+    `;
+  }).join("");
+}
+
 function renderVentas() {
   const cont = document.getElementById("lista-ventas");
-  const q = document.getElementById("buscar")?.value?.toLowerCase() || "";
+  const q = (document.getElementById("buscar-ventas").value || "").toLowerCase();
 
   const lista = ventas
     .filter(v => JSON.stringify(v).toLowerCase().includes(q))
-    .sort((a, b) => new Date(b.Fecha_Registro) - new Date(a.Fecha_Registro));
+    .sort((a,b) => new Date(b.Fecha_Registro) - new Date(a.Fecha_Registro));
 
   if (!lista.length) {
-    cont.innerHTML = `<p class="text-center text-slate-500 py-10">Sin ventas</p>`;
+    cont.innerHTML = `<p class="text-slate-500 text-center py-8">Sin ventas</p>`;
     return;
   }
 
   cont.innerHTML = lista.map(v => {
     const cliente = clientes.find(c => c.ID_Cliente === v.ID_Cliente) || {};
-    const fecha = new Date(v.Fecha_Vencimiento);
-    const hoy = new Date();
-    const diff = Math.ceil((fecha - hoy) / (1000 * 60 * 60 * 24));
+    const diff = diasHasta(v.Fecha_Vencimiento);
 
-    let color = "border-slate-800";
-    let estado = "Activa";
-    if (v.Estado !== "Activa") {
-      color = "border-slate-700 opacity-60";
-      estado = v.Estado;
-    } else if (diff <= 0) {
-      color = "border-red-600 bg-red-950/30";
-      estado = "Vencida";
-    } else if (diff <= 3) {
-      color = "border-yellow-500 bg-yellow-500/10";
-      estado = `Vence en ${diff} día(s)`;
+    let border = "border-slate-700";
+    let label = v.Estado || "Activa";
+
+    if (v.Estado === "Activa" && diff <= 0) {
+      border = "border-red-500";
+      label = "Vencido";
+    } else if (v.Estado === "Activa" && diff <= 3) {
+      border = "border-yellow-400";
+      label = `Vence en ${diff} día(s)`;
     }
 
     const msg = encodeURIComponent(
@@ -382,27 +535,26 @@ function renderVentas() {
     );
 
     return `
-      <div class="bg-slate-900 border-l-8 ${color} p-4 rounded-3xl">
+      <div class="glass border-l-8 ${border} rounded-3xl p-4">
         <div class="flex justify-between gap-2">
           <div>
             <h3 class="font-black">${cliente.Nombre || v.ID_Cliente}</h3>
-            <p class="text-yellow-500 text-xs font-black">${v.Servicio_Entregado || v.Plataforma}</p>
+            <p class="text-xs text-yellow-400 font-black">${v.Servicio_Entregado || v.Plataforma}</p>
           </div>
-          <span class="text-xs font-black">${estado}</span>
+          <span class="text-[10px] font-black">${label}</span>
         </div>
 
-        <div class="text-xs text-slate-300 mt-3 space-y-1">
-          <p><b>Cuenta:</b> ${v.Correo_Cuenta}</p>
-          <p><b>Perfil:</b> ${v.Perfil}</p>
+        <div class="mt-3 text-xs text-slate-300 space-y-1">
+          <p><b>Correo:</b> ${v.Correo_Cuenta}</p>
+          <p><b>Perfil:</b> ${v.Perfil || '-'}</p>
           <p><b>Vence:</b> ${formatoFecha(v.Fecha_Vencimiento)}</p>
           <p><b>Ganancia:</b> $${Number(v.Ganancia || 0).toFixed(2)}</p>
-          <p><b>Tipo:</b> ${v.Tipo_Movimiento}</p>
         </div>
 
         <div class="grid grid-cols-3 gap-2 mt-4">
-          <button onclick="renovarVenta('${v.ID_Venta}')" class="py-3 bg-indigo-600 rounded-xl text-[10px] font-black">RENOVAR</button>
-          <button onclick="liberarVenta('${v.ID_Venta}')" class="py-3 bg-slate-700 rounded-xl text-[10px] font-black">LIBERAR</button>
-          <a href="https://wa.me/${cliente.WhatsApp || ""}?text=${msg}" target="_blank" class="py-3 bg-green-600 rounded-xl text-[10px] font-black text-center">WHATSAPP</a>
+          <button onclick="renovarVenta('${v.ID_Venta}')" class="btn-dark">RENOVAR</button>
+          <button onclick="liberarVenta('${v.ID_Venta}')" class="btn-dark">LIBERAR</button>
+          <a class="btn-dark text-center bg-green-600" target="_blank" href="https://wa.me/${cliente.WhatsApp || ''}?text=${msg}">WA</a>
         </div>
       </div>
     `;
@@ -410,49 +562,61 @@ function renderVentas() {
 }
 
 async function renovarVenta(idVenta) {
-  const venta = ventas.find(v => v.ID_Venta === idVenta);
-  if (!venta) return;
+  const v = ventas.find(x => x.ID_Venta === idVenta);
+  if (!v) return;
 
-  const fecha = prompt("Nueva fecha vencimiento AAAA-MM-DD:");
+  const fecha = prompt("Nueva fecha de vencimiento AAAA-MM-DD:");
   if (!fecha) return;
 
-  const ganancia = prompt("Ganancia de renovación:");
+  const ganancia = prompt("Ganancia:");
   if (ganancia === null) return;
 
-  await apiPost({
+  const r = await apiPost({
     action: "renovarVenta",
-    idCliente: venta.ID_Cliente,
-    idCuenta: venta.ID_Cuenta,
-    plataforma: venta.Plataforma,
-    servicioEntregado: venta.Servicio_Entregado,
-    perfil: venta.Perfil,
-    correoCuenta: venta.Correo_Cuenta,
+    idCliente: v.ID_Cliente,
+    idCuenta: v.ID_Cuenta,
+    plataforma: v.Plataforma,
+    servicioEntregado: v.Servicio_Entregado,
+    perfil: v.Perfil,
+    correoCuenta: v.Correo_Cuenta,
     fechaVencimiento: fecha,
     ganancia,
-    observaciones: "Renovación desde la web"
+    observaciones: "Renovación desde web"
   });
 
-  alert("Renovación registrada");
+  if (!r.ok) return alert(r.error || "Error");
+
+  alert("Renovado");
   cargarTodo();
 }
 
 async function liberarVenta(idVenta) {
-  if (!confirm("¿Liberar esta venta/perfil?")) return;
+  if (!confirm("¿Liberar/cancelar esta venta?")) return;
 
-  await apiPost({
+  const r = await apiPost({
     action: "liberarVenta",
     idVenta,
-    observaciones: "Liberado desde la web"
+    estado: "Cancelada",
+    observaciones: "Liberado desde web"
   });
+
+  if (!r.ok) return alert(r.error || "Error");
 
   alert("Liberado");
   cargarTodo();
 }
 
-function formatoFecha(f) {
-  if (!f) return "";
-  const d = new Date(f);
-  if (isNaN(d)) return f;
+function diasHasta(fecha) {
+  const hoy = new Date();
+  const f = new Date(fecha);
+  const a = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const b = new Date(f.getFullYear(), f.getMonth(), f.getDate());
+  return Math.ceil((b - a) / (1000 * 60 * 60 * 24));
+}
+
+function formatoFecha(fecha) {
+  const d = new Date(fecha);
+  if (isNaN(d)) return fecha;
   return d.toLocaleDateString("es-EC");
 }
 </script>
