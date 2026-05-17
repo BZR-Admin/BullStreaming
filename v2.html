@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bull Streaming – Gestión y Dashboard</title>
+    <style>
+      :root {
+        --bg: #f5f6fa;
+        --primary: #007bff;
+        --primary-dark: #0056b3;
+        --success: #28a745;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --text-dark: #343a40;
+        --card-bg: #ffffff;
+        --border-radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg);
+        color: var(--text-dark);
+      }
+      header {
+        background-color: var(--primary);
+        padding: 1rem;
+        color: #fff;
+        text-align: center;
+      }
+      nav {
+        display: flex;
+        justify-content: center;
+        background-color: var(--primary-dark);
+      }
+      nav a {
+        color: #fff;
+        padding: 0.75rem 1rem;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      nav a:hover {
+        background-color: var(--primary);
+      }
+      main {
+        padding: 1rem;
+        max-width: 1200px;
+        margin: auto;
+      }
+      section {
+        margin-bottom: 2rem;
+      }
+      h2 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+      }
+      .card {
+        background-color: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+      label {
+        display: block;
+        margin-top: 0.75rem;
+        font-weight: 600;
+      }
+      select,
+      input,
+      textarea,
+      button {
+        width: 100%;
+        padding: 0.5rem;
+        margin-top: 0.25rem;
+        border: 1px solid #ced4da;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+      }
+      button {
+        cursor: pointer;
+        color: #fff;
+        border: none;
+        font-weight: 600;
+      }
+      .btn-primary {
+        background-color: var(--primary);
+      }
+      .btn-primary:hover {
+        background-color: var(--primary-dark);
+      }
+      .btn-success {
+        background-color: var(--success);
+      }
+      .btn-warning {
+        background-color: var(--warning);
+        color: #212529;
+      }
+      .btn-danger {
+        background-color: var(--danger);
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .col-half {
+        flex: 1 1 48%;
+        min-width: 250px;
+      }
+      .col-third {
+        flex: 1 1 30%;
+        min-width: 200px;
+      }
+      .preview {
+        background-color: #f1f3f5;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem;
+        border-radius: var(--border-radius);
+        min-height: 60px;
+        white-space: pre-wrap;
+        margin-top: 0.25rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.5rem;
+      }
+      th, td {
+        border: 1px solid #dee2e6;
+        padding: 0.5rem;
+        text-align: left;
+        font-size: 0.9rem;
+      }
+      th {
+        background-color: #e9ecef;
+      }
+      tr.libre {
+        background-color: #e6ffed;
+      }
+      tr.lleno {
+        background-color: #ffeaea;
+      }
+      tr.vence-pronto {
+        background-color: #fff3cd;
+      }
+      tr.vence-hoy {
+        background-color: #f8d7da;
+      }
+      .kpi-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .kpi {
+        background-color: var(--card-bg);
+        border-radius: var(--border-radius);
+        flex: 1 1 30%;
+        min-width: 200px;
+        padding: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .kpi h3 {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+      .kpi p {
+        margin: 0.25rem 0 0 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+      @media (max-width: 800px) {
+        .col-half, .col-third {
+          flex-basis: 100%;
+        }
+        .kpi {
+          flex-basis: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Bull Streaming – Gestión y Dashboard</h1>
+    </header>
+    <nav>
+      <a href="#venta">Registrar venta</a>
+      <a href="#dashboard">Dashboard</a>
+    </nav>
+    <main>
+      <!-- Sección de registro de ventas -->
+      <section id="venta">
+        <h2>Registrar nueva venta</h2>
+        <div class="card">
+          <div class="row">
+            <div class="col-half">
+              <label for="cliente">Cliente</label>
+              <select id="cliente">
+                <option value="" disabled selected>Seleccione un cliente…</option>
+              </select>
+            </div>
+            <div class="col-half">
+              <label for="duracion">Duración (meses)</label>
+              <input type="number" id="duracion" min="1" value="1" />
+            </div>
+          </div>
+          <label for="mensaje">Mensaje de entrega</label>
+          <textarea id="mensaje" placeholder="Plataforma, correo/perfil, DD/MM/AAAA"></textarea>
+          <label for="ganancia">Ganancia ($)</label>
+          <input type="number" id="ganancia" step="0.01" />
+          <label for="vencimiento">Fecha de vencimiento</label>
+          <input type="date" id="vencimiento" />
+          <label>Previsualización</label>
+          <div class="preview" id="preview">Completa el mensaje y pulsa «Extraer».</div>
+          <div class="row" style="margin-top: 1rem;">
+            <div class="col-half">
+              <button class="btn-primary" id="extraer">Extraer</button>
+            </div>
+            <div class="col-half">
+              <button class="btn-success" id="guardar" disabled>Guardar venta</button>
+            </div>
+          </div>
+          <div class="row" style="margin-top: 0.5rem;">
+            <div class="col-half">
+              <button class="btn-warning" id="whatsapp" disabled>Enviar WhatsApp</button>
+            </div>
+            <div class="col-half">
+              <button class="btn-danger" id="reset">Limpiar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección de dashboard -->
+      <section id="dashboard">
+        <h2>Dashboard</h2>
+        <div class="kpi-row">
+          <div class="kpi">
+            <h3>Clientes activos</h3>
+            <p id="kpiClientes">—</p>
+          </div>
+          <div class="kpi">
+            <h3>Ventas esta semana</h3>
+            <p id="kpiVentasSemana">—</p>
+          </div>
+          <div class="kpi">
+            <h3>Ganancia este mes</h3>
+            <p id="kpiGananciaMes">—</p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-half">
+            <h3>Cuentas</h3>
+            <table>
+              <thead>
+                <tr><th>Correo</th><th>Usados/Total</th><th>Libres</th></tr>
+              </thead>
+              <tbody id="tablaCuentas"></tbody>
+            </table>
+          </div>
+          <div class="col-half">
+            <h3>Ventas</h3>
+            <table>
+              <thead>
+                <tr><th>Cliente</th><th>Servicio</th><th>Vencimiento</th><th>WhatsApp</th></tr>
+              </thead>
+              <tbody id="tablaVentas"></tbody>
+            </table>
+          </div>
+        </div>
+        <div style="text-align:right; margin-top: 0.5rem;">
+          <button class="btn-primary" id="refrescar">Actualizar dashboard</button>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // URL del Apps Script (reemplazar por tu enlace desplegado)
+      const API_URL = 'https://script.google.com/macros/s/AKfycbzC2RkRnHzyzlFhi55lIZdCenQNhD3feX-BlXZYaW1Emt7WhEKQd4fSh0XMh7IVx9A/exec';
+
+      // Lista de clientes (id, nombre, teléfono) extraída de la hoja "Clientes".
+      const clients = [
+        { id: 'Cl_0001', name: 'Rev. Salome', phone: '593987891615' },
+        { id: 'Cl_0002', name: 'Rev. Pedro', phone: '593995208735' },
+        { id: 'Cl_0003', name: 'Rev. Wolf Streaming', phone: '593992822233' },
+        { id: 'Cl_0004', name: 'Rev. Ave Fenix', phone: '593985456951' },
+        { id: 'Cl_0005', name: 'Rev Josselyn', phone: '593961031949' },
+        { id: 'Cl_0006', name: 'Rev. Avii', phone: '593982287031' },
+        { id: 'Cl_0007', name: 'Cl. Carlos Alberto', phone: '593980974863' },
+        { id: 'Cl_0008', name: 'Cl. Cinthia Gonzales', phone: '593994440557' },
+        { id: 'Cl_0009', name: 'Cl. Estefania Soledad', phone: '593996222458' },
+        { id: 'Cl_0010', name: 'Rev. Santistreaming', phone: '593989264018' },
+        { id: 'Cl_0011', name: 'Rev. Jony', phone: '593982870132' },
+        { id: 'Cl_0012', name: 'Cl. Fredd', phone: '17185764730' },
+        { id: 'Cl_0013', name: 'Rev. Pao', phone: '593961126921' },
+        { id: 'Cl_0014', name: 'Cl. Ger', phone: '593986207073' },
+        { id: 'Cl_0015', name: 'Cl. Flak', phone: '593997299828' },
+        { id: 'Cl_0016', name: 'Cl. Entretenimiento store', phone: '593987937218' },
+        { id: 'Cl_0017', name: 'Cl. LM', phone: '593939508136' },
+        { id: 'Cl_0018', name: 'Cl. César', phone: '593992323303' },
+        { id: 'Cl_0019', name: 'Rev. Flash', phone: '593981255479' },
+        { id: 'Cl_0020', name: 'Cl. Rom', phone: '593984530775' },
+        { id: 'Cl_0021', name: 'Cl. Josue', phone: '593981226858' },
+        { id: 'Cl_0022', name: 'Cl. Arnold', phone: '491634766127' },
+        { id: 'Cl_0023', name: 'Cl. Karen Mishell', phone: '593959551916' },
+        { id: 'Cl_0024', name: 'Cl. Hugo', phone: '593990988739' },
+        { id: 'Cl_0025', name: 'Cl. Jeicob', phone: '593998162610' },
+        { id: 'Cl_0026', name: 'Cl. Mario', phone: '593958934873' },
+        { id: 'Cl_0027', name: 'Cl. Pablo Andrade', phone: '593992053102' },
+        { id: 'Cl_0028', name: 'Cl. Jessy Cargua', phone: '593985981008' },
+        { id: 'Cl_0029', name: 'Cl. Christian', phone: '593996777285' },
+        { id: 'Cl_0030', name: 'Cl. Novedades Sarami', phone: '593996709127' },
+        { id: 'Cl_0031', name: 'Rev. Liz', phone: '593983020718' },
+        { id: 'Cl_0032', name: 'Cl. Denis', phone: '593994285422' },
+        { id: 'Cl_0033', name: 'Cl. Fanny', phone: '593993115837' },
+        { id: 'Cl_0034', name: 'Cl. Fernando Guerrero', phone: '593989513476' },
+        { id: 'Cl_0035', name: 'Cl. Andy Antonio', phone: '593989392567' },
+        { id: 'Cl_0036', name: 'Cl. Cristian Leonardo', phone: '593988542227' },
+        { id: 'Cl_0037', name: 'Cl. P. Belen', phone: '593994340301' },
+        { id: 'Cl_0038', name: 'Cl. Lindita', phone: '593983503781' },
+        { id: 'Cl_0039', name: 'Cl. Nayeli Herreria', phone: '593984817170' },
+        { id: 'Cl_0040', name: 'Cl. Ibeth', phone: '593985923485' },
+        { id: 'Cl_0041', name: 'Cl. Paula Portilla', phone: '593996267338' },
+        { id: 'Cl_0042', name: 'Cl. Triko', phone: '593961570799' },
+        { id: 'Cl_0043', name: 'Cl. Anderson', phone: '593993803670' },
+        { id: 'Cl_0044', name: 'Cl. Miriam', phone: '593959253354' },
+        { id: 'Cl_0045', name: 'Cl. Micaela', phone: '593962941503' },
+        { id: 'Cl_0046', name: 'Cl. Diego Valdiviezo', phone: '593982292195' },
+        { id: 'Cl_0047', name: 'Rev. Felix', phone: '593969949616' },
+        { id: 'Cl_0048', name: 'Cl. Isaac Lazo', phone: '593969968535' },
+        { id: 'Cl_0049', name: 'Cl. Rosita Daniela', phone: '593998427908' },
+        { id: 'Cl_0050', name: 'Cl. Sani', phone: '593981775115' },
+        { id: 'Cl_0051', name: 'Cl. George Urresta', phone: '593999565564' },
+        { id: 'Cl_0052', name: 'Cl. Katy', phone: '593983649751' },
+        { id: 'Cl_0053', name: 'Rev. Anahi', phone: '593999202931' },
+        { id: 'Cl_0054', name: 'Cl. Juan Carlos', phone: '593981740836' },
+        { id: 'Cl_0055', name: 'Cl.Alex', phone: '593992713007' },
+        { id: 'Cl_0056', name: 'Cl Sebas', phone: '593995428405' },
+        { id: 'Cl_0057', name: 'Cl Pablo', phone: '593992053102' },
+        { id: 'Cl_0058', name: 'Cl ronald', phone: '593989663936' },
+        { id: 'Cl_0059', name: 'Cl Xavier', phone: '593998792216' },
+        { id: 'Cl_0060', name: 'Rev. Carlos Alberto', phone: '593980974863' },
+        { id: 'Cl_0061', name: 'CL Jhoan', phone: '593985550082' },
+        { id: 'Cl_0062', name: 'Cl. Mesias Vallejo', phone: '593960993906' },
+        { id: 'Cl_0063', name: 'Cl. Danny Pantoja', phone: '593987879969' },
+        { id: 'Cl_0064', name: 'Cl. Edwin', phone: '593984484515' },
+        { id: 'Cl_0065', name: 'Cl Sebastian Navas', phone: '593962949030' },
+        { id: 'Cl_0066', name: 'Cl. Margarita', phone: '593998568221' },
+        { id: 'Cl_0067', name: 'Cl. Jenny', phone: '593985048941' },
+        { id: 'Cl_0068', name: 'Cl. Karen Pineda', phone: '593959551916' },
+        { id: 'Cl_0069', name: 'Cl. Luis Mafla', phone: '593994654430' },
+        { id: 'Cl_0070', name: 'Cl Herrera P', phone: '593984605642' },
+        { id: 'Cl_0071', name: 'Cl Paola Estefania', phone: '593962927911' },
+        { id: 'Cl_0072', name: 'Cl. Mabe Vinueza', phone: '593996378857' },
+        { id: 'Cl_0073', name: 'Rev. Jonathan', phone: '593995931393' },
+        { id: 'Cl_0074', name: 'Cl. Victor Romero', phone: '593993158882' },
+        { id: 'Cl_0075', name: 'Cl. Addy Parra', phone: '593999796361' },
+        { id: 'Cl_0076', name: 'Cl. Rudolf Morales', phone: '593997730004' },
+        { id: 'Cl_0077', name: 'Cl. Ramiro Velasco', phone: '18454941645' },
+        { id: 'Cl_0078', name: 'Cl Paul', phone: '593992851937' },
+        { id: 'Cl_0079', name: 'Cl kelly Aliha', phone: '593939299549' },
+        { id: 'Cl_0080', name: 'Cl Jessy02', phone: '593969862996' },
+        { id: 'Cl_0081', name: 'CL LUIS CHAMORRO', phone: '593986913270' },
+        { id: 'Cl_0082', name: 'Cl Dav', phone: '50761617771' },
+        { id: 'Cl_0083', name: 'Cl Carlos', phone: '593969583785' },
+        { id: 'Cl_0084', name: 'Cl Paul', phone: '593992851937' },
+        { id: 'Cl_0085', name: 'Cl Johanan', phone: '593984865103' },
+        { id: 'Cl_0086', name: 'Cl fer', phone: '593990593219' }
+      ];
+
+      // Variables para nueva venta
+      let selectedClient = null;
+      let parsedData = null;
+
+      // Población inicial del select de clientes
+      function loadClients() {
+        const select = document.getElementById('cliente');
+        clients.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = `${c.id} – ${c.name}`;
+          select.appendChild(opt);
+        });
+      }
+
+      // Extrae plataforma, correo/perfil y fecha del mensaje
+      function parseMessage(msg) {
+        const regex = /(.*?)\s*,\s*([^,]+)\s*,\s*(\d{1,2}\/\d{1,2}\/\d{4})/;
+        const m = msg.match(regex);
+        if (!m) return null;
+        const plataforma = m[1].trim();
+        const correoPerfil = m[2].trim();
+        const [d, mth, y] = m[3].trim().split('/');
+        const fechaVenta = new Date(y, mth - 1, d);
+        return { plataforma, correoPerfil, fechaVenta };
+      }
+
+      function calcularVencimiento(fechaVenta, meses) {
+        const d = new Date(fechaVenta.getTime());
+        d.setMonth(d.getMonth() + meses);
+        return d;
+      }
+
+      function formatDateForInput(date) {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      }
+
+      // Acciones de botones
+      document.getElementById('extraer').addEventListener('click', () => {
+        const clienteId = document.getElementById('cliente').value;
+        if (!clienteId) { alert('Seleccione un cliente'); return; }
+        selectedClient = clients.find(c => c.id === clienteId);
+        const msg = document.getElementById('mensaje').value;
+        const res = parseMessage(msg);
+        const preview = document.getElementById('preview');
+        if (!res) {
+          preview.textContent = 'No se pudo interpretar el mensaje. Asegúrate de que tenga la forma: Plataforma, correo/perfil, DD/MM/AAAA';
+          parsedData = null;
+          document.getElementById('guardar').disabled = true;
+          document.getElementById('whatsapp').disabled = true;
+          return;
+        }
+        const durMeses = parseInt(document.getElementById('duracion').value) || 1;
+        const venc = calcularVencimiento(res.fechaVenta, durMeses);
+        document.getElementById('vencimiento').value = formatDateForInput(venc);
+        preview.textContent = `Cliente: ${selectedClient.name}\nPlataforma: ${res.plataforma}\nCorreo/Perfil: ${res.correoPerfil}\nFecha venta: ${res.fechaVenta.toLocaleDateString()}\nFecha vencimiento: ${venc.toLocaleDateString()}`;
+        parsedData = { ...res, fechaVencimiento: venc };
+        document.getElementById('guardar').disabled = false;
+        document.getElementById('whatsapp').disabled = false;
+      });
+
+      document.getElementById('guardar').addEventListener('click', async () => {
+        if (!parsedData || !selectedClient) { alert('Extraiga los datos antes de guardar.'); return; }
+        const ganancia = parseFloat(document.getElementById('ganancia').value) || 0;
+        const fechaVencInput = document.getElementById('vencimiento').value;
+        const fechaVenc = new Date(fechaVencInput);
+        const payload = {
+          clienteId: selectedClient.id,
+          plataforma: parsedData.plataforma,
+          correoPerfil: parsedData.correoPerfil,
+          fechaVenta: parsedData.fechaVenta.toISOString(),
+          fechaVencimiento: fechaVenc.toISOString(),
+          ganancia: ganancia
+        };
+        try {
+          const resp = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const result = await resp.json();
+          if (result.status === 'ok') {
+            alert('Venta registrada (ID: ' + result.idVenta + ').');
+            resetForm();
+            refreshDashboard();
+          } else {
+            alert('Error: ' + JSON.stringify(result));
+          }
+        } catch (err) {
+          alert('No se pudo enviar la solicitud. Verifique la URL del Apps Script.');
+        }
+      });
+
+      document.getElementById('whatsapp').addEventListener('click', () => {
+        if (!selectedClient || !parsedData) return;
+        const fechaVenc = document.getElementById('vencimiento').value;
+        const mensaje = encodeURIComponent(
+          `Hola ${selectedClient.name}, tu servicio ${parsedData.plataforma} asociado a ${parsedData.correoPerfil} vence el ${fechaVenc}. ¿Deseas renovarlo?`
+        );
+        const url = `https://api.whatsapp.com/send?phone=${selectedClient.phone}&text=${mensaje}`;
+        window.open(url, '_blank');
+      });
+
+      document.getElementById('reset').addEventListener('click', resetForm);
+      document.getElementById('refrescar').addEventListener('click', refreshDashboard);
+
+      function resetForm() {
+        document.getElementById('cliente').selectedIndex = 0;
+        document.getElementById('mensaje').value = '';
+        document.getElementById('duracion').value = '1';
+        document.getElementById('ganancia').value = '';
+        document.getElementById('vencimiento').value = '';
+        document.getElementById('preview').textContent = 'Completa el mensaje y pulsa «Extraer».';
+        parsedData = null;
+        selectedClient = null;
+        document.getElementById('guardar').disabled = true;
+        document.getElementById('whatsapp').disabled = true;
+      }
+
+      // Dashboard
+      async function refreshDashboard() {
+        try {
+          const res = await fetch(API_URL);
+          const data = await res.json();
+          // KPI
+          document.getElementById('kpiClientes').textContent = data.kpi.totalClientesActivos;
+          document.getElementById('kpiVentasSemana').textContent = data.kpi.totalVentasSemanal;
+          document.getElementById('kpiGananciaMes').textContent = '$' + data.kpi.gananciaMensual.toFixed(2);
+          // Cuentas
+          const tbodyCuentas = document.getElementById('tablaCuentas');
+          tbodyCuentas.innerHTML = '';
+          data.cuentas.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.className = c.lleno ? 'lleno' : 'libre';
+            tr.innerHTML = `<td>${c.correo}</td><td>${c.usados}/${c.total}</td><td>${c.libres > 0 ? c.libres : '0'}</td>`;
+            tbodyCuentas.appendChild(tr);
+          });
+          // Ventas
+          const tbodyVentas = document.getElementById('tablaVentas');
+          tbodyVentas.innerHTML = '';
+          data.ventas.forEach(v => {
+            // v array: [ID_Venta, ID_Perfil, ID_Cliente, ID_Cuenta, Plataforma, Tipo, Fecha_Venta, Fecha_Vencimiento, Ganancia, Estado]
+            const cliente = clients.find(c => c.id === v[2]);
+            const clienteNombre = cliente ? cliente.name : v[2];
+            const telefono = cliente ? cliente.phone : '';
+            const servicio = v[4];
+            const fechaVenc = v[7] instanceof Date ? v[7] : new Date(v[7]);
+            const diasRestantes = Math.ceil((fechaVenc - new Date()) / (1000 * 60 * 60 * 24));
+            let rowClass = '';
+            if (diasRestantes <= 0) rowClass = 'vence-hoy';
+            else if (diasRestantes <= 3) rowClass = 'vence-pronto';
+            const tr = document.createElement('tr');
+            tr.className = rowClass;
+            const fechaVencText = fechaVenc.toLocaleDateString();
+            const whatsMsg = encodeURIComponent(
+              `Hola ${clienteNombre}, tu servicio ${servicio} vence el ${fechaVencText}. ¿Deseas renovarlo?`
+            );
+            const whatsLink = telefono ? `https://api.whatsapp.com/send?phone=${telefono}&text=${whatsMsg}` : '#';
+            tr.innerHTML = `
+              <td>${clienteNombre}</td>
+              <td>${servicio}</td>
+              <td>${fechaVencText}</td>
+              <td>${telefono ? `<a href="${whatsLink}" target="_blank">WhatsApp</a>` : ''}</td>
+            `;
+            tbodyVentas.appendChild(tr);
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      // Inicialización
+      loadClients();
+      refreshDashboard();
+    </script>
+  </body>
+</html>
