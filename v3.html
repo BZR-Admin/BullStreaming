@@ -13,20 +13,23 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
     .glass {
-      background: rgba(15, 23, 42, .76);
+      background: rgba(15, 23, 42, .78);
       backdrop-filter: blur(18px);
-      border: 1px solid rgba(148, 163, 184, .18);
+      border: 1px solid rgba(148, 163, 184, .16);
     }
     .input {
       width: 100%;
       padding: 14px;
-      background: rgba(2, 6, 23, .75);
+      background: rgba(2, 6, 23, .78);
       border: 1px solid rgb(51,65,85);
       border-radius: 18px;
       outline: none;
       font-size: 14px;
     }
-    .input:focus { border-color: #facc15; box-shadow: 0 0 0 2px rgba(250,204,21,.12); }
+    .input:focus {
+      border-color: #facc15;
+      box-shadow: 0 0 0 2px rgba(250,204,21,.12);
+    }
     .btn-main {
       width: 100%;
       padding: 15px;
@@ -45,8 +48,8 @@
       border: 1px solid rgba(148,163,184,.14);
     }
     .soft-card {
-      background: linear-gradient(145deg, rgba(30,41,59,.85), rgba(15,23,42,.85));
-      border: 1px solid rgba(148,163,184,.15);
+      background: linear-gradient(145deg, rgba(30,41,59,.88), rgba(15,23,42,.88));
+      border: 1px solid rgba(148,163,184,.14);
     }
   </style>
 </head>
@@ -100,7 +103,6 @@
         <p class="text-xs font-black text-yellow-400 uppercase">Pegado inteligente</p>
         <button onclick="limpiarPegado()" class="text-[10px] font-black text-slate-400">LIMPIAR</button>
       </div>
-
       <textarea id="v-texto" class="input h-44" placeholder="Pega aquí el texto de entrega..." oninput="detectarTextoVenta()"></textarea>
     </div>
 
@@ -158,14 +160,14 @@
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxI5OLUYHl-baPQqJTz3JfaLP0df1cATY8IPcby-wNO_Rlc9P7MrgskizAvFj4m2KY/exec";
+const API_URL = "PEGA_AQUI_TU_URL_EXEC";
 
 let clientes = [];
 let config = [];
+let inventarioRaw = [];
 let inventario = [];
 let ventas = [];
 let compras = [];
-let dashboard = {};
 let servicioCuentaSeleccionado = null;
 
 window.onload = cargarTodo;
@@ -184,21 +186,21 @@ async function apiPost(payload) {
 }
 
 async function cargarTodo() {
-  const [c, conf, inv, ven, comp, dash] = await Promise.all([
+  const [c, conf, inv, ven, comp] = await Promise.all([
     apiGet("getClientes"),
     apiGet("getConfiguracion"),
     apiGet("getInventario"),
     apiGet("getVentas"),
-    apiGet("getComprasProveedor"),
-    apiGet("getDashboard")
+    apiGet("getComprasProveedor")
   ]);
 
   clientes = c.clientes || [];
   config = conf.configuracion || [];
-  inventario = limpiarInventario(inv.inventario || []);
+  inventarioRaw = inv.inventario || [];
   ventas = ven.ventas || [];
   compras = comp.compras || [];
-  dashboard = dash.dashboard || {};
+
+  inventario = agruparInventarioPorCorreo(inventarioRaw);
 
   cargarClientes();
   cargarServiciosVenta();
@@ -207,17 +209,6 @@ async function cargarTodo() {
   renderDashboard();
   renderVentas();
   renderCuentas();
-}
-
-function limpiarInventario(lista) {
-  const map = new Map();
-  lista.forEach(c => {
-    const id = String(c.ID_Cuenta || "").trim();
-    const correo = normalizar(c.Correo_Cuenta || c.Correo_cuenta);
-    const key = id || correo;
-    if (key && !map.has(key)) map.set(key, c);
-  });
-  return Array.from(map.values());
 }
 
 function showTab(id, btn) {
@@ -231,6 +222,27 @@ function showTab(id, btn) {
 
   btn.classList.remove("text-slate-400");
   btn.classList.add("text-yellow-400");
+}
+
+function agruparInventarioPorCorreo(lista) {
+  const map = new Map();
+
+  lista.forEach(c => {
+    const correo = correoCuenta(c);
+    const key = normalizarCorreo(correo);
+    if (!key) return;
+
+    if (!map.has(key)) {
+      map.set(key, c);
+    } else {
+      const actual = map.get(key);
+      const fechaActual = new Date(actual.Fecha_Registro || 0);
+      const fechaNueva = new Date(c.Fecha_Registro || 0);
+      if (fechaNueva > fechaActual) map.set(key, c);
+    }
+  });
+
+  return Array.from(map.values());
 }
 
 function cargarClientes() {
@@ -251,8 +263,8 @@ function cargarServiciosVenta() {
 
 function cargarPlataformasCompra() {
   const sel = document.getElementById("comp-plataforma");
-  const serviciosCuenta = config.filter(s => String(s.Tipo_Inventario).toLowerCase() === "cuenta");
-  const plataformas = [...new Set(serviciosCuenta.map(s => s.Plataforma))];
+  const serviciosCuenta = config.filter(s => normalizar(s.Tipo_Inventario) === "cuenta");
+  const plataformas = [...new Set(serviciosCuenta.map(s => s.Plataforma).filter(Boolean))];
 
   sel.innerHTML = `<option value="">Seleccione plataforma</option>`;
   plataformas.forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
@@ -261,7 +273,7 @@ function cargarPlataformasCompra() {
 function cargarFiltroCuentas() {
   const sel = document.getElementById("filtro-plataforma-cuentas");
   const plataformas = [...new Set(inventario.map(c => {
-    const s = servicioDeCuenta(c);
+    const s = servicioBaseDeCuenta(c);
     return s ? s.Plataforma : "";
   }).filter(Boolean))];
 
@@ -272,8 +284,8 @@ function cargarFiltroCuentas() {
 function seleccionarServicioCuenta() {
   const plataforma = document.getElementById("comp-plataforma").value;
   servicioCuentaSeleccionado = config.find(s =>
-    s.Plataforma === plataforma &&
-    String(s.Tipo_Inventario).toLowerCase() === "cuenta"
+    normalizar(s.Plataforma) === normalizar(plataforma) &&
+    normalizar(s.Tipo_Inventario) === "cuenta"
   );
 
   if (!servicioCuentaSeleccionado) {
@@ -299,19 +311,19 @@ async function registrarCompraConInventario() {
   seleccionarServicioCuenta();
   if (!servicioCuentaSeleccionado) return;
 
-  const correoCuenta = document.getElementById("comp-correo").value.trim();
+  const correoCuentaValue = document.getElementById("comp-correo").value.trim();
   const proveedor = document.getElementById("comp-proveedor").value.trim();
   const fechaCompra = document.getElementById("comp-fecha-compra").value;
   const fechaVencimiento = document.getElementById("comp-fecha-vencimiento").value;
 
-  if (!correoCuenta || !proveedor || !fechaCompra || !fechaVencimiento) {
+  if (!correoCuentaValue || !proveedor || !fechaCompra || !fechaVencimiento) {
     return alert("Completa correo, proveedor y fechas");
   }
 
   const r = await apiPost({
     action: "registrarCompraConInventario",
     idServicio: servicioCuentaSeleccionado.ID_Servicio,
-    correoCuenta,
+    correoCuenta: correoCuentaValue,
     proveedor,
     fechaCompra,
     fechaVencimiento,
@@ -336,7 +348,7 @@ function detectarTextoVenta() {
   if (!texto.trim()) return;
 
   const correo = texto.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-  if (correo) document.getElementById("v-correo").value = correo[0];
+  if (correo) document.getElementById("v-correo").value = correo[0].trim();
 
   const perfilMatch = texto.match(/Perfil\s+([^\-\n\r]+)/i);
   if (perfilMatch) document.getElementById("v-perfil").value = perfilMatch[1].trim();
@@ -362,10 +374,10 @@ function detectarServicio(upper) {
   }
 
   if (upper.includes("CUENTA COMPLETA")) {
-    return candidatos.find(s => String(s.Tipo_Inventario).toLowerCase() === "cuenta") || candidatos[0];
+    return candidatos.find(s => normalizar(s.Tipo_Inventario) === "cuenta") || candidatos[0];
   }
 
-  return candidatos.find(s => String(s.Tipo_Inventario).toLowerCase() === "perfiles") || candidatos[0];
+  return candidatos.find(s => normalizar(s.Tipo_Inventario) === "perfiles") || candidatos[0];
 }
 
 function detectarFecha(texto) {
@@ -398,22 +410,24 @@ function limpiarPegado() {
 async function registrarVenta() {
   const idCliente = document.getElementById("v-cliente").value;
   const idServicio = document.getElementById("v-servicio").value;
-  const correoCuenta = document.getElementById("v-correo").value.trim();
+  const correoCuentaValue = document.getElementById("v-correo").value.trim();
   const perfil = document.getElementById("v-perfil").value.trim();
   const fechaVencimiento = document.getElementById("v-fecha-vencimiento").value;
   const ganancia = document.getElementById("v-ganancia").value;
 
-  if (!idCliente || !idServicio || !correoCuenta || !fechaVencimiento) {
+  if (!idCliente || !idServicio || !correoCuentaValue || !fechaVencimiento) {
     return alert("Completa cliente, servicio, correo y fecha de vencimiento");
   }
 
   const servicio = config.find(s => s.ID_Servicio === idServicio);
+  const cuentaInventario = inventario.find(c => normalizarCorreo(correoCuenta(c)) === normalizarCorreo(correoCuentaValue));
 
   const r = await apiPost({
     action: "registrarVenta",
     idCliente,
     idServicio,
-    correoCuenta,
+    idCuenta: cuentaInventario ? cuentaInventario.ID_Cuenta : "",
+    correoCuenta: correoCuentaValue,
     perfil,
     fechaVencimiento,
     ganancia,
@@ -432,7 +446,7 @@ async function registrarVenta() {
 }
 
 function renderDashboard() {
-  const ventasActivas = ventas.filter(v => v.Estado === "Activa");
+  const ventasActivas = ventas.filter(v => normalizar(v.Estado) === "activa");
   const hoy = new Date();
   const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const inicioSemana = new Date(hoy);
@@ -500,7 +514,7 @@ function calcularStatsCuentas() {
 
 function comprasPorVencer() {
   return compras.filter(c => {
-    if (c.Estado !== "Activa") return false;
+    if (normalizar(c.Estado) !== "activa") return false;
     const d = diasHasta(c.Fecha_Vencimiento);
     return d >= 0 && d <= 3;
   }).length;
@@ -508,7 +522,7 @@ function comprasPorVencer() {
 
 function comprasVencidas() {
   return compras.filter(c => {
-    if (c.Estado !== "Activa") return false;
+    if (normalizar(c.Estado) !== "activa") return false;
     return diasHasta(c.Fecha_Vencimiento) < 0;
   }).length;
 }
@@ -518,7 +532,7 @@ function renderCuentas() {
   const filtro = document.getElementById("filtro-plataforma-cuentas").value;
 
   const lista = inventario.filter(cuenta => {
-    const s = servicioDeCuenta(cuenta);
+    const s = servicioBaseDeCuenta(cuenta);
     if (!s) return false;
     if (filtro && s.Plataforma !== filtro) return false;
     return true;
@@ -530,10 +544,11 @@ function renderCuentas() {
   }
 
   cont.innerHTML = lista.map(cuenta => {
-    const s = servicioDeCuenta(cuenta);
+    const sBase = servicioBaseDeCuenta(cuenta);
+    const sCap = servicioCapacidadDeCuenta(cuenta);
     const info = infoCuenta(cuenta);
-    const correo = cuenta.Correo_Cuenta || cuenta.Correo_cuenta || cuenta.correoCuenta || "";
-    const compra = compraDeCuenta(cuenta.ID_Cuenta);
+    const correo = correoCuenta(cuenta);
+    const compra = compraDeCuenta(cuenta.ID_Cuenta, correo);
     const venceProveedor = compra ? formatoFecha(compra.Fecha_Vencimiento) : "Sin fecha";
 
     return `
@@ -541,7 +556,7 @@ function renderCuentas() {
         <div class="flex justify-between items-start gap-2">
           <div class="min-w-0">
             <p class="font-black truncate">${correo}</p>
-            <p class="text-xs text-slate-400">${s.Plataforma} · Cuenta en inventario</p>
+            <p class="text-xs text-slate-400">${sBase?.Plataforma || "-"} · ${sBase?.Tipo_Servicio || "Cuenta"}</p>
           </div>
           <span class="w-4 h-4 rounded-full mt-1 ${info.libres <= 0 ? 'bg-red-500' : 'bg-green-500'}"></span>
         </div>
@@ -552,12 +567,17 @@ function renderCuentas() {
             <p class="font-black text-yellow-400">${info.usadas}/${info.capacidad} usados</p>
           </div>
           <div class="bg-slate-950/60 rounded-2xl p-3">
-            <p class="text-slate-400 font-black">Libres</p>
-            <p class="font-black ${info.libres > 0 ? 'text-green-400' : 'text-red-400'}">${info.libres}</p>
+            <p class="text-slate-400 font-black">Disponibles</p>
+            <p class="font-black ${info.libres > 0 ? 'text-green-400' : 'text-red-400'}">${info.libres}/${info.capacidad}</p>
           </div>
         </div>
 
-        <p class="text-xs text-slate-400 mt-3"><b>Proveedor vence:</b> ${venceProveedor}</p>
+        <p class="text-xs text-slate-400 mt-3">
+          <b>Capacidad usada:</b> ${sCap?.Tipo_Servicio || sBase?.Tipo_Servicio || "-"}
+        </p>
+        <p class="text-xs text-slate-400 mt-1">
+          <b>Proveedor vence:</b> ${venceProveedor}
+        </p>
 
         <div class="grid grid-cols-2 gap-2 mt-4">
           <button onclick="verDetalleCuenta('${cuenta.ID_Cuenta}')" class="btn-dark">VER DUEÑOS</button>
@@ -568,31 +588,30 @@ function renderCuentas() {
   }).join("");
 }
 
-function servicioDeCuenta(cuenta) {
+function servicioBaseDeCuenta(cuenta) {
   return config.find(x => x.ID_Servicio === cuenta.ID_Servicio) || null;
 }
 
-function servicioCapacidadCuenta(cuenta) {
-  const servicioBase = servicioDeCuenta(cuenta);
-  if (!servicioBase) return null;
+function servicioCapacidadDeCuenta(cuenta) {
+  const base = servicioBaseDeCuenta(cuenta);
+  if (!base) return null;
 
-  const servicioPerfiles = config.find(x =>
-    normalizar(x.Plataforma) === normalizar(servicioBase.Plataforma) &&
+  const porPerfiles = config.find(x =>
+    normalizar(x.Plataforma) === normalizar(base.Plataforma) &&
     normalizar(x.Tipo_Inventario) === "perfiles"
   );
 
-  return servicioPerfiles || servicioBase;
+  return porPerfiles || base;
 }
 
 function infoCuenta(cuenta) {
-  const servicioCapacidad = servicioCapacidadCuenta(cuenta);
-  const correo = normalizar(cuenta.Correo_Cuenta || cuenta.Correo_cuenta);
-
-  const capacidad = Number(servicioCapacidad?.Capacidad || 1);
+  const sCap = servicioCapacidadDeCuenta(cuenta);
+  const correo = normalizarCorreo(correoCuenta(cuenta));
+  const capacidad = Number(sCap?.Capacidad || 1);
 
   const usadas = ventas.filter(v =>
     normalizar(v.Estado) === "activa" &&
-    normalizar(v.Correo_Cuenta) === correo
+    normalizarCorreo(v.Correo_Cuenta) === correo
   ).length;
 
   const libres = Math.max(capacidad - usadas, 0);
@@ -600,18 +619,24 @@ function infoCuenta(cuenta) {
   return { capacidad, usadas, libres };
 }
 
-function compraDeCuenta(idCuenta) {
-  return compras
-    .filter(c => c.ID_Cuenta === idCuenta)
-    .sort((a,b) => new Date(b.Fecha_Compra) - new Date(a.Fecha_Compra))[0];
+function compraDeCuenta(idCuenta, correo) {
+  const relacionadas = compras.filter(c =>
+    c.ID_Cuenta === idCuenta ||
+    normalizarCorreo(c.Correo_Cuenta) === normalizarCorreo(correo)
+  );
+
+  return relacionadas.sort((a,b) => new Date(b.Fecha_Compra) - new Date(a.Fecha_Compra))[0];
 }
 
 function verDetalleCuenta(idCuenta) {
   const cuenta = inventario.find(c => c.ID_Cuenta === idCuenta);
   if (!cuenta) return;
 
-  const correo = normalizar(cuenta.Correo_Cuenta || cuenta.Correo_cuenta);
-  const relacionadas = ventas.filter(v => v.Estado === "Activa" && normalizar(v.Correo_Cuenta) === correo);
+  const correo = normalizarCorreo(correoCuenta(cuenta));
+  const relacionadas = ventas.filter(v =>
+    normalizar(v.Estado) === "activa" &&
+    normalizarCorreo(v.Correo_Cuenta) === correo
+  );
 
   if (!relacionadas.length) {
     alert("Esta cuenta no tiene clientes activos.");
@@ -630,12 +655,12 @@ async function editarCuenta(idCuenta) {
   const cuenta = inventario.find(c => c.ID_Cuenta === idCuenta);
   if (!cuenta) return;
 
-  const correoActual = cuenta.Correo_Cuenta || cuenta.Correo_cuenta || "";
+  const correoActual = correoCuenta(cuenta);
   const nuevoCorreo = prompt("Nuevo correo de cuenta:", correoActual);
   if (!nuevoCorreo) return;
 
   const nuevaFecha = prompt("Nueva fecha vencimiento proveedor AAAA-MM-DD. Deja vacío si no cambia:");
-  
+
   const r = await apiPost({
     action: "editarCuentaInventario",
     idCuenta,
@@ -645,7 +670,7 @@ async function editarCuenta(idCuenta) {
   });
 
   if (!r.ok) {
-    alert("Falta agregar la acción editarCuentaInventario en Apps Script.");
+    alert(r.error || "No se pudo editar. Revisa Apps Script.");
     return;
   }
 
@@ -673,10 +698,10 @@ function renderVentas() {
     let border = "border-slate-700";
     let label = v.Estado || "Activa";
 
-    if (v.Estado === "Activa" && diff <= 0) {
+    if (normalizar(v.Estado) === "activa" && diff <= 0) {
       border = "border-red-500";
       label = "Vencido";
-    } else if (v.Estado === "Activa" && diff <= 3) {
+    } else if (normalizar(v.Estado) === "activa" && diff <= 3) {
       border = "border-yellow-400";
       label = `Vence en ${diff} día(s)`;
     }
@@ -766,10 +791,7 @@ async function eliminarVenta(idVenta) {
     idVenta
   });
 
-  if (!r.ok) {
-    alert("Falta agregar la acción deleteVenta en Apps Script.");
-    return;
-  }
+  if (!r.ok) return alert(r.error || "Error eliminando venta");
 
   alert("Venta eliminada");
   cargarTodo();
@@ -790,8 +812,23 @@ function formatoFecha(fecha) {
   return d.toLocaleDateString("es-EC");
 }
 
+function correoCuenta(obj) {
+  return obj.Correo_Cuenta || obj.Correo_cuenta || obj.correoCuenta || obj.Correo || "";
+}
+
 function normalizar(v) {
-  return String(v || "").trim().toLowerCase();
+  return String(v || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function normalizarCorreo(v) {
+  return String(v || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "");
 }
 </script>
 
