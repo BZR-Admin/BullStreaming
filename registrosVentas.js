@@ -240,19 +240,40 @@ Fecha de vencimiento: ${formatearFecha(venta.Fecha_Vencimiento)}
 }
 
 function obtenerNombreServicioVenta(venta) {
+  if (!venta) return "";
+
+  const tipoVenta = String(venta.Tipo_Venta || "").trim();
+  const idServicio = String(venta.ID_Servicio || "").trim();
+
+  const configCuentaPropia = Array.isArray(DB.configCuentaPropia)
+    ? DB.configCuentaPropia
+    : [];
+
+  const configVentaIndependiente = Array.isArray(DB.configVentaIndependiente)
+    ? DB.configVentaIndependiente
+    : [];
+
   let servicio = null;
 
-  if (venta.Tipo_Venta === "VCP") {
-    servicio = DB.configCuentaPropia.find(
-      s => s.ID_Servicio === venta.ID_Servicio
+  if (tipoVenta === "VCP") {
+    servicio = configCuentaPropia.find(s =>
+      String(s.ID_Servicio || "").trim() === idServicio
     );
   }
 
-  if (venta.Tipo_Venta === "VI") {
-    servicio = DB.configVentaIndependiente.find(
-      s => s.ID_Servicio === venta.ID_Servicio
+  if (tipoVenta === "VI") {
+    servicio = configVentaIndependiente.find(s =>
+      String(s.ID_Servicio || "").trim() === idServicio
     );
   }
 
-  return servicio ? servicio.Servicio : venta.ID_Servicio;
+  if (servicio && servicio.Servicio) {
+    return servicio.Servicio;
+  }
+
+  if (servicio && servicio.Plataforma) {
+    return servicio.Plataforma;
+  }
+
+  return idServicio || venta.Plataforma || "";
 }
