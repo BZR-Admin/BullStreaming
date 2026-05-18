@@ -1,0 +1,253 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  color: #1f2937;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100vh;
+  background: #111827;
+  color: white;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.logo-box h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.logo-box p {
+  margin: 5px 0 25px;
+  color: #9ca3af;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu button,
+.home-card,
+button {
+  cursor: pointer;
+}
+
+.menu button {
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  background: transparent;
+  color: #d1d5db;
+  text-align: left;
+  font-size: 14px;
+}
+
+.menu button:hover,
+.menu button.activo {
+  background: #2563eb;
+  color: white;
+}
+
+.contenido {
+  margin-left: 260px;
+  padding: 30px;
+}
+
+.pantalla {
+  display: none;
+}
+
+.pantalla.activa {
+  display: block;
+}
+
+h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+h3 {
+  margin-top: 0;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.bienvenida {
+  min-height: 160px;
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+}
+
+.dos-columnas {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cards-home {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.home-card {
+  border: none;
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #111827;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.home-card:hover {
+  background: #2563eb;
+  color: white;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+label {
+  font-size: 13px;
+  font-weight: bold;
+  color: #374151;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 11px;
+  font-size: 14px;
+  background: white;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 11px 14px;
+  background: #e5e7eb;
+  color: #111827;
+  font-weight: bold;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.btn-principal {
+  background: #2563eb;
+  color: white;
+  margin-top: 10px;
+}
+
+.acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tabla-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+thead {
+  background: #f3f4f6;
+}
+
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  white-space: nowrap;
+}
+
+td button {
+  margin-right: 5px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.btn-editar {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-eliminar {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-renovar {
+  background: #16a34a;
+  color: white;
+}
+
+.dashboard-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metric span {
+  display: block;
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.metric strong {
+  font-size: 28px;
+  color: #111827;
+}
+
+@media (max-width: 1000px) {
+  .dos-columnas,
+  .cards-home,
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+  }
+
+  .contenido {
+    margin-left: 0;
+    padding: 20px;
+  }
+}
