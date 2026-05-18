@@ -119,3 +119,29 @@ async function eliminarVentaRegistro(ID_Venta) {
     console.error(error);
   }
 }
+
+function whatsappVenta(ID_Venta) {
+  const venta = DB.ventas.find(v => v.ID_Venta === ID_Venta);
+
+  if (!venta) {
+    alert("Venta no encontrada.");
+    return;
+  }
+
+  const cliente = DB.clientes.find(c => c.ID_Cliente === venta.ID_Cliente);
+
+  if (!cliente || !cliente.Whatsapp) {
+    alert("El cliente no tiene WhatsApp registrado.");
+    return;
+  }
+
+  const mensaje = `¡Hola! Bull Streaming te informa que está por vencer tu servicio de ${venta.Plataforma}, cuyo acceso es:
+
+Usuario: ${venta["Usuario/Correo"] || ""}
+Perfil: ${venta.Perfil || ""}
+Fecha de vencimiento: ${formatearFecha(venta.Fecha_Vencimiento)}
+
+¿Puedes confirmar si deseas renovar?`;
+
+  abrirWhatsapp(cliente.Whatsapp, mensaje);
+}
