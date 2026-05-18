@@ -91,8 +91,8 @@ function renderTablaVentas() {
         </td>
 
         <td data-label="Servicio">
-          ${venta.Plataforma || ""}
-        </td>
+  ${obtenerNombreServicioVenta(venta)}
+</td>
 
         <td data-label="Usuario/Correo">
           ${venta["Usuario/Correo"] || ""}
