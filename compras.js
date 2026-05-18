@@ -33,8 +33,13 @@ function renderTablaCompras() {
   tbody.innerHTML = "";
 
   DB.cuentasPropias.forEach(cuenta => {
+    const servicio = DB.configCuentaPropia.find(s => s.ID_Servicio === cuenta.ID_Servicio);
+    const plataforma = servicio ? servicio.Plataforma : cuenta.ID_Servicio;
+
+    const clase = claseSemaforo(cuenta.Fecha_Vencimiento);
+
     tbody.innerHTML += `
-      <tr>
+      <tr class="${clase}">
         <td>${cuenta.ID_Cuenta || ""}</td>
         <td>${cuenta.ID_Servicio || ""}</td>
         <td>${cuenta.Correo_Cuenta || ""}</td>
@@ -44,6 +49,8 @@ function renderTablaCompras() {
         <td>${cuenta.Whatsapp || ""}</td>
         <td>${cuenta.Estado || ""}</td>
         <td>
+          <button class="btn-whatsapp" onclick="whatsappCompra('${cuenta.ID_Cuenta}')">WhatsApp</button>
+
           <button class="btn-editar" onclick="editarCompra('${cuenta.ID_Cuenta}')">
             Editar
           </button>
@@ -146,4 +153,24 @@ function limpiarFormCompra() {
   document.getElementById("formCompra").reset();
 
   delete document.getElementById("formCompra").dataset.editando;
+}
+
+function whatsappCompra(ID_Cuenta) {
+  const cuenta = DB.cuentasPropias.find(c => c.ID_Cuenta === ID_Cuenta);
+
+  if (!cuenta) {
+    alert("Cuenta no encontrada.");
+    return;
+  }
+
+  const servicio = DB.configCuentaPropia.find(s => s.ID_Servicio === cuenta.ID_Servicio);
+  const plataforma = servicio ? servicio.Plataforma : cuenta.ID_Servicio;
+
+  const mensaje = `¡Hola! Me gustaría renovar el servicio de ${plataforma}:
+
+Cuenta: ${cuenta.Correo_Cuenta || ""}
+
+¿Puedo hacerlo?`;
+
+  abrirWhatsapp(cuenta.Whatsapp, mensaje);
 }
