@@ -24,27 +24,45 @@ function renderTablaVentas() {
   const tbody = document.getElementById("tablaVentas");
   if (!tbody) return;
 
-  tbody.innerHTML = "";
+  tbody.innerHTML += `
+  <tr class="${clase}">
+    <td data-label="Cliente">${nombreCliente || ""}</td>
 
-  let ventas = [...DB.ventas];
-
-  ventas = ventas.filter(venta => {
-    const cliente = DB.clientes.find(c => c.ID_Cliente === venta.ID_Cliente);
-    const nombreCliente = cliente ? cliente.Nombre : "";
-
-    const texto = `
-      ${venta.ID_Venta || ""}
-      ${venta.Tipo_Venta || ""}
-      ${nombreCliente || ""}
+    <td data-label="Servicio">
       ${venta.Plataforma || ""}
-      ${venta.ID_Servicio || ""}
-      ${venta["Usuario/Correo"] || ""}
-      ${venta.Perfil || ""}
-      ${venta.Estado || ""}
-    `.toLowerCase();
+    </td>
 
-    return texto.includes(filtroVentas);
-  });
+    <td data-label="Usuario/Correo">
+      ${venta["Usuario/Correo"] || ""}
+    </td>
+
+    <td data-label="Perfil">
+      ${venta.Perfil || ""}
+    </td>
+
+    <td data-label="Vencimiento">
+      ${formatearFecha(venta.Fecha_Vencimiento)}
+    </td>
+
+    <td data-label="Acciones">
+      <button class="btn-whatsapp" onclick="whatsappVenta('${venta.ID_Venta}')">
+        WhatsApp
+      </button>
+
+      <button class="btn-renovar" onclick="renovarVentaRegistro('${venta.ID_Venta}')">
+        Renovar
+      </button>
+
+      <button class="btn-editar" onclick="editarVentaRegistro('${venta.ID_Venta}')">
+        Editar
+      </button>
+
+      <button class="btn-eliminar" onclick="eliminarVentaRegistro('${venta.ID_Venta}')">
+        Eliminar
+      </button>
+    </td>
+  </tr>
+`;
 
   ventas.sort((a, b) => {
     if (ordenVentasActual === "vencimientoAsc") {
