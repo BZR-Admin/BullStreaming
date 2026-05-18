@@ -7,9 +7,12 @@ function renderTablaVentas() {
   DB.ventas.forEach(venta => {
     const cliente = DB.clientes.find(c => c.ID_Cliente === venta.ID_Cliente);
     const nombreCliente = cliente ? cliente.Nombre : venta.ID_Cliente;
+    const whatsappCliente = cliente ? cliente.Whatsapp : "";
+
+    const clase = claseSemaforo(venta.Fecha_Vencimiento);
 
     tbody.innerHTML += `
-      <tr>
+      <tr class="${clase}">
         <td>${venta.ID_Venta || ""}</td>
         <td>${venta.Tipo_Venta || ""}</td>
         <td>${nombreCliente || ""}</td>
@@ -22,6 +25,7 @@ function renderTablaVentas() {
         <td>$${Number(venta.Ganancia || 0).toFixed(2)}</td>
         <td>${venta.Estado || ""}</td>
         <td>
+          <button class="btn-whatsapp" onclick="whatsappVenta('${venta.ID_Venta}')">WhatsApp</button>
           <button class="btn-renovar" onclick="renovarVentaRegistro('${venta.ID_Venta}')">Renovar</button>
           <button class="btn-editar" onclick="editarVentaRegistro('${venta.ID_Venta}')">Editar</button>
           <button class="btn-eliminar" onclick="eliminarVentaRegistro('${venta.ID_Venta}')">Eliminar</button>
