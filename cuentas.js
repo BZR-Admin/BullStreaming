@@ -1,11 +1,45 @@
+let filtroPlataformaCuenta = "";
+
+document.addEventListener("DOMContentLoaded", () => {
+  const filtro = document.getElementById("filtroPlataformaCuentas");
+
+  if (filtro) {
+    filtro.addEventListener("change", () => {
+      filtroPlataformaCuenta = filtro.value;
+      renderCuentasDisponibles();
+    });
+  }
+});
+
 function renderCuentasDisponibles() {
+  renderFiltroPlataformas();
+
   const tbody = document.getElementById("tablaCuentasDisponibles");
 
   if (!tbody) return;
 
   tbody.innerHTML = "";
 
-  DB.cuentasDisponibles.forEach(cuenta => {
+  let cuentas = [...DB.cuentasDisponibles];
+
+  cuentas = cuentas.filter(cuenta => {
+    const servicio = DB.configCuentaPropia.find(
+      s => s.ID_Servicio === cuenta.ID_Servicio
+    );
+
+    const plataforma = servicio ? servicio.Plataforma : "";
+
+    if (!filtroPlataformaCuenta) return true;
+
+    return plataforma === filtroPlataformaCuenta;
+  });
+
+  cuentas.forEach(cuenta => {
+    const servicio = DB.configCuentaPropia.find(
+      s => s.ID_Servicio === cuenta.ID_Servicio
+    );
+
+    const plataforma = servicio ? servicio.Plataforma : "";
 
     let estadoDisponibilidad = "";
 
@@ -19,25 +53,48 @@ function renderCuentasDisponibles() {
 
     tbody.innerHTML += `
       <tr>
-        <td>${cuenta.ID_Cuenta || ""}</td>
+        <td data-label="Plataforma">${plataforma}</td>
 
-        <td>${cuenta.ID_Servicio || ""}</td>
-
-        <td>${cuenta.Correo_Cuenta || ""}</td>
-
-        <td>${cuenta.Usados || 0}</td>
-
-        <td>${cuenta.Maximo || 0}</td>
-
-        <td>${cuenta.Disponibles || 0}</td>
-
-        <td>
-          ${cuenta.Usados || 0}/${cuenta.Maximo || 0}
-          - ${estadoDisponibilidad}
+        <td data-label="Usuario/Correo">
+          ${cuenta.Correo_Cuenta || ""}
         </td>
 
-        <td>${cuenta.Estado || ""}</td>
+        <td data-label="Disponibles">
+          ${cuenta.Disponibles || 0}
+        </td>
+
+        <td data-label="Estado">
+          ${estadoDisponibilidad}
+        </td>
       </tr>
     `;
   });
+}
+
+function renderFiltroPlataformas() {
+  const select = document.getElementById("filtroPlataformaCuentas");
+
+  if (!select) return;
+
+  const valorActual = select.value;
+
+  const plataformas = [
+    ...new Set(
+      DB.configCuentaPropia.map(s => s.Plataforma)
+    )
+  ];
+
+  select.innerHTML = `
+    <option value="">Todas las plataformas</option>
+  `;
+
+  plataformas.forEach(plataforma => {
+    select.innerHTML += `
+      <option value="${plataforma}">
+        ${plataforma}
+      </option>
+    `;
+  });
+
+  select.value = valorActual;
 }
