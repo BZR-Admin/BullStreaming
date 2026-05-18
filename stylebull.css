@@ -342,3 +342,103 @@ td button {
   background: #22c55e;
   color: white;
 }
+
+.btn-menu-movil {
+  display: none;
+}
+
+/* =========================
+   MEJORAS CELULAR
+========================= */
+
+@media (max-width: 768px) {
+  .btn-menu-movil {
+    display: block;
+    width: 100%;
+    background: #2563eb;
+    color: white;
+    margin-bottom: 10px;
+  }
+
+  .menu {
+    display: none;
+  }
+
+  .menu.menu-abierto {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .menu button {
+    text-align: left;
+    font-size: 14px;
+  }
+
+  .tabla-scroll {
+    overflow-x: visible;
+  }
+
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody tr {
+    margin-bottom: 14px;
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+    border: 1px solid #e5e7eb;
+  }
+
+  tbody td {
+    border-bottom: none;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    white-space: normal;
+    padding: 7px 0;
+  }
+
+  tbody td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: #374151;
+  }
+
+  tbody td:last-child {
+    display: block;
+  }
+
+  tbody td:last-child::before {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  tbody td button {
+    width: 100%;
+    margin: 4px 0;
+  }
+
+  .acciones-registro {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+}
+
+.acciones-registro {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
