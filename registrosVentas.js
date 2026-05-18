@@ -24,45 +24,28 @@ function renderTablaVentas() {
   const tbody = document.getElementById("tablaVentas");
   if (!tbody) return;
 
-  tbody.innerHTML += `
-  <tr class="${clase}">
-    <td data-label="Cliente">${nombreCliente || ""}</td>
+  tbody.innerHTML = "";
 
-    <td data-label="Servicio">
+  let ventas = [...DB.ventas];
+
+  ventas = ventas.filter(venta => {
+    const cliente = DB.clientes.find(c => c.ID_Cliente === venta.ID_Cliente);
+    const nombreCliente = cliente ? cliente.Nombre : "";
+
+    const texto = `
+      ${venta.ID_Venta || ""}
+      ${venta.Tipo_Venta || ""}
+      ${nombreCliente || ""}
       ${venta.Plataforma || ""}
-    </td>
-
-    <td data-label="Usuario/Correo">
+      ${venta.ID_Servicio || ""}
       ${venta["Usuario/Correo"] || ""}
-    </td>
-
-    <td data-label="Perfil">
       ${venta.Perfil || ""}
-    </td>
+      ${venta.Fecha_Vencimiento || ""}
+      ${venta.Estado || ""}
+    `.toLowerCase();
 
-    <td data-label="Vencimiento">
-      ${formatearFecha(venta.Fecha_Vencimiento)}
-    </td>
-
-    <td data-label="Acciones">
-      <button class="btn-whatsapp" onclick="whatsappVenta('${venta.ID_Venta}')">
-        WhatsApp
-      </button>
-
-      <button class="btn-renovar" onclick="renovarVentaRegistro('${venta.ID_Venta}')">
-        Renovar
-      </button>
-
-      <button class="btn-editar" onclick="editarVentaRegistro('${venta.ID_Venta}')">
-        Editar
-      </button>
-
-      <button class="btn-eliminar" onclick="eliminarVentaRegistro('${venta.ID_Venta}')">
-        Eliminar
-      </button>
-    </td>
-  </tr>
-`;
+    return texto.includes(filtroVentas);
+  });
 
   ventas.sort((a, b) => {
     if (ordenVentasActual === "vencimientoAsc") {
@@ -84,6 +67,17 @@ function renderTablaVentas() {
     return 0;
   });
 
+  if (ventas.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td data-label="Resultado" colspan="6">
+          No hay ventas para mostrar.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
   ventas.forEach(venta => {
     const cliente = DB.clientes.find(c => c.ID_Cliente === venta.ID_Cliente);
     const nombreCliente = cliente ? cliente.Nombre : venta.ID_Cliente;
@@ -92,22 +86,42 @@ function renderTablaVentas() {
 
     tbody.innerHTML += `
       <tr class="${clase}">
-        <td data-label="ID Venta">${venta.ID_Venta || ""}</td>
-        <td data-label="Tipo">${venta.Tipo_Venta || ""}</td>
-        <td data-label="Cliente">${nombreCliente || ""}</td>
-        <td data-label="Plataforma">${venta.Plataforma || ""}</td>
-        <td data-label="Servicio">${venta.ID_Servicio || ""}</td>
-        <td data-label="Usuario/Correo">${venta["Usuario/Correo"] || ""}</td>
-        <td data-label="Perfil">${venta.Perfil || ""}</td>
-        <td data-label="Registro">${formatearFecha(venta.Fecha_Registro)}</td>
-        <td data-label="Vencimiento">${formatearFecha(venta.Fecha_Vencimiento)}</td>
-        <td data-label="Ganancia">$${Number(venta.Ganancia || 0).toFixed(2)}</td>
-        <td data-label="Estado">${venta.Estado || ""}</td>
+        <td data-label="Cliente">
+          ${nombreCliente || ""}
+        </td>
+
+        <td data-label="Servicio">
+          ${venta.Plataforma || ""}
+        </td>
+
+        <td data-label="Usuario/Correo">
+          ${venta["Usuario/Correo"] || ""}
+        </td>
+
+        <td data-label="Perfil">
+          ${venta.Perfil || ""}
+        </td>
+
+        <td data-label="Vencimiento">
+          ${formatearFecha(venta.Fecha_Vencimiento)}
+        </td>
+
         <td data-label="Acciones">
-          <button class="btn-whatsapp" onclick="whatsappVenta('${venta.ID_Venta}')">WhatsApp</button>
-          <button class="btn-renovar" onclick="renovarVentaRegistro('${venta.ID_Venta}')">Renovar</button>
-          <button class="btn-editar" onclick="editarVentaRegistro('${venta.ID_Venta}')">Editar</button>
-          <button class="btn-eliminar" onclick="eliminarVentaRegistro('${venta.ID_Venta}')">Eliminar</button>
+          <button class="btn-whatsapp" onclick="whatsappVenta('${venta.ID_Venta}')">
+            WhatsApp
+          </button>
+
+          <button class="btn-renovar" onclick="renovarVentaRegistro('${venta.ID_Venta}')">
+            Renovar
+          </button>
+
+          <button class="btn-editar" onclick="editarVentaRegistro('${venta.ID_Venta}')">
+            Editar
+          </button>
+
+          <button class="btn-eliminar" onclick="eliminarVentaRegistro('${venta.ID_Venta}')">
+            Eliminar
+          </button>
         </td>
       </tr>
     `;
