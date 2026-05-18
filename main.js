@@ -9,6 +9,7 @@ let DB = {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
+  configurarMenuMovil();
   configurarNavegacion();
   await cargarDatos();
   mostrarPantalla("inicio");
@@ -118,4 +119,23 @@ function abrirWhatsapp(numero, mensaje) {
 
   const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
   window.open(url, "_blank");
+}
+
+function configurarMenuMovil() {
+  const btnMenu = document.getElementById("btnMenuMovil");
+  const menu = document.getElementById("menuPrincipal");
+
+  if (!btnMenu || !menu) return;
+
+  btnMenu.addEventListener("click", () => {
+    menu.classList.toggle("menu-abierto");
+  });
+
+  document.querySelectorAll("[data-pantalla]").forEach(boton => {
+    boton.addEventListener("click", () => {
+      if (window.innerWidth <= 768) {
+        menu.classList.remove("menu-abierto");
+      }
+    });
+  });
 }
