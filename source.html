@@ -165,7 +165,17 @@
     <!-- REGISTRO VENTAS -->
     <section id="pantalla-registro-ventas" class="pantalla">
       <h2>Registro ventas clientes</h2>
+      <div class="card acciones-registro">
+  <input id="buscarVentas" type="text" placeholder="Buscar cliente, correo, plataforma o perfil" />
 
+  <select id="ordenVentas">
+    <option value="">Ordenar ventas</option>
+    <option value="vencimientoAsc">Vencimiento: más reciente primero</option>
+    <option value="vencimientoDesc">Vencimiento: más lejano primero</option>
+    <option value="registroAsc">Registro: más antiguo primero</option>
+    <option value="registroDesc">Registro: más reciente primero</option>
+  </select>
+</div>
       <div class="card">
         <div class="tabla-scroll">
           <table>
@@ -194,7 +204,17 @@
     <!-- REGISTRO COMPRAS -->
     <section id="pantalla-registro-compras" class="pantalla">
       <h2>Registro compras proveedores</h2>
+      <div class="card acciones-registro">
+  <input id="buscarCompras" type="text" placeholder="Buscar proveedor, correo o servicio" />
 
+  <select id="ordenCompras">
+    <option value="">Ordenar compras</option>
+    <option value="vencimientoAsc">Vencimiento: más reciente primero</option>
+    <option value="vencimientoDesc">Vencimiento: más lejano primero</option>
+    <option value="compraAsc">Compra: más antigua primero</option>
+    <option value="compraDesc">Compra: más reciente primero</option>
+  </select>
+</div>
       <div class="card">
         <div class="tabla-scroll">
           <table>
