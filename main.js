@@ -139,3 +139,13 @@ function configurarMenuMovil() {
     });
   });
 }
+
+function mostrarLoading() {
+  document.getElementById("loadingOverlay")
+    ?.classList.add("activo");
+}
+
+function ocultarLoading() {
+  document.getElementById("loadingOverlay")
+    ?.classList.remove("activo");
+}
