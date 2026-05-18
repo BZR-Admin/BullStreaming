@@ -1,8 +1,26 @@
+let filtroCompras = "";
+let ordenComprasActual = "";
 document.addEventListener("DOMContentLoaded", () => {
   const formCompra = document.getElementById("formCompra");
 
   if (formCompra) {
     formCompra.addEventListener("submit", guardarCompra);
+  }
+  const buscarCompras = document.getElementById("buscarCompras");
+  const ordenCompras = document.getElementById("ordenCompras");
+
+  if (buscarCompras) {
+    buscarCompras.addEventListener("input", () => {
+      filtroCompras = buscarCompras.value.toLowerCase().trim();
+      renderTablaCompras();
+    });
+  }
+
+  if (ordenCompras) {
+    ordenCompras.addEventListener("change", () => {
+      ordenComprasActual = ordenCompras.value;
+      renderTablaCompras();
+    });
   }
 });
 
@@ -32,7 +50,46 @@ function renderTablaCompras() {
 
   tbody.innerHTML = "";
 
-  DB.cuentasPropias.forEach(cuenta => {
+  let cuentas = [...DB.cuentasPropias];
+
+  cuentas = cuentas.filter(cuenta => {
+    const servicio = DB.configCuentaPropia.find(s => s.ID_Servicio === cuenta.ID_Servicio);
+    const plataforma = servicio ? servicio.Plataforma : "";
+
+    const texto = `
+      ${cuenta.ID_Cuenta || ""}
+      ${cuenta.ID_Servicio || ""}
+      ${plataforma || ""}
+      ${cuenta.Correo_Cuenta || ""}
+      ${cuenta.Proveedor || ""}
+      ${cuenta.Whatsapp || ""}
+      ${cuenta.Estado || ""}
+    `.toLowerCase();
+
+    return texto.includes(filtroCompras);
+  });
+
+  cuentas.sort((a, b) => {
+    if (ordenComprasActual === "vencimientoAsc") {
+      return new Date(a.Fecha_Vencimiento) - new Date(b.Fecha_Vencimiento);
+    }
+
+    if (ordenComprasActual === "vencimientoDesc") {
+      return new Date(b.Fecha_Vencimiento) - new Date(a.Fecha_Vencimiento);
+    }
+
+    if (ordenComprasActual === "compraAsc") {
+      return new Date(a.Fecha_Compra) - new Date(b.Fecha_Compra);
+    }
+
+    if (ordenComprasActual === "compraDesc") {
+      return new Date(b.Fecha_Compra) - new Date(a.Fecha_Compra);
+    }
+
+    return 0;
+  });
+
+  cuentas.forEach(cuenta => {
     const servicio = DB.configCuentaPropia.find(s => s.ID_Servicio === cuenta.ID_Servicio);
     const plataforma = servicio ? servicio.Plataforma : cuenta.ID_Servicio;
 
@@ -40,30 +97,23 @@ function renderTablaCompras() {
 
     tbody.innerHTML += `
       <tr class="${clase}">
-        <td>${cuenta.ID_Cuenta || ""}</td>
-        <td>${cuenta.ID_Servicio || ""}</td>
-        <td>${cuenta.Correo_Cuenta || ""}</td>
-        <td>${formatearFecha(cuenta.Fecha_Compra)}</td>
-        <td>${formatearFecha(cuenta.Fecha_Vencimiento)}</td>
-        <td>${cuenta.Proveedor || ""}</td>
-        <td>${cuenta.Whatsapp || ""}</td>
-        <td>${cuenta.Estado || ""}</td>
-        <td>
+        <td data-label="ID Cuenta">${cuenta.ID_Cuenta || ""}</td>
+        <td data-label="ID Servicio">${cuenta.ID_Servicio || ""}</td>
+        <td data-label="Correo Cuenta">${cuenta.Correo_Cuenta || ""}</td>
+        <td data-label="Fecha Compra">${formatearFecha(cuenta.Fecha_Compra)}</td>
+        <td data-label="Fecha Vencimiento">${formatearFecha(cuenta.Fecha_Vencimiento)}</td>
+        <td data-label="Proveedor">${cuenta.Proveedor || ""}</td>
+        <td data-label="Whatsapp">${cuenta.Whatsapp || ""}</td>
+        <td data-label="Estado">${cuenta.Estado || ""}</td>
+        <td data-label="Acciones">
           <button class="btn-whatsapp" onclick="whatsappCompra('${cuenta.ID_Cuenta}')">WhatsApp</button>
-
-          <button class="btn-editar" onclick="editarCompra('${cuenta.ID_Cuenta}')">
-            Editar
-          </button>
-
-          <button class="btn-eliminar" onclick="eliminarCompra('${cuenta.ID_Cuenta}')">
-            Eliminar
-          </button>
+          <button class="btn-editar" onclick="editarCompra('${cuenta.ID_Cuenta}')">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarCompra('${cuenta.ID_Cuenta}')">Eliminar</button>
         </td>
       </tr>
     `;
   });
 }
-
 async function guardarCompra(event) {
   event.preventDefault();
 
