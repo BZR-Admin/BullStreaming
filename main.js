@@ -19,15 +19,25 @@ async function cargarDatos() {
   try {
     DB = await getInitialData();
 
-    if (typeof renderClientes === "function") renderClientes();
-    if (typeof renderProveedores === "function") renderProveedores();
-    if (typeof renderVentas === "function") renderVentas();
-    if (typeof renderCompras === "function") renderCompras();
-    if (typeof renderCuentasDisponibles === "function") renderCuentasDisponibles();
-    if (typeof renderDashboard === "function") renderDashboard();
+    await safeRender("Clientes", renderClientes);
+    await safeRender("Proveedores", renderProveedores);
+    await safeRender("Ventas", renderVentas);
+    await safeRender("Compras", renderCompras);
+    await safeRender("Cuentas disponibles", renderCuentasDisponibles);
+    await safeRender("Dashboard", renderDashboard);
 
   } catch (error) {
     console.error("No se pudieron cargar los datos:", error);
+  }
+}
+
+async function safeRender(nombre, fn) {
+  try {
+    if (typeof fn === "function") {
+      await fn();
+    }
+  } catch (error) {
+    console.error("Error renderizando " + nombre + ":", error);
   }
 }
 
