@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bull Streaming</title>
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="logo-box">
+      <h1>Bull Streaming</h1>
+      <p>Panel de gestión</p>
+    </div>
+
+    <nav class="menu">
+      <button data-pantalla="inicio" class="activo">Inicio</button>
+      <button data-pantalla="venta">Venta</button>
+      <button data-pantalla="compra">Compra cuenta propia</button>
+      <button data-pantalla="registro-ventas">Registro ventas clientes</button>
+      <button data-pantalla="registro-compras">Registro compras proveedores</button>
+      <button data-pantalla="cuentas">Cuentas disponibles</button>
+      <button data-pantalla="clientes">Clientes</button>
+      <button data-pantalla="proveedores">Proveedores</button>
+      <button data-pantalla="dashboard">Dashboard</button>
+    </nav>
+  </aside>
+
+  <main class="contenido">
+
+    <!-- INICIO -->
+    <section id="pantalla-inicio" class="pantalla activa">
+      <div class="card bienvenida">
+        <h2>Bienvenido a Bull Streaming</h2>
+        <p>Administra ventas, compras, clientes, proveedores y disponibilidad de cuentas.</p>
+      </div>
+
+      <div class="grid cards-home">
+        <button data-pantalla="venta" class="home-card">Nueva venta</button>
+        <button data-pantalla="compra" class="home-card">Nueva compra</button>
+        <button data-pantalla="registro-ventas" class="home-card">Ver ventas</button>
+        <button data-pantalla="cuentas" class="home-card">Ver cuentas disponibles</button>
+      </div>
+    </section>
+
+    <!-- VENTA -->
+    <section id="pantalla-venta" class="pantalla">
+      <h2>Ingreso de ventas</h2>
+
+      <div class="grid dos-columnas">
+
+        <!-- Venta independiente -->
+        <div class="card">
+          <h3>Venta independiente</h3>
+
+          <form id="formVentaIndependiente">
+            <label>Cliente</label>
+            <select id="viCliente" required></select>
+
+            <label>Mensaje de entrega</label>
+            <textarea id="viMensaje" rows="6" placeholder="Pega aquí el mensaje enviado al cliente"></textarea>
+
+            <div class="acciones">
+              <button type="button" id="btnPegarVI">Pegar</button>
+              <button type="button" id="btnLimpiarVI">Limpiar</button>
+              <button type="button" id="btnDetectarVI">Detectar</button>
+            </div>
+
+            <label>Plataforma</label>
+            <input id="viPlataforma" type="text" required />
+
+            <label>ID Servicio</label>
+            <select id="viServicio" required></select>
+
+            <label>Usuario / Correo</label>
+            <input id="viUsuarioCorreo" type="text" required />
+
+            <label>Perfil</label>
+            <input id="viPerfil" type="text" />
+
+            <label>Fecha Registro</label>
+            <input id="viFechaRegistro" type="date" required />
+
+            <label>Fecha Vencimiento</label>
+            <input id="viFechaVencimiento" type="date" required />
+
+            <label>Ganancia</label>
+            <input id="viGanancia" type="number" step="0.01" required />
+
+            <button type="submit" class="btn-principal">Agregar venta independiente</button>
+          </form>
+        </div>
+
+        <!-- Venta cuenta propia -->
+        <div class="card">
+          <h3>Venta de cuenta propia</h3>
+
+          <form id="formVentaCuentaPropia">
+            <label>Cliente</label>
+            <select id="vcpCliente" required></select>
+
+            <label>ID Servicio</label>
+            <select id="vcpServicio" required></select>
+
+            <label>Cuenta disponible</label>
+            <select id="vcpCuenta" required></select>
+
+            <label>Perfil</label>
+            <input id="vcpPerfil" type="text" required />
+
+            <label>Fecha Registro</label>
+            <input id="vcpFechaRegistro" type="date" required />
+
+            <label>Fecha Vencimiento</label>
+            <input id="vcpFechaVencimiento" type="date" required />
+
+            <label>Ganancia</label>
+            <input id="vcpGanancia" type="number" step="0.01" required />
+
+            <button type="submit" class="btn-principal">Agregar venta cuenta propia</button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- COMPRA -->
+    <section id="pantalla-compra" class="pantalla">
+      <h2>Ingreso de compra de cuentas completas</h2>
+
+      <div class="card">
+        <form id="formCompra">
+          <label>ID Servicio</label>
+          <select id="compraServicio" required></select>
+
+          <label>Correo Cuenta</label>
+          <input id="compraCorreo" type="email" required />
+
+          <label>Fecha Compra</label>
+          <input id="compraFechaCompra" type="date" required />
+
+          <label>Fecha Vencimiento</label>
+          <input id="compraFechaVencimiento" type="date" required />
+
+          <label>Proveedor</label>
+          <select id="compraProveedor" required></select>
+
+          <label>Whatsapp</label>
+          <input id="compraWhatsapp" type="text" />
+
+          <label>Estado</label>
+          <select id="compraEstado">
+            <option value="Activa">Activa</option>
+            <option value="Vencida">Vencida</option>
+            <option value="Eliminada">Eliminada</option>
+          </select>
+
+          <button type="submit" class="btn-principal">Agregar compra</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- REGISTRO VENTAS -->
+    <section id="pantalla-registro-ventas" class="pantalla">
+      <h2>Registro ventas clientes</h2>
+
+      <div class="card">
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ID Venta</th>
+                <th>Tipo</th>
+                <th>Cliente</th>
+                <th>Plataforma</th>
+                <th>Servicio</th>
+                <th>Usuario/Correo</th>
+                <th>Perfil</th>
+                <th>Registro</th>
+                <th>Vencimiento</th>
+                <th>Ganancia</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaVentas"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- REGISTRO COMPRAS -->
+    <section id="pantalla-registro-compras" class="pantalla">
+      <h2>Registro compras proveedores</h2>
+
+      <div class="card">
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ID Cuenta</th>
+                <th>ID Servicio</th>
+                <th>Correo Cuenta</th>
+                <th>Fecha Compra</th>
+                <th>Fecha Vencimiento</th>
+                <th>Proveedor</th>
+                <th>Whatsapp</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaCompras"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUENTAS -->
+    <section id="pantalla-cuentas" class="pantalla">
+      <h2>Cuentas disponibles</h2>
+
+      <div class="card">
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ID Cuenta</th>
+                <th>ID Servicio</th>
+                <th>Correo Cuenta</th>
+                <th>Usados</th>
+                <th>Máximo</th>
+                <th>Disponibles</th>
+                <th>Disponibilidad</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tablaCuentasDisponibles"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLIENTES -->
+    <section id="pantalla-clientes" class="pantalla">
+      <h2>Clientes</h2>
+
+      <div class="grid dos-columnas">
+        <div class="card">
+          <h3>Agregar / editar cliente</h3>
+
+          <form id="formCliente">
+            <input id="clienteId" type="hidden" />
+
+            <label>Nombre</label>
+            <input id="clienteNombre" type="text" required />
+
+            <label>Whatsapp</label>
+            <input id="clienteWhatsapp" type="text" required />
+
+            <label>Estado</label>
+            <select id="clienteEstado">
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+
+            <button type="submit" class="btn-principal">Guardar cliente</button>
+            <button type="button" id="btnLimpiarCliente">Limpiar</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Lista de clientes</h3>
+
+          <div class="tabla-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID Cliente</th>
+                  <th>Nombre</th>
+                  <th>Whatsapp</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaClientes"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROVEEDORES -->
+    <section id="pantalla-proveedores" class="pantalla">
+      <h2>Proveedores</h2>
+
+      <div class="grid dos-columnas">
+        <div class="card">
+          <h3>Agregar / editar proveedor</h3>
+
+          <form id="formProveedor">
+            <input id="proveedorId" type="hidden" />
+
+            <label>Proveedor</label>
+            <input id="proveedorNombre" type="text" required />
+
+            <label>Whatsapp</label>
+            <input id="proveedorWhatsapp" type="text" required />
+
+            <button type="submit" class="btn-principal">Guardar proveedor</button>
+            <button type="button" id="btnLimpiarProveedor">Limpiar</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Lista de proveedores</h3>
+
+          <div class="tabla-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID Proveedor</th>
+                  <th>Proveedor</th>
+                  <th>Whatsapp</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaProveedores"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="pantalla-dashboard" class="pantalla">
+      <h2>Dashboard</h2>
+
+      <div class="grid dashboard-grid">
+        <div class="card metric">
+          <span>Total clientes activos</span>
+          <strong id="dashClientesActivos">0</strong>
+        </div>
+
+        <div class="card metric">
+          <span>Ganancia diaria</span>
+          <strong id="dashGananciaDiaria">$0.00</strong>
+        </div>
+
+        <div class="card metric">
+          <span>Ganancia semanal</span>
+          <strong id="dashGananciaSemanal">$0.00</strong>
+        </div>
+
+        <div class="card metric">
+          <span>Ganancia mensual</span>
+          <strong id="dashGananciaMensual">$0.00</strong>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Cuentas propias vencidas</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ID Cuenta</th>
+                <th>ID Servicio</th>
+                <th>Correo Cuenta</th>
+                <th>Fecha Vencimiento</th>
+                <th>Proveedor</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tablaCuentasVencidas"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+
+  <script src="js/clientes.js"></script>
+  <script src="js/proveedores.js"></script>
+  <script src="js/compras.js"></script>
+  <script src="js/ventas.js"></script>
+  <script src="js/registrosVentas.js"></script>
+  <script src="js/registrosCompras.js"></script>
+  <script src="js/cuentas.js"></script>
+  <script src="js/dashboard.js"></script>
+
+</body>
+</html>
