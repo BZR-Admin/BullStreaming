@@ -251,3 +251,94 @@ td button {
     padding: 20px;
   }
 }
+/* =========================
+   RESPONSIVE CELULAR
+========================= */
+
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 15px;
+  }
+
+  .logo-box h1 {
+    font-size: 20px;
+  }
+
+  .menu {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .menu button {
+    font-size: 12px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .contenido {
+    margin-left: 0;
+    padding: 15px;
+  }
+
+  .dos-columnas,
+  .cards-home,
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 15px;
+    border-radius: 12px;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 15px;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th,
+  td {
+    padding: 8px;
+  }
+
+  td button {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px;
+  }
+}
+
+/* =========================
+   SEMÁFORO VENCIMIENTOS
+========================= */
+
+.fila-verde {
+  background: #dcfce7;
+}
+
+.fila-amarilla {
+  background: #fef9c3;
+}
+
+.fila-roja {
+  background: #fee2e2;
+}
+
+.btn-whatsapp {
+  background: #22c55e;
+  color: white;
+}
