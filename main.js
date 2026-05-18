@@ -81,3 +81,41 @@ function confirmarEliminacion(mensaje = "¿Seguro que deseas eliminar este regis
 async function refrescarTodo() {
   await cargarDatos();
 }
+
+function diasParaVencer(fechaVencimiento) {
+  if (!fechaVencimiento) return 999;
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const vencimiento = new Date(fechaVencimiento);
+  vencimiento.setHours(0, 0, 0, 0);
+
+  const diferencia = vencimiento - hoy;
+  return Math.ceil(diferencia / (1000 * 60 * 60 * 24));
+}
+
+function claseSemaforo(fechaVencimiento) {
+  const dias = diasParaVencer(fechaVencimiento);
+
+  if (dias <= 0) return "fila-roja";
+  if (dias <= 3) return "fila-amarilla";
+
+  return "fila-verde";
+}
+
+function limpiarTelefono(numero) {
+  return String(numero || "").replace(/\D/g, "");
+}
+
+function abrirWhatsapp(numero, mensaje) {
+  const telefono = limpiarTelefono(numero);
+
+  if (!telefono) {
+    alert("No hay número de WhatsApp registrado.");
+    return;
+  }
+
+  const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+  window.open(url, "_blank");
+}
