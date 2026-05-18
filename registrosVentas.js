@@ -238,3 +238,21 @@ Fecha de vencimiento: ${formatearFecha(venta.Fecha_Vencimiento)}
 
   abrirWhatsapp(cliente.Whatsapp, mensaje);
 }
+
+function obtenerNombreServicioVenta(venta) {
+  let servicio = null;
+
+  if (venta.Tipo_Venta === "VCP") {
+    servicio = DB.configCuentaPropia.find(
+      s => s.ID_Servicio === venta.ID_Servicio
+    );
+  }
+
+  if (venta.Tipo_Venta === "VI") {
+    servicio = DB.configVentaIndependiente.find(
+      s => s.ID_Servicio === venta.ID_Servicio
+    );
+  }
+
+  return servicio ? servicio.Servicio : venta.ID_Servicio;
+}
