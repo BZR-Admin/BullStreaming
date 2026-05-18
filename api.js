@@ -2,6 +2,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyzXEhPfIsoaA7AqgVtdFHW
 
 async function apiRequest(action, payload = {}) {
   try {
+    mostrarLoading();
     const response = await fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
@@ -15,10 +16,11 @@ async function apiRequest(action, payload = {}) {
     if (!result.ok) {
       throw new Error(result.error || "Error desconocido");
     }
-
+    ocultarLoading();
     return result.data;
 
   } catch (error) {
+    ocultarLoading();
     console.error("Error en API:", error);
     alert("Error: " + error.message);
     throw error;
