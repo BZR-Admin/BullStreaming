@@ -230,21 +230,21 @@ function agruparInventarioPorCorreo(lista) {
   lista.forEach(c => {
     const correo = correoCuenta(c);
     const key = normalizarCorreo(correo);
-    if (!key) return;
+
+    if (!key) {
+      const id = valorFlexible(c, ["ID_Cuenta", "id_cuenta"]);
+      if (id) map.set(String(id), c);
+      return;
+    }
 
     if (!map.has(key)) {
       map.set(key, c);
-    } else {
-      const actual = map.get(key);
-      const fechaActual = new Date(actual.Fecha_Registro || 0);
-      const fechaNueva = new Date(c.Fecha_Registro || 0);
-      if (fechaNueva > fechaActual) map.set(key, c);
     }
   });
 
   return Array.from(map.values());
 }
-
+  
 function cargarClientes() {
   const sel = document.getElementById("v-cliente");
   sel.innerHTML = `<option value="">Seleccione cliente</option>`;
@@ -272,13 +272,17 @@ function cargarPlataformasCompra() {
 
 function cargarFiltroCuentas() {
   const sel = document.getElementById("filtro-plataforma-cuentas");
+
   const plataformas = [...new Set(inventario.map(c => {
     const s = servicioBaseDeCuenta(c);
     return s ? s.Plataforma : "";
   }).filter(Boolean))];
 
   sel.innerHTML = `<option value="">Todas las plataformas</option>`;
-  plataformas.forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
+
+  plataformas.forEach(p => {
+    sel.innerHTML += `<option value="${p}">${p}</option>`;
+  });
 }
 
 function seleccionarServicioCuenta() {
@@ -539,16 +543,15 @@ function renderCuentas() {
   });
 
   if (!lista.length) {
-    cont.innerHTML = `<p class="text-slate-500 text-center py-8">Sin cuentas</p>`;
+    cont.innerHTML = `<p class="text-slate-500 text-center py-8">Sin cuentas en inventario</p>`;
     return;
   }
 
   cont.innerHTML = lista.map(cuenta => {
     const sBase = servicioBaseDeCuenta(cuenta);
-    const sCap = servicioCapacidadDeCuenta(cuenta);
     const info = infoCuenta(cuenta);
-    const correo = correoCuenta(cuenta);
-    const compra = compraDeCuenta(cuenta.ID_Cuenta, correo);
+    const correo = correoCuenta(cuenta) || "Sin correo";
+    const compra = compraDeCuenta(valorFlexible(cuenta, ["ID_Cuenta"]), correo);
     const venceProveedor = compra ? formatoFecha(compra.Fecha_Vencimiento) : "Sin fecha";
 
     return `
@@ -572,16 +575,11 @@ function renderCuentas() {
           </div>
         </div>
 
-        <p class="text-xs text-slate-400 mt-3">
-          <b>Capacidad usada:</b> ${sCap?.Tipo_Servicio || sBase?.Tipo_Servicio || "-"}
-        </p>
-        <p class="text-xs text-slate-400 mt-1">
-          <b>Proveedor vence:</b> ${venceProveedor}
-        </p>
+        <p class="text-xs text-slate-400 mt-3"><b>Proveedor vence:</b> ${venceProveedor}</p>
 
         <div class="grid grid-cols-2 gap-2 mt-4">
-          <button onclick="verDetalleCuenta('${cuenta.ID_Cuenta}')" class="btn-dark">VER DUEÑOS</button>
-          <button onclick="editarCuenta('${cuenta.ID_Cuenta}')" class="btn-dark">EDITAR</button>
+          <button onclick="verDetalleCuenta('${valorFlexible(cuenta, ["ID_Cuenta"])}')" class="btn-dark">VER DUEÑOS</button>
+          <button onclick="editarCuenta('${valorFlexible(cuenta, ["ID_Cuenta"])}')" class="btn-dark">EDITAR</button>
         </div>
       </div>
     `;
@@ -592,18 +590,11 @@ function servicioBaseDeCuenta(cuenta) {
   return config.find(x => x.ID_Servicio === cuenta.ID_Servicio) || null;
 }
 
-function servicioCapacidadDeCuenta(cuenta) {
-  const base = servicioBaseDeCuenta(cuenta);
-  if (!base) return null;
-
-  const porPerfiles = config.find(x =>
-    normalizar(x.Plataforma) === normalizar(base.Plataforma) &&
-    normalizar(x.Tipo_Inventario) === "perfiles"
-  );
-
-  return porPerfiles || base;
+function servicioBaseDeCuenta(cuenta) {
+  const idServicio = valorFlexible(cuenta, ["ID_Servicio", "id_servicio"]);
+  return config.find(x => String(x.ID_Servicio).trim() === String(idServicio).trim()) || null;
 }
-
+  
 function infoCuenta(cuenta) {
   const sCap = servicioCapacidadDeCuenta(cuenta);
   const correo = normalizarCorreo(correoCuenta(cuenta));
@@ -727,10 +718,11 @@ function renderVentas() {
           <p><b>Ganancia:</b> $${Number(v.Ganancia || 0).toFixed(2)}</p>
         </div>
 
-        <div class="grid grid-cols-4 gap-2 mt-4">
+        <div class="grid grid-cols-5 gap-2 mt-4">
           <button onclick="renovarVenta('${v.ID_Venta}')" class="btn-dark">RENOVAR</button>
           <button onclick="liberarVenta('${v.ID_Venta}')" class="btn-dark">LIBERAR</button>
           <button onclick="eliminarVenta('${v.ID_Venta}')" class="btn-dark bg-red-900/70">ELIMINAR</button>
+          <button onclick="editarVenta('${v.ID_Venta}')" class="btn-dark">✏️</button>
           <a class="btn-dark text-center bg-green-600" target="_blank" href="https://wa.me/${cliente.WhatsApp || ''}?text=${msg}">WA</a>
         </div>
       </div>
@@ -812,8 +804,24 @@ function formatoFecha(fecha) {
   return d.toLocaleDateString("es-EC");
 }
 
+function valorFlexible(obj, posibles) {
+  const keys = Object.keys(obj || {});
+  for (const posible of posibles) {
+    const encontrado = keys.find(k => normalizar(k) === normalizar(posible));
+    if (encontrado) return obj[encontrado];
+  }
+  return "";
+}
+
 function correoCuenta(obj) {
-  return obj.Correo_Cuenta || obj.Correo_cuenta || obj.correoCuenta || obj.Correo || "";
+  return valorFlexible(obj, [
+    "Correo_Cuenta",
+    "Correo_cuenta",
+    "correo_cuenta",
+    "Correo Cuenta",
+    "Correo",
+    "correo"
+  ]);
 }
 
 function normalizar(v) {
@@ -822,6 +830,47 @@ function normalizar(v) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+async function editarVenta(idVenta) {
+  const v = ventas.find(x => x.ID_Venta === idVenta);
+  if (!v) return alert("Venta no encontrada");
+
+  const nuevoCorreo = prompt("Correo cuenta:", v.Correo_Cuenta || "");
+  if (nuevoCorreo === null) return;
+
+  const nuevoPerfil = prompt("Perfil:", v.Perfil || "");
+  if (nuevoPerfil === null) return;
+
+  const nuevaFecha = prompt("Fecha vencimiento AAAA-MM-DD:", fechaInput(v.Fecha_Vencimiento));
+  if (nuevaFecha === null) return;
+
+  const nuevaGanancia = prompt("Ganancia:", v.Ganancia || "0");
+  if (nuevaGanancia === null) return;
+
+  const obs = prompt("Observaciones:", v.Observaciones || "");
+  if (obs === null) return;
+
+  const r = await apiPost({
+    action: "editarVenta",
+    idVenta,
+    correoCuenta: nuevoCorreo,
+    perfil: nuevoPerfil,
+    fechaVencimiento: nuevaFecha,
+    ganancia: nuevaGanancia,
+    observaciones: obs
+  });
+
+  if (!r.ok) return alert(r.error || "Error editando venta");
+
+  alert("Venta editada");
+  cargarTodo();
+}
+
+function fechaInput(fecha) {
+  const d = new Date(fecha);
+  if (isNaN(d)) return fecha || "";
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function normalizarCorreo(v) {
