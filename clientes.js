@@ -22,20 +22,29 @@ function renderSelectClientes() {
     document.getElementById("vcpCliente")
   ];
 
+  const clientesOrdenados = [...DB.clientes]
+    .filter(cliente => String(cliente.Estado || "").trim() === "Activo")
+    .sort((a, b) => {
+      const nombreA = String(a.Nombre || "").trim();
+      const nombreB = String(b.Nombre || "").trim();
+
+      return nombreA.localeCompare(nombreB, "es", {
+        sensitivity: "base"
+      });
+    });
+
   selects.forEach(select => {
     if (!select) return;
 
     select.innerHTML = `<option value="">Seleccionar cliente</option>`;
 
-    DB.clientes
-      .filter(cliente => cliente.Estado === "Activo")
-      .forEach(cliente => {
-        select.innerHTML += `
-          <option value="${cliente.ID_Cliente}">
-            ${cliente.Nombre} - ${cliente.Whatsapp}
-          </option>
-        `;
-      });
+    clientesOrdenados.forEach(cliente => {
+      select.innerHTML += `
+        <option value="${cliente.ID_Cliente}">
+          ${cliente.Nombre} - ${cliente.Whatsapp}
+        </option>
+      `;
+    });
   });
 }
 
