@@ -15,7 +15,6 @@ function renderCuentasDisponibles() {
   renderFiltroPlataformas();
 
   const tbody = document.getElementById("tablaCuentasDisponibles");
-
   if (!tbody) return;
 
   tbody.innerHTML = "";
@@ -23,48 +22,71 @@ function renderCuentasDisponibles() {
   let cuentas = [...DB.cuentasDisponibles];
 
   cuentas = cuentas.filter(cuenta => {
-    const servicio = DB.configCuentaPropia.find(
-      s => s.ID_Servicio === cuenta.ID_Servicio
-    );
-
-    const plataforma = servicio ? servicio.Plataforma : "";
+    const plataforma = obtenerPlataformaCuenta(cuenta);
 
     if (!filtroPlataformaCuenta) return true;
 
     return plataforma === filtroPlataformaCuenta;
   });
 
+  cuentas.sort((a, b) => {
+    const disponiblesA = Number(a.Disponibles) || 0;
+    const disponiblesB = Number(b.Disponibles) || 0;
+
+    return disponiblesB - disponiblesA;
+  });
+
+  if (cuentas.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td data-label="Resultado" colspan="7">
+          No hay cuentas disponibles para mostrar.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
   cuentas.forEach(cuenta => {
-    const servicio = DB.configCuentaPropia.find(
-      s => s.ID_Servicio === cuenta.ID_Servicio
-    );
+    const cuentaOriginal = obtenerCuentaOriginal(cuenta);
+    const plataforma = obtenerPlataformaCuenta(cuenta);
+    const disponibles = Number(cuenta.Disponibles) || 0;
+    const clase = claseDisponibilidad(disponibles);
+    const estado = estadoDisponibilidad(disponibles, cuentaOriginal);
+    const proveedor = cuentaOriginal ? cuentaOriginal.Proveedor : "";
+    const fechaVencimiento = cuentaOriginal ? cuentaOriginal.Fecha_Vencimiento : "";
 
-    const plataforma = servicio ? servicio.Plataforma : "";
-
-    let estadoDisponibilidad = "";
-
-    if (Number(cuenta.Disponibles) <= 0) {
-      estadoDisponibilidad = "Sin disponibilidad";
-    } else if (Number(cuenta.Disponibles) <= 2) {
-      estadoDisponibilidad = "Pocas disponibles";
-    } else {
-      estadoDisponibilidad = "Disponible";
-    }
+    const clientesOcupando = obtenerClientesOcupandoCuenta(cuenta);
+    const htmlClientes = crearHtmlClientesCuenta(clientesOcupando);
 
     tbody.innerHTML += `
-      <tr>
-        <td data-label="Plataforma">${plataforma}</td>
+      <tr class="${clase}">
+        <td data-label="Plataforma">
+          ${escaparHtml(plataforma)}
+        </td>
 
         <td data-label="Usuario/Correo">
-          ${cuenta.Correo_Cuenta || ""}
+          ${escaparHtml(cuenta.Correo_Cuenta || "")}
         </td>
 
         <td data-label="Disponibles">
-          ${cuenta.Disponibles || 0}
+          ${disponibles}
         </td>
 
         <td data-label="Estado">
-          ${estadoDisponibilidad}
+          ${escaparHtml(estado)}
+        </td>
+
+        <td data-label="Proveedor">
+          ${escaparHtml(proveedor)}
+        </td>
+
+        <td data-label="Fecha Vencimiento">
+          ${formatearFecha(fechaVencimiento)}
+        </td>
+
+        <td data-label="Clientes">
+          ${htmlClientes}
         </td>
       </tr>
     `;
@@ -73,16 +95,21 @@ function renderCuentasDisponibles() {
 
 function renderFiltroPlataformas() {
   const select = document.getElementById("filtroPlataformaCuentas");
-
   if (!select) return;
 
   const valorActual = select.value;
 
   const plataformas = [
     ...new Set(
-      DB.configCuentaPropia.map(s => s.Plataforma)
+      DB.configCuentaPropia
+        .map(s => s.Plataforma)
+        .filter(Boolean)
     )
-  ];
+  ].sort((a, b) => {
+    return String(a).localeCompare(String(b), "es", {
+      sensitivity: "base"
+    });
+  });
 
   select.innerHTML = `
     <option value="">Todas las plataformas</option>
@@ -90,11 +117,131 @@ function renderFiltroPlataformas() {
 
   plataformas.forEach(plataforma => {
     select.innerHTML += `
-      <option value="${plataforma}">
-        ${plataforma}
+      <option value="${escaparHtml(plataforma)}">
+        ${escaparHtml(plataforma)}
       </option>
     `;
   });
 
   select.value = valorActual;
+}
+
+function obtenerPlataformaCuenta(cuenta) {
+  const servicio = DB.configCuentaPropia.find(s =>
+    String(s.ID_Servicio || "").trim() === String(cuenta.ID_Servicio || "").trim()
+  );
+
+  return servicio ? servicio.Plataforma : cuenta.ID_Servicio;
+}
+
+function obtenerCuentaOriginal(cuenta) {
+  let cuentaOriginal = DB.cuentasPropias.find(c =>
+    String(c.ID_Cuenta || "").trim() === String(cuenta.ID_Cuenta || "").trim()
+  );
+
+  if (cuentaOriginal) return cuentaOriginal;
+
+  cuentaOriginal = DB.cuentasPropias.find(c =>
+    String(c.Correo_Cuenta || "").trim().toLowerCase() ===
+      String(cuenta.Correo_Cuenta || "").trim().toLowerCase() &&
+    String(c.ID_Servicio || "").trim() === String(cuenta.ID_Servicio || "").trim()
+  );
+
+  return cuentaOriginal || null;
+}
+
+function obtenerClientesOcupandoCuenta(cuenta) {
+  return DB.ventas
+    .filter(venta => {
+      const esCuentaPropia = String(venta.Tipo_Venta || "").trim() === "VCP";
+      const mismaCuenta =
+        String(venta["Usuario/Correo"] || "").trim().toLowerCase() ===
+        String(cuenta.Correo_Cuenta || "").trim().toLowerCase();
+
+      const mismoServicio =
+        String(venta.ID_Servicio || "").trim() === String(cuenta.ID_Servicio || "").trim();
+
+      const estaActiva = String(venta.Estado || "").trim() === "Activa";
+
+      return esCuentaPropia && mismaCuenta && mismoServicio && estaActiva;
+    })
+    .map(venta => {
+      const cliente = DB.clientes.find(c =>
+        String(c.ID_Cliente || "").trim() === String(venta.ID_Cliente || "").trim()
+      );
+
+      const nombreCliente = cliente ? cliente.Nombre : venta.ID_Cliente;
+      const perfil = venta.Perfil || "Sin perfil";
+
+      return {
+        cliente: nombreCliente,
+        perfil: perfil
+      };
+    });
+}
+
+function crearHtmlClientesCuenta(clientes) {
+  if (!clientes || clientes.length === 0) {
+    return `
+      <details class="clientes-cuenta">
+        <summary>0 clientes</summary>
+        <div class="clientes-cuenta-lista">
+          Nadie está ocupando esta cuenta.
+        </div>
+      </details>
+    `;
+  }
+
+  const items = clientes.map(item => {
+    return `
+      <li>
+        Cl. ${escaparHtml(item.cliente)} - ${escaparHtml(item.perfil)}
+      </li>
+    `;
+  }).join("");
+
+  return `
+    <details class="clientes-cuenta">
+      <summary>Clientes (${clientes.length})</summary>
+      <ul class="clientes-cuenta-lista">
+        ${items}
+      </ul>
+    </details>
+  `;
+}
+
+function claseDisponibilidad(disponibles) {
+  if (disponibles <= 0) return "disp-roja";
+  if (disponibles <= 2) return "disp-amarilla";
+
+  return "disp-verde";
+}
+
+function estadoDisponibilidad(disponibles, cuentaOriginal) {
+  const estadoCuenta = cuentaOriginal ? cuentaOriginal.Estado : "";
+
+  if (disponibles <= 0) {
+    return estadoCuenta && estadoCuenta !== "Activa"
+      ? "Sin disponibilidad - " + estadoCuenta
+      : "Sin disponibilidad";
+  }
+
+  if (disponibles <= 2) {
+    return estadoCuenta && estadoCuenta !== "Activa"
+      ? "Pocas disponibles - " + estadoCuenta
+      : "Pocas disponibles";
+  }
+
+  return estadoCuenta && estadoCuenta !== "Activa"
+    ? "Disponible - " + estadoCuenta
+    : "Disponible";
+}
+
+function escaparHtml(valor) {
+  return String(valor ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
