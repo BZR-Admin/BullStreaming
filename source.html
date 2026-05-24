@@ -93,36 +93,6 @@
           </form>
         </div>
 
-        <!-- Venta cuenta propia -->
-        <div class="card">
-          <h3>Venta de cuenta propia</h3>
-
-          <form id="formVentaCuentaPropia">
-            <label>Cliente</label>
-            <select id="vcpCliente" required></select>
-
-            <label>ID Servicio</label>
-            <select id="vcpServicio" required></select>
-
-            <label>Cuenta disponible</label>
-            <select id="vcpCuenta" required></select>
-
-            <label>Perfil</label>
-            <input id="vcpPerfil" type="text" required />
-
-            <label>Fecha Registro</label>
-            <input id="vcpFechaRegistro" type="date" required />
-
-            <label>Fecha Vencimiento</label>
-            <input id="vcpFechaVencimiento" type="date" required />
-
-            <label>Ganancia</label>
-            <input id="vcpGanancia" type="number" step="0.01" required />
-
-            <button type="submit" class="btn-principal">Agregar venta cuenta propia</button>
-          </form>
-        </div>
-
       </div>
     </section>
 
@@ -233,44 +203,29 @@
 
     <!-- CUENTAS -->
     <section id="pantalla-cuentas" class="pantalla">
-      <h2>Cuentas disponibles</h2>
-     <div class="card acciones-registro">
-  <select id="filtroPlataformaCuentas">
-    <option value="">Todas las plataformas</option>
-  </select>
+  <h2>Cuentas disponibles</h2>
 
-  <input 
-    id="buscarCuentas" 
-    type="text" 
-    placeholder="Buscar plataforma, correo, proveedor o cliente" 
-  />
+  <div class="card acciones-registro">
+    <select id="filtroPlataformaCuentas">
+      <option value="">Todas las plataformas</option>
+    </select>
 
-  <select id="ordenCuentas">
-    <option value="disponibilidadDesc">Disponibilidad: mayor a menor</option>
-    <option value="disponibilidadAsc">Disponibilidad: menor a mayor</option>
-    <option value="vencimientoAsc">Vencimiento: más cercano primero</option>
-    <option value="vencimientoDesc">Vencimiento: más lejano primero</option>
-  </select>
-</div>
-      <div class="card">
-        <div class="tabla-scroll">
-          <table>
-          <thead>
-  <tr>
-    <th>Plataforma</th>
-    <th>Usuario/Correo</th>
-    <th>Disponibles</th>
-    <th>Estado</th>
-    <th>Proveedor</th>
-    <th>Fecha Vencimiento</th>
-    <th>Clientes</th>
-  </tr>
-</thead>
-            <tbody id="tablaCuentasDisponibles"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+    <input 
+      id="buscarCuentas" 
+      type="text" 
+      placeholder="Buscar plataforma, correo, proveedor o cliente" 
+    />
+
+    <select id="ordenCuentas">
+      <option value="disponibilidadDesc">Disponibilidad: mayor a menor</option>
+      <option value="disponibilidadAsc">Disponibilidad: menor a mayor</option>
+      <option value="vencimientoAsc">Vencimiento cuenta: más cercano primero</option>
+      <option value="vencimientoDesc">Vencimiento cuenta: más lejano primero</option>
+    </select>
+  </div>
+
+  <div id="listaCuentasDisponibles" class="cuentas-lista"></div>
+</section>
 
     <!-- CLIENTES -->
     <section id="pantalla-clientes" class="pantalla">
