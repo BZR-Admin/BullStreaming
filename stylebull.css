@@ -520,3 +520,154 @@ td button {
     transform: rotate(360deg);
   }
 }
+
+/* =========================
+   CUENTAS DISPONIBLES COMO TARJETAS
+========================= */
+
+.cuentas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.grupo-plataforma h3 {
+  margin: 10px 0;
+  color: #111827;
+}
+
+.cuenta-card {
+  border-radius: 16px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+.cuenta-card summary {
+  cursor: pointer;
+}
+
+.cuenta-resumen {
+  display: grid;
+  grid-template-columns: 120px 1fr 70px 150px 150px;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  font-weight: bold;
+}
+
+.cuenta-resumen-correo {
+  word-break: break-word;
+}
+
+.cuenta-resumen-disponibilidad {
+  text-align: center;
+  background: rgba(255,255,255,0.7);
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
+.cuenta-detalle {
+  background: white;
+  padding: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cuenta-info-extra {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+  color: #374151;
+}
+
+.cuenta-clientes-box h4 {
+  margin: 0 0 10px;
+}
+
+.cliente-cuenta-vacio {
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 12px;
+  color: #6b7280;
+  margin-bottom: 14px;
+}
+
+.cliente-cuenta-card {
+  background: #f9fafb;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.cliente-cuenta-card summary {
+  padding: 12px;
+  font-weight: bold;
+  color: #111827;
+}
+
+.cliente-cuenta-editor {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.form-agregar-vcp {
+  margin-top: 16px;
+  background: #f3f4f6;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.form-agregar-vcp summary {
+  padding: 12px;
+  font-weight: bold;
+  color: #2563eb;
+}
+
+.form-agregar-vcp-grid {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.mensaje-sin-disponibilidad {
+  padding: 12px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 12px;
+  font-weight: bold;
+  margin-top: 12px;
+}
+
+.disp-verde {
+  background: #dcfce7;
+}
+
+.disp-amarilla {
+  background: #fef9c3;
+}
+
+.disp-roja {
+  background: #fee2e2;
+}
+
+@media (max-width: 768px) {
+  .cuenta-resumen {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .cuenta-resumen-disponibilidad {
+    text-align: left;
+    width: fit-content;
+  }
+
+  .cuenta-info-extra {
+    grid-template-columns: 1fr;
+  }
+}
