@@ -1,11 +1,29 @@
 let filtroPlataformaCuenta = "";
+let busquedaCuentas = "";
+let ordenCuentasActual = "disponibilidadDesc";
 
 document.addEventListener("DOMContentLoaded", () => {
   const filtro = document.getElementById("filtroPlataformaCuentas");
+  const buscar = document.getElementById("buscarCuentas");
+  const orden = document.getElementById("ordenCuentas");
 
   if (filtro) {
     filtro.addEventListener("change", () => {
       filtroPlataformaCuenta = filtro.value;
+      renderCuentasDisponibles();
+    });
+  }
+
+  if (buscar) {
+    buscar.addEventListener("input", () => {
+      busquedaCuentas = buscar.value.toLowerCase().trim();
+      renderCuentasDisponibles();
+    });
+  }
+
+  if (orden) {
+    orden.addEventListener("change", () => {
+      ordenCuentasActual = orden.value;
       renderCuentasDisponibles();
     });
   }
@@ -19,28 +37,77 @@ function renderCuentasDisponibles() {
 
   tbody.innerHTML = "";
 
-  let cuentas = [...DB.cuentasDisponibles];
+  let cuentas = Array.isArray(DB.cuentasDisponibles)
+    ? [...DB.cuentasDisponibles]
+    : [];
+
+  cuentas = cuentas
+    .map(cuenta => {
+      const cuentaOriginal = obtenerCuentaOriginal(cuenta);
+      const plataforma = obtenerPlataformaCuenta(cuenta);
+      const disponibles = Number(cuenta.Disponibles) || 0;
+      const proveedor = cuentaOriginal ? cuentaOriginal.Proveedor : "";
+      const fechaVencimiento = cuentaOriginal ? cuentaOriginal.Fecha_Vencimiento : "";
+      const clientesOcupando = obtenerClientesOcupandoCuenta(cuenta);
+
+      return {
+        ...cuenta,
+        cuentaOriginal,
+        plataforma,
+        disponibles,
+        proveedor,
+        fechaVencimiento,
+        clientesOcupando
+      };
+    });
 
   cuentas = cuentas.filter(cuenta => {
-    const plataforma = obtenerPlataformaCuenta(cuenta);
+    if (filtroPlataformaCuenta && cuenta.plataforma !== filtroPlataformaCuenta) {
+      return false;
+    }
 
-    if (!filtroPlataformaCuenta) return true;
+    const textoClientes = cuenta.clientesOcupando
+      .map(item => `${item.cliente} ${item.perfil} ${item.fechaVencimiento}`)
+      .join(" ");
 
-    return plataforma === filtroPlataformaCuenta;
+    const textoBusqueda = `
+      ${cuenta.plataforma || ""}
+      ${cuenta.Correo_Cuenta || ""}
+      ${cuenta.disponibles || ""}
+      ${cuenta.proveedor || ""}
+      ${cuenta.fechaVencimiento || ""}
+      ${cuenta.Estado || ""}
+      ${textoClientes}
+    `.toLowerCase();
+
+    return textoBusqueda.includes(busquedaCuentas);
   });
 
   cuentas.sort((a, b) => {
-    const disponiblesA = Number(a.Disponibles) || 0;
-    const disponiblesB = Number(b.Disponibles) || 0;
+    if (ordenCuentasActual === "disponibilidadDesc") {
+      return b.disponibles - a.disponibles;
+    }
 
-    return disponiblesB - disponiblesA;
+    if (ordenCuentasActual === "disponibilidadAsc") {
+      return a.disponibles - b.disponibles;
+    }
+
+    if (ordenCuentasActual === "vencimientoAsc") {
+      return obtenerTiempoFecha(a.fechaVencimiento) - obtenerTiempoFecha(b.fechaVencimiento);
+    }
+
+    if (ordenCuentasActual === "vencimientoDesc") {
+      return obtenerTiempoFecha(b.fechaVencimiento) - obtenerTiempoFecha(a.fechaVencimiento);
+    }
+
+    return 0;
   });
 
   if (cuentas.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td data-label="Resultado" colspan="7">
-          No hay cuentas disponibles para mostrar.
+          No hay cuentas para mostrar.
         </td>
       </tr>
     `;
@@ -48,21 +115,14 @@ function renderCuentasDisponibles() {
   }
 
   cuentas.forEach(cuenta => {
-    const cuentaOriginal = obtenerCuentaOriginal(cuenta);
-    const plataforma = obtenerPlataformaCuenta(cuenta);
-    const disponibles = Number(cuenta.Disponibles) || 0;
-    const clase = claseDisponibilidad(disponibles);
-    const estado = estadoDisponibilidad(disponibles, cuentaOriginal);
-    const proveedor = cuentaOriginal ? cuentaOriginal.Proveedor : "";
-    const fechaVencimiento = cuentaOriginal ? cuentaOriginal.Fecha_Vencimiento : "";
-
-    const clientesOcupando = obtenerClientesOcupandoCuenta(cuenta);
-    const htmlClientes = crearHtmlClientesCuenta(clientesOcupando);
+    const clase = claseDisponibilidad(cuenta.disponibles);
+    const estado = estadoDisponibilidad(cuenta.disponibles, cuenta.cuentaOriginal);
+    const htmlClientes = crearHtmlClientesCuenta(cuenta.clientesOcupando);
 
     tbody.innerHTML += `
       <tr class="${clase}">
         <td data-label="Plataforma">
-          ${escaparHtml(plataforma)}
+          ${escaparHtml(cuenta.plataforma)}
         </td>
 
         <td data-label="Usuario/Correo">
@@ -70,7 +130,7 @@ function renderCuentasDisponibles() {
         </td>
 
         <td data-label="Disponibles">
-          ${disponibles}
+          ${cuenta.disponibles}
         </td>
 
         <td data-label="Estado">
@@ -78,11 +138,11 @@ function renderCuentasDisponibles() {
         </td>
 
         <td data-label="Proveedor">
-          ${escaparHtml(proveedor)}
+          ${escaparHtml(cuenta.proveedor)}
         </td>
 
         <td data-label="Fecha Vencimiento">
-          ${formatearFecha(fechaVencimiento)}
+          ${formatearFecha(cuenta.fechaVencimiento)}
         </td>
 
         <td data-label="Clientes">
@@ -101,7 +161,7 @@ function renderFiltroPlataformas() {
 
   const plataformas = [
     ...new Set(
-      DB.configCuentaPropia
+      (DB.configCuentaPropia || [])
         .map(s => s.Plataforma)
         .filter(Boolean)
     )
@@ -127,7 +187,7 @@ function renderFiltroPlataformas() {
 }
 
 function obtenerPlataformaCuenta(cuenta) {
-  const servicio = DB.configCuentaPropia.find(s =>
+  const servicio = (DB.configCuentaPropia || []).find(s =>
     String(s.ID_Servicio || "").trim() === String(cuenta.ID_Servicio || "").trim()
   );
 
@@ -135,13 +195,13 @@ function obtenerPlataformaCuenta(cuenta) {
 }
 
 function obtenerCuentaOriginal(cuenta) {
-  let cuentaOriginal = DB.cuentasPropias.find(c =>
+  let cuentaOriginal = (DB.cuentasPropias || []).find(c =>
     String(c.ID_Cuenta || "").trim() === String(cuenta.ID_Cuenta || "").trim()
   );
 
   if (cuentaOriginal) return cuentaOriginal;
 
-  cuentaOriginal = DB.cuentasPropias.find(c =>
+  cuentaOriginal = (DB.cuentasPropias || []).find(c =>
     String(c.Correo_Cuenta || "").trim().toLowerCase() ===
       String(cuenta.Correo_Cuenta || "").trim().toLowerCase() &&
     String(c.ID_Servicio || "").trim() === String(cuenta.ID_Servicio || "").trim()
@@ -151,32 +211,37 @@ function obtenerCuentaOriginal(cuenta) {
 }
 
 function obtenerClientesOcupandoCuenta(cuenta) {
-  return DB.ventas
+  return (DB.ventas || [])
     .filter(venta => {
       const esCuentaPropia = String(venta.Tipo_Venta || "").trim() === "VCP";
+
       const mismaCuenta =
         String(venta["Usuario/Correo"] || "").trim().toLowerCase() ===
         String(cuenta.Correo_Cuenta || "").trim().toLowerCase();
 
       const mismoServicio =
-        String(venta.ID_Servicio || "").trim() === String(cuenta.ID_Servicio || "").trim();
+        String(venta.ID_Servicio || "").trim() ===
+        String(cuenta.ID_Servicio || "").trim();
 
       const estaActiva = String(venta.Estado || "").trim() === "Activa";
 
       return esCuentaPropia && mismaCuenta && mismoServicio && estaActiva;
     })
     .map(venta => {
-      const cliente = DB.clientes.find(c =>
+      const cliente = (DB.clientes || []).find(c =>
         String(c.ID_Cliente || "").trim() === String(venta.ID_Cliente || "").trim()
       );
 
       const nombreCliente = cliente ? cliente.Nombre : venta.ID_Cliente;
-      const perfil = venta.Perfil || "Sin perfil";
 
       return {
-        cliente: nombreCliente,
-        perfil: perfil
+        cliente: nombreCliente || "",
+        perfil: venta.Perfil || "Sin perfil",
+        fechaVencimiento: venta.Fecha_Vencimiento || ""
       };
+    })
+    .sort((a, b) => {
+      return obtenerTiempoFecha(a.fechaVencimiento) - obtenerTiempoFecha(b.fechaVencimiento);
     });
 }
 
@@ -195,7 +260,9 @@ function crearHtmlClientesCuenta(clientes) {
   const items = clientes.map(item => {
     return `
       <li>
-        Cl. ${escaparHtml(item.cliente)} - ${escaparHtml(item.perfil)}
+        ${escaparHtml(item.cliente)} - 
+        ${escaparHtml(item.perfil)} - 
+        Vence: ${formatearFecha(item.fechaVencimiento)}
       </li>
     `;
   }).join("");
@@ -235,6 +302,16 @@ function estadoDisponibilidad(disponibles, cuentaOriginal) {
   return estadoCuenta && estadoCuenta !== "Activa"
     ? "Disponible - " + estadoCuenta
     : "Disponible";
+}
+
+function obtenerTiempoFecha(fecha) {
+  const date = new Date(fecha);
+
+  if (isNaN(date)) {
+    return 9999999999999;
+  }
+
+  return date.getTime();
 }
 
 function escaparHtml(valor) {
