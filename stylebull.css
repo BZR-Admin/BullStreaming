@@ -423,6 +423,39 @@ td button {
     margin-bottom: 8px;
   }
 
+
+  /* =========================
+   CUENTAS DISPONIBLES
+========================= */
+
+.disp-verde {
+  background: #dcfce7;
+}
+
+.disp-amarilla {
+  background: #fef9c3;
+}
+
+.disp-roja {
+  background: #fee2e2;
+}
+
+.clientes-cuenta summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: #2563eb;
+}
+
+.clientes-cuenta-lista {
+  margin-top: 8px;
+  padding-left: 18px;
+  color: #374151;
+}
+
+.clientes-cuenta-lista li {
+  margin-bottom: 4px;
+}
+
   tbody td button {
     width: 100%;
     margin: 4px 0;
