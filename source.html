@@ -234,9 +234,22 @@
     <!-- CUENTAS -->
     <section id="pantalla-cuentas" class="pantalla">
       <h2>Cuentas disponibles</h2>
-      <div class="card acciones-registro">
+     <div class="card acciones-registro">
   <select id="filtroPlataformaCuentas">
     <option value="">Todas las plataformas</option>
+  </select>
+
+  <input 
+    id="buscarCuentas" 
+    type="text" 
+    placeholder="Buscar plataforma, correo, proveedor o cliente" 
+  />
+
+  <select id="ordenCuentas">
+    <option value="disponibilidadDesc">Disponibilidad: mayor a menor</option>
+    <option value="disponibilidadAsc">Disponibilidad: menor a mayor</option>
+    <option value="vencimientoAsc">Vencimiento: más cercano primero</option>
+    <option value="vencimientoDesc">Vencimiento: más lejano primero</option>
   </select>
 </div>
       <div class="card">
