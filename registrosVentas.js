@@ -21,10 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function renderTablaVentas() {
-  const tbody = document.getElementById("tablaVentas");
-  if (!tbody) return;
+  const contenedor = document.getElementById("listaRegistroVentas");
+  if (!contenedor) return;
 
-  tbody.innerHTML = "";
+  contenedor.innerHTML = "";
 
   let ventas = [...DB.ventas];
 
@@ -32,15 +32,20 @@ function renderTablaVentas() {
     const cliente = DB.clientes.find(c => c.ID_Cliente === venta.ID_Cliente);
     const nombreCliente = cliente ? cliente.Nombre : "";
 
+    const servicioTexto = obtenerNombreServicioVenta(venta);
+
     const texto = `
       ${venta.ID_Venta || ""}
       ${venta.Tipo_Venta || ""}
       ${nombreCliente || ""}
+      ${servicioTexto || ""}
       ${venta.Plataforma || ""}
       ${venta.ID_Servicio || ""}
       ${venta["Usuario/Correo"] || ""}
       ${venta.Perfil || ""}
+      ${venta.Fecha_Registro || ""}
       ${venta.Fecha_Vencimiento || ""}
+      ${venta.Ganancia || ""}
       ${venta.Estado || ""}
     `.toLowerCase();
 
@@ -68,12 +73,10 @@ function renderTablaVentas() {
   });
 
   if (ventas.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td data-label="Resultado" colspan="6">
-          No hay ventas para mostrar.
-        </td>
-      </tr>
+    contenedor.innerHTML = `
+      <div class="card">
+        No hay ventas para mostrar.
+      </div>
     `;
     return;
   }
@@ -81,49 +84,61 @@ function renderTablaVentas() {
   ventas.forEach(venta => {
     const cliente = DB.clientes.find(c => c.ID_Cliente === venta.ID_Cliente);
     const nombreCliente = cliente ? cliente.Nombre : venta.ID_Cliente;
-
+    const servicioTexto = obtenerNombreServicioVenta(venta);
     const clase = claseSemaforo(venta.Fecha_Vencimiento);
 
-    tbody.innerHTML += `
-      <tr class="${clase}">
-        <td data-label="Cliente">
-          ${nombreCliente || ""}
-        </td>
+    contenedor.innerHTML += `
+      <details class="registro-card ${clase}">
+        <summary class="registro-resumen">
+          <span class="registro-principal">
+            ${escaparHtml(nombreCliente || "")}
+          </span>
 
-        <td data-label="Servicio">
-  ${obtenerNombreServicioVenta(venta)}
-</td>
+          <span class="registro-secundario">
+            ${escaparHtml(servicioTexto || "")}
+          </span>
 
-        <td data-label="Usuario/Correo">
-          ${venta["Usuario/Correo"] || ""}
-        </td>
+          <span class="registro-correo">
+            ${escaparHtml(venta["Usuario/Correo"] || "")}
+          </span>
 
-        <td data-label="Perfil">
-          ${venta.Perfil || ""}
-        </td>
+          <span class="registro-perfil">
+            ${escaparHtml(venta.Perfil || "")}
+          </span>
 
-        <td data-label="Vencimiento">
-          ${formatearFecha(venta.Fecha_Vencimiento)}
-        </td>
+          <span class="registro-vencimiento">
+            Vence: ${formatearFecha(venta.Fecha_Vencimiento)}
+          </span>
+        </summary>
 
-        <td data-label="Acciones">
-          <button class="btn-whatsapp" onclick="whatsappVenta('${venta.ID_Venta}')">
-            WhatsApp
-          </button>
+        <div class="registro-detalle">
+          <div class="registro-detalle-grid">
+            <div><strong>ID Venta:</strong> ${escaparHtml(venta.ID_Venta || "")}</div>
+            <div><strong>Tipo:</strong> ${escaparHtml(venta.Tipo_Venta || "")}</div>
+            <div><strong>Registro:</strong> ${formatearFecha(venta.Fecha_Registro)}</div>
+            <div><strong>Ganancia:</strong> $${Number(venta.Ganancia || 0).toFixed(2)}</div>
+            <div><strong>Estado:</strong> ${escaparHtml(venta.Estado || "")}</div>
+          </div>
 
-          <button class="btn-renovar" onclick="renovarVentaRegistro('${venta.ID_Venta}')">
-            Renovar
-          </button>
+          <div class="registro-acciones">
+            <button class="btn-whatsapp" onclick="whatsappVenta('${escaparAttr(venta.ID_Venta)}')">
+              WhatsApp
+            </button>
 
-          <button class="btn-editar" onclick="editarVentaRegistro('${venta.ID_Venta}')">
-            Editar
-          </button>
+            <button class="btn-renovar" onclick="renovarVentaRegistro('${escaparAttr(venta.ID_Venta)}')">
+              Renovar
+            </button>
 
-          <button class="btn-eliminar" onclick="eliminarVentaRegistro('${venta.ID_Venta}')">
-            Eliminar
-          </button>
-        </td>
-      </tr>
+            <button class="btn-editar" onclick="editarVentaRegistro('${escaparAttr(venta.ID_Venta)}')">
+              Editar
+            </button>
+
+            <button class="btn-eliminar" onclick="eliminarVentaRegistro('${escaparAttr(venta.ID_Venta)}')">
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </details>
     `;
   });
 }
