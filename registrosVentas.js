@@ -243,7 +243,9 @@ function whatsappVenta(ID_Venta) {
     return;
   }
 
-  const mensaje = `¡Hola! Bull Streaming te informa que está por vencer tu servicio de ${venta.Plataforma}, cuyo acceso es:
+  const servicioTexto = obtenerNombreServicioVenta(venta);
+
+const mensaje = `¡Hola! Bull Streaming te informa que está por vencer tu servicio de ${servicioTexto}, cuyo acceso es:
 
 Usuario: ${venta["Usuario/Correo"] || ""}
 Perfil: ${venta.Perfil || ""}
