@@ -45,28 +45,29 @@ function renderSelectServiciosCompra() {
 }
 
 function renderTablaCompras() {
-  const tbody = document.getElementById("tablaCompras");
-  if (!tbody) return;
+  const contenedor = document.getElementById("listaRegistroCompras");
+  if (!contenedor) return;
 
-  tbody.innerHTML = "";
+  contenedor.innerHTML = "";
 
   let cuentas = [...DB.cuentasPropias];
 
   cuentas = cuentas.filter(cuenta => {
-    const servicio = DB.configCuentaPropia.find(s => s.ID_Servicio === cuenta.ID_Servicio);
-    const plataforma = servicio ? servicio.Plataforma : "";
+    const servicio = obtenerServicioCompra(cuenta);
 
     const texto = `
       ${cuenta.ID_Cuenta || ""}
       ${cuenta.ID_Servicio || ""}
-      ${plataforma || ""}
+      ${servicio || ""}
       ${cuenta.Correo_Cuenta || ""}
+      ${cuenta.Fecha_Compra || ""}
+      ${cuenta.Fecha_Vencimiento || ""}
       ${cuenta.Proveedor || ""}
       ${cuenta.Whatsapp || ""}
       ${cuenta.Estado || ""}
     `.toLowerCase();
 
-    return texto.includes(filtroCompras);
+    return texto.includes(filtroCompras || "");
   });
 
   cuentas.sort((a, b) => {
@@ -89,28 +90,63 @@ function renderTablaCompras() {
     return 0;
   });
 
-  cuentas.forEach(cuenta => {
-    const servicio = DB.configCuentaPropia.find(s => s.ID_Servicio === cuenta.ID_Servicio);
-    const plataforma = servicio ? servicio.Plataforma : cuenta.ID_Servicio;
+  if (cuentas.length === 0) {
+    contenedor.innerHTML = `
+      <div class="card">
+        No hay compras para mostrar.
+      </div>
+    `;
+    return;
+  }
 
+  cuentas.forEach(cuenta => {
+    const servicio = obtenerServicioCompra(cuenta);
     const clase = claseSemaforo(cuenta.Fecha_Vencimiento);
 
-    tbody.innerHTML += `
-      <tr class="${clase}">
-        <td data-label="ID Cuenta">${cuenta.ID_Cuenta || ""}</td>
-        <td data-label="ID Servicio">${cuenta.ID_Servicio || ""}</td>
-        <td data-label="Correo Cuenta">${cuenta.Correo_Cuenta || ""}</td>
-        <td data-label="Fecha Compra">${formatearFecha(cuenta.Fecha_Compra)}</td>
-        <td data-label="Fecha Vencimiento">${formatearFecha(cuenta.Fecha_Vencimiento)}</td>
-        <td data-label="Proveedor">${cuenta.Proveedor || ""}</td>
-        <td data-label="Whatsapp">${cuenta.Whatsapp || ""}</td>
-        <td data-label="Estado">${cuenta.Estado || ""}</td>
-        <td data-label="Acciones">
-          <button class="btn-whatsapp" onclick="whatsappCompra('${cuenta.ID_Cuenta}')">WhatsApp</button>
-          <button class="btn-editar" onclick="editarCompra('${cuenta.ID_Cuenta}')">Editar</button>
-          <button class="btn-eliminar" onclick="eliminarCompra('${cuenta.ID_Cuenta}')">Eliminar</button>
-        </td>
-      </tr>
+    contenedor.innerHTML += `
+      <details class="registro-card ${clase}">
+        <summary class="registro-resumen registro-resumen-compras">
+          <span class="registro-principal">
+            ${escaparHtml(servicio || "")}
+          </span>
+
+          <span class="registro-correo">
+            ${escaparHtml(cuenta.Correo_Cuenta || "")}
+          </span>
+
+          <span class="registro-proveedor">
+            Prov. ${escaparHtml(cuenta.Proveedor || "")}
+          </span>
+
+          <span class="registro-vencimiento">
+            Vence: ${formatearFecha(cuenta.Fecha_Vencimiento)}
+          </span>
+        </summary>
+
+        <div class="registro-detalle">
+          <div class="registro-detalle-grid">
+            <div><strong>ID Cuenta:</strong> ${escaparHtml(cuenta.ID_Cuenta || "")}</div>
+            <div><strong>ID Servicio:</strong> ${escaparHtml(cuenta.ID_Servicio || "")}</div>
+            <div><strong>Fecha compra:</strong> ${formatearFecha(cuenta.Fecha_Compra)}</div>
+            <div><strong>Whatsapp:</strong> ${escaparHtml(cuenta.Whatsapp || "")}</div>
+            <div><strong>Estado:</strong> ${escaparHtml(cuenta.Estado || "")}</div>
+          </div>
+
+          <div class="registro-acciones">
+            <button class="btn-whatsapp" onclick="whatsappCompra('${escaparAttr(cuenta.ID_Cuenta)}')">
+              WhatsApp
+            </button>
+
+            <button class="btn-editar" onclick="editarCompra('${escaparAttr(cuenta.ID_Cuenta)}')">
+              Editar
+            </button>
+
+            <button class="btn-eliminar" onclick="eliminarCompra('${escaparAttr(cuenta.ID_Cuenta)}')">
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </details>
     `;
   });
 }
