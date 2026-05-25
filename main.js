@@ -159,3 +159,16 @@ function ocultarLoading() {
   document.getElementById("loadingOverlay")
     ?.classList.remove("activo");
 }
+
+function escaparHtml(valor) {
+  return String(valor ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function escaparAttr(valor) {
+  return escaparHtml(valor);
+}
