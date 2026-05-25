@@ -50,7 +50,9 @@ function renderTablaCompras() {
 
   contenedor.innerHTML = "";
 
-  let cuentas = [...DB.cuentasPropias];
+  let cuentas = Array.isArray(DB.cuentasPropias)
+  ? [...DB.cuentasPropias]
+  : [];
 
   cuentas = cuentas.filter(cuenta => {
     const servicio = obtenerServicioCompra(cuenta);
@@ -259,4 +261,20 @@ Cuenta: ${cuenta.Correo_Cuenta || ""}
 ¿Puedo hacerlo?`;
 
   abrirWhatsapp(cuenta.Whatsapp, mensaje);
+}
+
+function obtenerServicioCompra(cuenta) {
+  const servicio = (DB.configCuentaPropia || []).find(s =>
+    String(s.ID_Servicio || "").trim() === String(cuenta.ID_Servicio || "").trim()
+  );
+
+  if (servicio && servicio.Servicio) {
+    return servicio.Servicio;
+  }
+
+  if (servicio && servicio.Plataforma) {
+    return servicio.Plataforma;
+  }
+
+  return cuenta.ID_Servicio || "";
 }
