@@ -671,3 +671,131 @@ td button {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================
+   REGISTROS COMPACTOS
+========================= */
+
+.registros-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.registro-card {
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.registro-card summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.registro-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.registro-resumen {
+  display: grid;
+  grid-template-columns: 1.1fr 1.2fr 1.4fr 0.8fr 120px;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.registro-resumen-compras {
+  grid-template-columns: 1.2fr 1.6fr 1fr 130px;
+}
+
+.registro-principal {
+  font-weight: 800;
+  color: #111827;
+}
+
+.registro-secundario,
+.registro-correo,
+.registro-perfil,
+.registro-proveedor,
+.registro-vencimiento {
+  color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.registro-vencimiento {
+  font-weight: 700;
+}
+
+.registro-detalle {
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 12px 14px;
+}
+
+.registro-detalle-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.registro-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.registro-acciones button {
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+/* Si ya tienes estos colores, no pasa nada si los dejas una sola vez */
+.fila-verde {
+  background: #dcfce7;
+}
+
+.fila-amarilla {
+  background: #fef9c3;
+}
+
+.fila-roja {
+  background: #fee2e2;
+}
+
+@media (max-width: 768px) {
+  .registro-resumen,
+  .registro-resumen-compras {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 12px;
+  }
+
+  .registro-secundario,
+  .registro-correo,
+  .registro-perfil,
+  .registro-proveedor,
+  .registro-vencimiento {
+    white-space: normal;
+  }
+
+  .registro-detalle-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .registro-acciones {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .registro-acciones button {
+    width: 100%;
+  }
+}
