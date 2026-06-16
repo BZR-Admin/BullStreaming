@@ -1,3 +1,10 @@
+import { db } from "./firebase.js";
+
+import {
+  collection,
+  addDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 let tipoVenta = "VI";
 
 window.setType = function(type){
@@ -9,7 +16,7 @@ window.clearText = function(){
   document.getElementById("textInput").value = "";
 }
 
-window.processText = function(){
+window.processText = async function(){
 
   const text = document.getElementById("textInput").value;
 
@@ -18,7 +25,6 @@ window.processText = function(){
     return;
   }
 
-  // 🔥 DETECCIONES BÁSICAS
   let usuario = text.match(/Usuario:\s*(.*)/i);
   let password = text.match(/Contraseña:\s*(.*)/i);
   let perfil = text.match(/Perfil:\s*(.*)/i);
@@ -26,13 +32,21 @@ window.processText = function(){
 
   const data = {
     tipoVenta,
-    usuario: usuario ? usuario[1] : null,
-    password: password ? password[1] : null,
-    perfil: perfil ? perfil[1] : null,
-    vencimiento: vencimiento ? vencimiento[1] : null
+    usuario: usuario ? usuario[1] : "",
+    password: password ? password[1] : "",
+    perfil: perfil ? perfil[1] : "",
+    vencimiento: vencimiento ? vencimiento[1] : "",
+    fecha: new Date().toISOString()
   };
 
-  console.log("DATA DETECTADA:", data);
+  try {
 
-  alert("Datos detectados. Revisa consola (F12)");
+    await addDoc(collection(db, "ventas"), data);
+
+    alert("✅ Venta registrada en Firebase");
+
+  } catch (error) {
+    console.error(error);
+    alert("Error al guardar venta");
+  }
 }
