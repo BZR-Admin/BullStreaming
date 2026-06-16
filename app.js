@@ -32,7 +32,7 @@ window.login = async function () {
     const data = snap.data();
 
     // 🔥 redirección por rol
-    if (data.rol === "admin") {
+    if (data.Rol === "admin") {
       window.location.href = "dashboard_admin.html";
     } else {
       window.location.href = "dashboard_user.html";
