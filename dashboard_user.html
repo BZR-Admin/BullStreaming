@@ -31,7 +31,7 @@
 
     const snap = await getDoc(doc(db, "users", user.uid));
 
-    if (snap.data().rol !== "revendedor") {
+    if (snap.data().Rol !== "revendedor") {
   window.location.href = "dashboard_admin.html";
 }
     }
