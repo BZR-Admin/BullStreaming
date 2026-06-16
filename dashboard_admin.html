@@ -32,7 +32,7 @@
 
     const snap = await getDoc(doc(db, "users", user.uid));
 
-    if (snap.data().rol !== "admin") {
+    if (snap.data().Rol !== "admin") {
       alert("No autorizado");
       window.location.href = "dashboard_user.html";
     }
