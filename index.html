@@ -2,30 +2,49 @@
 <html>
 <head>
   <title>Bull Streaming</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-  <h1>Bienvenido al panel de gestión de Bull Streaming</h1>
+<div class="container">
 
-  <div class="menu">
+  <h1 class="title">Bull Streaming</h1>
+  <p class="subtitle">Panel de gestión</p>
 
-    <button onclick="location.href='ventas.html'">Nueva venta</button>
-    <button onclick="location.href='compras.html'">Nueva compra</button>
-    <button onclick="location.href='registros.html'">Ver registros</button>
-    <button onclick="location.href='cuentas.html'">Cuentas disponibles</button>
+  <!-- GRID BOTONES -->
+  <div class="grid">
+
+    <button onclick="go('pages/ventas.html')">➕ Nueva venta</button>
+    <button onclick="go('pages/compras.html')">📦 Nueva compra</button>
+    <button onclick="go('pages/registros.html')">📊 Ver registros</button>
+    <button onclick="go('pages/cuentas.html')">🎬 Cuentas disponibles</button>
+
+  </div>
+
+  <!-- MENÚ OPCIONES -->
+  <div class="card menu-card">
+
+    <label>Más opciones</label>
 
     <select onchange="navigate(this.value)">
-      <option>Más opciones</option>
-      <option value="clientes_proveedores.html">Clientes / Proveedores</option>
+      <option value="">Seleccionar</option>
+      <option value="clientes_proveedores.html">👥 Clientes / Proveedores</option>
     </select>
 
   </div>
 
+</div>
+
 <script>
+function go(page){
+  window.location.href = page;
+}
+
 function navigate(page){
-  if(page) window.location.href = "pages/" + page;
+  if(page){
+    window.location.href = "pages/" + page;
+  }
 }
 </script>
 
