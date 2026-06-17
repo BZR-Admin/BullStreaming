@@ -95,9 +95,6 @@ function confirmarEliminacion(mensaje = "¿Seguro que deseas eliminar este regis
   return confirm(mensaje);
 }
 
-async function refrescarTodo() {
-  await cargarDatos();
-}
 
 function diasParaVencer(fechaVencimiento) {
   if (!fechaVencimiento) return 999;
