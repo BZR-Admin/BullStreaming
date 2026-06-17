@@ -1,9 +1,8 @@
 
 // =========================
-// ESTADO LOCAL
+// ESTADO LOCAL (AISLADO)
 // =========================
-let cuentas = [];
-
+let cuentasList = [];
 let clientesList = [];
 
 
@@ -17,7 +16,7 @@ async function loadCuentas() {
       getClientes()
     ]);
 
-    cuentas = dataCuentas;
+    cuentasList = dataCuentas;
     clientesList = dataClientes;
 
     renderCuentas();
@@ -36,7 +35,7 @@ function renderCuentas() {
 
   if (!container) return;
 
-  container.innerHTML = cuentas.map(c => {
+  container.innerHTML = cuentasList.map(c => {
 
     const clienteAsignado = clientesList.find(
       cl => cl.id_cliente === c.id_cliente
@@ -80,10 +79,10 @@ function renderCuentas() {
 // CREAR CUENTA
 // =========================
 async function saveCuenta() {
-  const id_servicio = document.getElementById("id_servicio").value;
-  const correo_cuenta = document.getElementById("correo_cuenta").value;
-  const proveedor = document.getElementById("proveedor").value;
-  const fecha_vencimiento = document.getElementById("fecha_vencimiento").value;
+  const id_servicio = document.getElementById("cuenta_id_servicio").value;
+  const correo_cuenta = document.getElementById("cuenta_correo").value;
+  const proveedor = document.getElementById("cuenta_proveedor").value;
+  const fecha_vencimiento = document.getElementById("cuenta_fecha_vencimiento").value;
 
   if (!id_servicio || !correo_cuenta) {
     alert("Completa campos obligatorios");
@@ -105,7 +104,7 @@ async function saveCuenta() {
     await addCuentaPropia(cuenta);
     await loadCuentas();
 
-    document.getElementById("correo_cuenta").value = "";
+    document.getElementById("cuenta_correo").value = "";
 
   } catch (error) {
     console.error("Error creando cuenta:", error);
@@ -114,7 +113,7 @@ async function saveCuenta() {
 
 
 // =========================
-// ASIGNAR CLIENTE A CUENTA
+// ASIGNAR CLIENTE
 // =========================
 function abrirAsignarCliente(idCuenta) {
   const select = document.getElementById("selectClienteAsignar");
@@ -153,13 +152,13 @@ function abrirAsignarCliente(idCuenta) {
 // EDITAR CUENTA
 // =========================
 function openEditCuenta(id) {
-  const cuenta = cuentas.find(c => c.id_cuenta === id);
+  const cuenta = cuentasList.find(c => c.id_cuenta === id);
   if (!cuenta) return;
 
   document.getElementById("edit_id_cuenta").value = cuenta.id_cuenta;
-  document.getElementById("edit_correo").value = cuenta.correo_cuenta;
+  document.getElementById("edit_correo_cuenta").value = cuenta.correo_cuenta;
   document.getElementById("edit_estado").value = cuenta.estado;
-  document.getElementById("edit_vencimiento").value = cuenta.fecha_vencimiento || "";
+  document.getElementById("edit_fecha_vencimiento").value = cuenta.fecha_vencimiento || "";
 
   document.getElementById("modalCuenta").style.display = "block";
 }
@@ -170,9 +169,9 @@ function openEditCuenta(id) {
 // =========================
 async function updateCuentaUI() {
   const id = document.getElementById("edit_id_cuenta").value;
-  const correo = document.getElementById("edit_correo").value;
+  const correo = document.getElementById("edit_correo_cuenta").value;
   const estado = document.getElementById("edit_estado").value;
-  const vencimiento = document.getElementById("edit_vencimiento").value;
+  const vencimiento = document.getElementById("edit_fecha_vencimiento").value;
 
   try {
     await updateCuentaPropia(id, {
