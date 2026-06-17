@@ -29,6 +29,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+async function afterCuentaChange() {
+  const data = await getInitialData();
+
+  CACHE.cuentasPropias = data.cuentasPropias;
+  CACHE.cuentasDisponibles = data.cuentasDisponibles;
+
+  renderCompras();
+  renderCuentasDisponibles();
+}
+
 function renderCuentasDisponibles() {
   renderFiltroPlataformas();
 
