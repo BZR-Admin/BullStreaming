@@ -3,11 +3,7 @@
 // ESTADO LOCAL (AISLADO)
 // =========================
 let cuentasList = [];
-
-
-// ⚠️ IMPORTANTE:
-// NO volver a declarar clientesList aquí
-// se usa el de clientessp.js
+let clientesList = [];
 
 
 // =========================
@@ -21,9 +17,7 @@ async function loadCuentas() {
     ]);
 
     cuentasList = dataCuentas;
-
-    // 👉 usar global existente (SIN redeclarar)
-    window.clientesList = dataClientes;
+    clientesList = dataClientes;
 
     renderCuentas();
 
@@ -34,7 +28,7 @@ async function loadCuentas() {
 
 
 // =========================
-// RENDER CUENTAS
+// RENDER CUENTAS (UI PRO)
 // =========================
 function renderCuentas() {
   const container = document.getElementById("contenedorCuentas");
@@ -43,37 +37,76 @@ function renderCuentas() {
 
   container.innerHTML = cuentasList.map(c => {
 
-    const clienteAsignado = (window.clientesList || []).find(
+    const clienteAsignado = clientesList.find(
       cl => cl.id_cliente === c.id_cliente
     );
 
+    let estadoClass = "disp-verde";
+
+    if (c.estado === "Asignada") estadoClass = "disp-amarilla";
+    if (c.estado === "Vendida" || c.estado === "Vencida") estadoClass = "disp-roja";
+
     return `
-      <div class="card-cuenta">
+      <div class="card cuenta-card ${estadoClass}">
 
-        <h3>${c.id_servicio}</h3>
+        <details>
 
-        <p><b>Correo:</b> ${c.correo_cuenta}</p>
-        <p><b>Proveedor:</b> ${c.proveedor || "-"}</p>
-        <p><b>Estado:</b> ${c.estado}</p>
-        <p><b>Vence:</b> ${c.fecha_vencimiento || "-"}</p>
+          <summary class="cuenta-resumen">
 
-        <p><b>Cliente:</b> ${clienteAsignado ? clienteAsignado.nombre : "Disponible"}</p>
+            <span>${c.id_servicio}</span>
 
-        <div class="acciones">
+            <span class="cuenta-resumen-correo">
+              ${c.correo_cuenta}
+            </span>
 
-          <button onclick="abrirAsignarCliente('${c.id_cuenta}')">
-            Asignar
-          </button>
+            <span>${c.estado}</span>
 
-          <button onclick="openEditCuenta('${c.id_cuenta}')">
-            Editar
-          </button>
+            <span>${c.fecha_vencimiento || "-"}</span>
 
-          <button onclick="removeCuenta('${c.id_cuenta}')">
-            Eliminar
-          </button>
+          </summary>
 
-        </div>
+          <div class="cuenta-detalle">
+
+            <div class="cuenta-info-extra">
+              <div><b>Proveedor:</b> ${c.proveedor || "-"}</div>
+              <div><b>Fecha compra:</b> ${c.fecha_compra || "-"}</div>
+              <div><b>ID:</b> ${c.id_cuenta}</div>
+            </div>
+
+            <div class="cuenta-clientes-box">
+
+              <h4>Cliente asignado</h4>
+
+              ${
+                clienteAsignado
+                ? `<div class="cliente-cuenta-vacio">${clienteAsignado.nombre}</div>`
+                : `<div class="cliente-cuenta-vacio">Disponible</div>`
+              }
+
+            </div>
+
+            <div class="acciones">
+
+              <button class="btn-editar"
+                onclick="abrirAsignarCliente('${c.id_cuenta}')">
+                Asignar cliente
+              </button>
+
+              <button class="btn-editar"
+                onclick="openEditCuenta('${c.id_cuenta}')">
+                Editar
+              </button>
+
+              <button class="btn-eliminar"
+                onclick="removeCuenta('${c.id_cuenta}')">
+                Eliminar
+              </button>
+
+            </div>
+
+          </div>
+
+        </details>
 
       </div>
     `;
@@ -91,7 +124,7 @@ async function saveCuenta() {
   const fecha_vencimiento = document.getElementById("cuenta_fecha_vencimiento").value;
 
   if (!id_servicio || !correo_cuenta) {
-    alert("Completa campos obligatorios");
+    alert("Completa los campos obligatorios");
     return;
   }
 
@@ -108,6 +141,7 @@ async function saveCuenta() {
 
   try {
     await addCuentaPropia(cuenta);
+
     await loadCuentas();
 
     document.getElementById("cuenta_correo").value = "";
@@ -126,7 +160,7 @@ function abrirAsignarCliente(idCuenta) {
 
   if (!select) return;
 
-  select.innerHTML = (window.clientesList || []).map(c => `
+  select.innerHTML = clientesList.map(c => `
     <option value="${c.id_cliente}">
       ${c.nombre}
     </option>
@@ -204,6 +238,7 @@ async function removeCuenta(id) {
 
   try {
     await deleteCuentaPropia(id);
+
     await loadCuentas();
 
   } catch (error) {
