@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bull Streaming</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <h1>Bienvenido al panel de gestión de Bull Streaming</h1>
+
+  <div class="menu">
+
+    <button onclick="location.href='pages/ventas.html'">Nueva venta</button>
+    <button onclick="location.href='pages/compras.html'">Nueva compra</button>
+    <button onclick="location.href='pages/registros.html'">Ver registros</button>
+    <button onclick="location.href='pages/cuentas.html'">Cuentas disponibles</button>
+
+    <select onchange="navigate(this.value)">
+      <option>Más opciones</option>
+      <option value="clientes_proveedores.html">Clientes / Proveedores</option>
+    </select>
+
+  </div>
+
+<script>
+function navigate(page){
+  if(page) window.location.href = "pages/" + page;
+}
+</script>
+
+</body>
+</html>
