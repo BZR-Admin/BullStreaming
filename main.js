@@ -7,7 +7,13 @@ let DB = {
   ventas: [],
   cuentasDisponibles: []
 };
-
+let CACHE = {
+  clientes: [],
+  proveedores: [],
+  ventas: [],
+  cuentasPropias: [],
+  cuentasDisponibles: []
+};
 document.addEventListener("DOMContentLoaded", async () => {
   configurarMenuMovil();
   configurarNavegacion();
@@ -40,6 +46,7 @@ async function safeRender(nombre, fn) {
     console.error("Error renderizando " + nombre + ":", error);
   }
 }
+
 
 function configurarNavegacion() {
   document.querySelectorAll("[data-pantalla]").forEach(boton => {
