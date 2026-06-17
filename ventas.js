@@ -1,3 +1,7 @@
+window.pegarMensajeVI = pegarMensajeVI;
+window.detectarDatosVI = detectarDatosVI;
+window.limpiarVentaIndependiente = limpiarVentaIndependiente;
+
 document.addEventListener("DOMContentLoaded", () => {
   const formVI = document.getElementById("formVentaIndependiente");
   const formVCP = document.getElementById("formVentaCuentaPropia");
