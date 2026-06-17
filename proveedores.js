@@ -11,6 +11,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+async function afterProveedorChange() {
+  const data = await getInitialData();
+
+  CACHE.proveedores = data.proveedores;
+
+  renderProveedores();
+}
+
 function renderProveedores() {
   renderSelectProveedores();
   renderTablaProveedores();
