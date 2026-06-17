@@ -155,7 +155,6 @@ async function guardarVentaIndependiente(event) {
     await addVenta(venta);
     alert("Venta independiente agregada correctamente.");
     limpiarVentaIndependiente();
-    await refrescarTodo();
 
   } catch (error) {
     console.error(error);
