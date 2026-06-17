@@ -105,7 +105,6 @@ async function guardarCliente(event) {
     }
 
     limpiarFormCliente();
-    await refrescarTodo();
 
   } catch (error) {
     console.error(error);
