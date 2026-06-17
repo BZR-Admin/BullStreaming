@@ -24,6 +24,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+async function afterVentaChange() {
+  const data = await getInitialData();
+
+  CACHE.ventas = data.ventas;
+  CACHE.cuentasDisponibles = data.cuentasDisponibles;
+
+  renderVentas();
+  renderCuentasDisponibles();
+}
+
 function renderVentas() {
   renderSelectServiciosVI();
   renderSelectServiciosVCP();
