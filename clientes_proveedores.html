@@ -45,6 +45,27 @@
 <div id="container"></div>
 
 <script type="module" src="clientes_proveedores.js"></script>
+<script>
+window.toggleMenu = function () {
+  const menu = document.getElementById("sideMenu");
+  menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+};
 
+window.go = function (page) {
+  window.location.href = page;
+};
+
+// cerrar si das click fuera
+document.addEventListener("click", function (e) {
+  const menu = document.getElementById("sideMenu");
+  const fab = document.getElementById("fab");
+
+  if (!menu || !fab) return;
+
+  if (!menu.contains(e.target) && !fab.contains(e.target)) {
+    menu.style.display = "none";
+  }
+});
+</script>
 </body>
 </html>
