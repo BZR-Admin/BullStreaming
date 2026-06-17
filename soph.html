@@ -32,19 +32,12 @@
     <nav class="menu" id="menuPrincipal">
 
       <button data-pantalla="inicio" class="activo">Inicio</button>
-
       <button data-pantalla="venta">Venta</button>
-
       <button data-pantalla="compra">Compra cuenta propia</button>
-
       <button data-pantalla="registro-ventas">Registro ventas</button>
-
       <button data-pantalla="registro-compras">Registro compras</button>
-
       <button data-pantalla="cuentas">Cuentas disponibles</button>
-
       <button data-pantalla="clientes">Clientes</button>
-
       <button data-pantalla="proveedores">Proveedores</button>
 
     </nav>
@@ -103,12 +96,14 @@
       <div id="contenedorCuentas"></div>
     </section>
 
-    <!-- CLIENTES -->
+    <!-- =========================
+         CLIENTES (SIN DUPLICADOS)
+    ========================== -->
     <section id="clientes" class="pantalla oculto">
       <h2>Clientes</h2>
 
-      <input id="nombre" placeholder="Nombre">
-      <input id="whatsapp" placeholder="WhatsApp">
+      <input id="cliente_nombre" placeholder="Nombre">
+      <input id="cliente_whatsapp" placeholder="WhatsApp">
       <button onclick="saveCliente()">Guardar</button>
 
       <table>
@@ -116,12 +111,15 @@
       </table>
     </section>
 
-    <!-- PROVEEDORES -->
+
+    <!-- =========================
+         PROVEEDORES (SIN DUPLICADOS)
+    ========================== -->
     <section id="proveedores" class="pantalla oculto">
       <h2>Proveedores</h2>
 
-      <input id="proveedor" placeholder="Proveedor">
-      <input id="whatsapp" placeholder="WhatsApp">
+      <input id="proveedor_nombre" placeholder="Proveedor">
+      <input id="proveedor_whatsapp" placeholder="WhatsApp">
       <button onclick="saveProveedor()">Guardar</button>
 
       <table>
@@ -133,12 +131,12 @@
 
 
   <!-- =========================
-       SUPABASE CONFIG (TU ARCHIVO)
+       SUPABASE CONFIG
   ========================== -->
   <script src="supabase.js"></script>
 
   <!-- =========================
-       MÓDULOS DEL SISTEMA
+       MÓDULOS (ORDEN LIMPIO)
   ========================== -->
   <script src="clientessp.js"></script>
   <script src="proveedoressp.js"></script>
