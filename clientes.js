@@ -11,6 +11,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+/* =========================
+   AFTER CHANGE (IMPORTANTE)
+========================= */
+
 async function afterClienteChange() {
   const data = await getInitialData();
 
@@ -19,10 +23,18 @@ async function afterClienteChange() {
   renderClientes();
 }
 
+/* =========================
+   RENDER PRINCIPAL
+========================= */
+
 function renderClientes() {
   renderSelectClientes();
   renderTablaClientes();
 }
+
+/* =========================
+   SELECT CLIENTES (CACHE)
+========================= */
 
 function renderSelectClientes() {
   const selects = [
@@ -30,16 +42,13 @@ function renderSelectClientes() {
     document.getElementById("vcpCliente")
   ];
 
-  const clientesOrdenados = [...DB.clientes]
-    .filter(cliente => String(cliente.Estado || "").trim() === "Activo")
-    .sort((a, b) => {
-      const nombreA = String(a.Nombre || "").trim();
-      const nombreB = String(b.Nombre || "").trim();
-
-      return nombreA.localeCompare(nombreB, "es", {
+  const clientesOrdenados = [...CACHE.clientes]
+    .filter(c => String(c.Estado || "").trim() === "Activo")
+    .sort((a, b) =>
+      String(a.Nombre).localeCompare(String(b.Nombre), "es", {
         sensitivity: "base"
-      });
-    });
+      })
+    );
 
   selects.forEach(select => {
     if (!select) return;
@@ -56,27 +65,39 @@ function renderSelectClientes() {
   });
 }
 
+/* =========================
+   TABLA CLIENTES
+========================= */
+
 function renderTablaClientes() {
   const tbody = document.getElementById("tablaClientes");
   if (!tbody) return;
 
-  tbody.innerHTML = "";
+  const clientes = CACHE.clientes;
 
-  DB.clientes.forEach(cliente => {
-    tbody.innerHTML += `
+  let html = "";
+
+  for (const cliente of clientes) {
+    html += `
       <tr>
         <td>${cliente.ID_Cliente || ""}</td>
         <td>${cliente.Nombre || ""}</td>
         <td>${cliente.Whatsapp || ""}</td>
         <td>${cliente.Estado || ""}</td>
         <td>
-          <button class="btn-editar" onclick="editarCliente('${cliente.ID_Cliente}')">Editar</button>
-          <button class="btn-eliminar" onclick="eliminarCliente('${cliente.ID_Cliente}')">Eliminar</button>
+          <button onclick="editarCliente('${cliente.ID_Cliente}')">Editar</button>
+          <button onclick="eliminarCliente('${cliente.ID_Cliente}')">Eliminar</button>
         </td>
       </tr>
     `;
-  });
+  }
+
+  tbody.innerHTML = html;
 }
+
+/* =========================
+   GUARDAR CLIENTE
+========================= */
 
 async function guardarCliente(event) {
   event.preventDefault();
@@ -84,13 +105,13 @@ async function guardarCliente(event) {
   const ID_Cliente = document.getElementById("clienteId").value;
 
   const cliente = {
-    Nombre: document.getElementById("clienteNombre").value.trim(),
-    Whatsapp: document.getElementById("clienteWhatsapp").value.trim(),
-    Estado: document.getElementById("clienteEstado").value
+    Nombre: clienteNombre.value.trim(),
+    Whatsapp: clienteWhatsapp.value.trim(),
+    Estado: clienteEstado.value
   };
 
   if (!cliente.Nombre || !cliente.Whatsapp) {
-    alert("Nombre y Whatsapp son obligatorios.");
+    alert("Nombre y Whatsapp son obligatorios");
     return;
   }
 
@@ -98,53 +119,63 @@ async function guardarCliente(event) {
     if (ID_Cliente) {
       cliente.ID_Cliente = ID_Cliente;
       await updateCliente(cliente);
-      alert("Cliente actualizado correctamente.");
     } else {
       await addCliente(cliente);
-      alert("Cliente agregado correctamente.");
     }
 
     limpiarFormCliente();
 
+    // 🔥 IMPORTANTE: solo refresca clientes
+    await afterClienteChange();
+
   } catch (error) {
     console.error(error);
   }
 }
 
+/* =========================
+   EDITAR
+========================= */
+
 function editarCliente(ID_Cliente) {
-  const cliente = DB.clientes.find(c => c.ID_Cliente === ID_Cliente);
+  const cliente = CACHE.clientes.find(c => c.ID_Cliente === ID_Cliente);
 
-  if (!cliente) {
-    alert("Cliente no encontrado.");
-    return;
-  }
+  if (!cliente) return alert("Cliente no encontrado");
 
-  document.getElementById("clienteId").value = cliente.ID_Cliente || "";
-  document.getElementById("clienteNombre").value = cliente.Nombre || "";
-  document.getElementById("clienteWhatsapp").value = cliente.Whatsapp || "";
-  document.getElementById("clienteEstado").value = cliente.Estado || "Activo";
+  clienteId.value = cliente.ID_Cliente || "";
+  clienteNombre.value = cliente.Nombre || "";
+  clienteWhatsapp.value = cliente.Whatsapp || "";
+  clienteEstado.value = cliente.Estado || "Activo";
 
   mostrarPantalla("clientes");
 }
 
-async function eliminarCliente(ID_Cliente) {
-  const ok = confirmarEliminacion("¿Seguro que deseas eliminar este cliente?");
+/* =========================
+   ELIMINAR
+========================= */
 
+async function eliminarCliente(ID_Cliente) {
+  const ok = confirmarEliminacion("¿Eliminar cliente?");
   if (!ok) return;
 
   try {
     await deleteCliente(ID_Cliente);
-    alert("Cliente eliminado correctamente.");
-    await refrescarTodo();
+
+    // 🔥 SOLO REFRESCA CLIENTES
+    await afterClienteChange();
 
   } catch (error) {
     console.error(error);
   }
 }
 
+/* =========================
+   LIMPIAR FORM
+========================= */
+
 function limpiarFormCliente() {
-  document.getElementById("clienteId").value = "";
-  document.getElementById("clienteNombre").value = "";
-  document.getElementById("clienteWhatsapp").value = "";
-  document.getElementById("clienteEstado").value = "Activo";
+  clienteId.value = "";
+  clienteNombre.value = "";
+  clienteWhatsapp.value = "";
+  clienteEstado.value = "Activo";
 }
