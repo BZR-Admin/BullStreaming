@@ -1,101 +1,70 @@
-let DB = {
-  configCuentaPropia: [],
-  configVentaIndependiente: [],
-  clientes: [],
-  proveedores: [],
-  cuentasPropias: [],
-  ventas: [],
-  cuentasDisponibles: []
-};
+let DB = {};
+let CACHE = {};
 
-let CACHE = {
-  clientes: [],
-  proveedores: [],
-  ventas: [],
-  cuentasPropias: [],
-  cuentasDisponibles: [],
-  configVentaIndependiente: [],
-  configCuentaPropia: []
-};
+/* =========================
+   INICIO
+========================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
   configurarMenuMovil();
   configurarNavegacion();
+
   await cargarDatos();
+
   mostrarPantalla("inicio");
 });
 
 /* =========================
-   CARGA PRINCIPAL
+   CARGA INICIAL
 ========================= */
 
 async function cargarDatos() {
   try {
     const data = await getInitialData();
 
-    // 🔥 IMPORTANTE: sincronizar ambos estados
-    syncData(data);
+    sincronizarData(data);
 
-    renderClientes();
-    renderProveedores();
-    renderVentas();
-    renderCompras();
-    renderCuentasDisponibles();
-    renderDashboard();
+    renderTodo();
 
-  } catch (e) {
-    console.error("Error cargando datos:", e);
+  } catch (error) {
+    console.error("Error cargando datos:", error);
   }
 }
 
 /* =========================
-   SINCRONIZACIÓN GLOBAL
+   SINCRONIZACIÓN ÚNICA
 ========================= */
 
-function syncData(data) {
-  Object.assign(DB, data);
-  Object.assign(CACHE, data);
+function sincronizarData(data) {
+  DB = structuredClone(data);
+  CACHE = structuredClone(data);
 }
 
 /* =========================
-   REFRESCO INTELIGENTE (NO FULL)
+   REFRESH INTELIGENTE
 ========================= */
 
 async function refrescarModulo(modulo) {
   try {
     const data = await getInitialData();
-    syncData(data);
+    sincronizarData(data);
 
-    switch (modulo) {
-      case "clientes":
-        renderClientes();
-        break;
-
-      case "proveedores":
-        renderProveedores();
-        break;
-
-      case "ventas":
+    const acciones = {
+      clientes: renderClientes,
+      proveedores: renderProveedores,
+      ventas: () => {
         renderVentas();
         renderCuentasDisponibles();
-        break;
+      },
+      compras: renderCompras,
+      cuentas: renderCuentasDisponibles,
+      dashboard: renderDashboard
+    };
 
-      case "compras":
-        renderCompras();
-        renderCuentasDisponibles();
-        break;
-
-      case "dashboard":
-        renderDashboard();
-        break;
-
-      default:
-        renderClientes();
-        renderProveedores();
-        renderVentas();
-        renderCompras();
-        renderCuentasDisponibles();
-        renderDashboard();
+    if (acciones[modulo]) {
+      acciones[modulo]();
+    } else {
+      renderTodo();
     }
 
   } catch (error) {
@@ -104,28 +73,40 @@ async function refrescarModulo(modulo) {
 }
 
 /* =========================
+   RENDER GLOBAL
+========================= */
+
+function renderTodo() {
+  renderClientes();
+  renderProveedores();
+  renderVentas();
+  renderCompras();
+  renderCuentasDisponibles();
+  renderDashboard();
+}
+
+/* =========================
    NAVEGACIÓN
 ========================= */
 
 function configurarNavegacion() {
-  document.querySelectorAll("[data-pantalla]").forEach(boton => {
-    boton.addEventListener("click", () => {
-      mostrarPantalla(boton.dataset.pantalla);
+  document.querySelectorAll("[data-pantalla]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      mostrarPantalla(btn.dataset.pantalla);
     });
   });
 }
 
-function mostrarPantalla(nombrePantalla) {
-  document.querySelectorAll(".pantalla").forEach(section => {
-    section.classList.remove("activa");
+function mostrarPantalla(nombre) {
+  document.querySelectorAll(".pantalla").forEach(p => {
+    p.classList.remove("activa");
   });
 
-  const pantalla = document.getElementById("pantalla-" + nombrePantalla);
-
+  const pantalla = document.getElementById("pantalla-" + nombre);
   if (pantalla) pantalla.classList.add("activa");
 
   document.querySelectorAll("[data-pantalla]").forEach(btn => {
-    btn.classList.toggle("activo", btn.dataset.pantalla === nombrePantalla);
+    btn.classList.toggle("activo", btn.dataset.pantalla === nombre);
   });
 }
 
@@ -135,13 +116,15 @@ function mostrarPantalla(nombrePantalla) {
 
 function formatearFecha(fecha) {
   if (!fecha) return "";
-  const date = new Date(fecha);
-  if (isNaN(date)) return fecha;
-  return date.toISOString().split("T")[0];
+
+  const d = new Date(fecha);
+  if (isNaN(d)) return fecha;
+
+  return d.toISOString().split("T")[0];
 }
 
-function limpiarFormulario(formId) {
-  document.getElementById(formId)?.reset();
+function limpiarFormulario(id) {
+  document.getElementById(id)?.reset();
 }
 
 function confirmarEliminacion(msg = "¿Seguro que deseas eliminar este registro?") {
@@ -152,20 +135,20 @@ function confirmarEliminacion(msg = "¿Seguro que deseas eliminar este registro?
    SEMÁFORO
 ========================= */
 
-function diasParaVencer(fechaVencimiento) {
-  if (!fechaVencimiento) return 999;
+function diasParaVencer(fecha) {
+  if (!fecha) return 999;
 
   const hoy = new Date();
-  hoy.setHours(0,0,0,0);
+  hoy.setHours(0, 0, 0, 0);
 
-  const venc = new Date(fechaVencimiento);
-  venc.setHours(0,0,0,0);
+  const venc = new Date(fecha);
+  venc.setHours(0, 0, 0, 0);
 
-  return Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
+  return Math.ceil((venc - hoy) / 86400000);
 }
 
-function claseSemaforo(fechaVencimiento) {
-  const d = diasParaVencer(fechaVencimiento);
+function claseSemaforo(fecha) {
+  const d = diasParaVencer(fecha);
 
   if (d <= 0) return "fila-roja";
   if (d <= 3) return "fila-amarilla";
@@ -183,7 +166,10 @@ function limpiarTelefono(num) {
 function abrirWhatsapp(numero, mensaje) {
   const tel = limpiarTelefono(numero);
 
-  if (!tel) return alert("No hay número registrado");
+  if (!tel) {
+    alert("No hay número registrado");
+    return;
+  }
 
   window.open(
     `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`,
