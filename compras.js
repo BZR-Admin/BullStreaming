@@ -190,7 +190,7 @@ async function guardarCompra(event) {
     }
 
     limpiarFormCompra();
-    await refrescarTodo();
+
 
   } catch (error) {
     console.error(error);
