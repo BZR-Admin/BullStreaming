@@ -12,197 +12,165 @@ const SUPABASE_ANON_KEY = "sb_publishable_i4drihcN_x3GTKpm3Ayptg_Pp3LzWPf";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 
+// inicialización
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 
 // =========================
 // CLIENTES
+// tabla: clientes
 // =========================
-
 async function getClientes() {
-  const { data, error } = await sb
-    .from('clientes')
-    .select('*')
-    .order('nombre', { ascending: true });
+  const { data, error } = await supabaseClient
+    .from("clientes")
+    .select("*");
 
   if (error) throw error;
   return data;
 }
 
 async function addCliente(cliente) {
-  const { data, error } = await sb
-    .from('clientes')
-    .insert([cliente])
-    .select();
+  const { error } = await supabaseClient
+    .from("clientes")
+    .insert([cliente]);
 
   if (error) throw error;
-  return data;
 }
 
 async function updateCliente(id, updates) {
-  const { data, error } = await sb
-    .from('clientes')
+  const { error } = await supabaseClient
+    .from("clientes")
     .update(updates)
-    .eq('id_cliente', id)
-    .select();
+    .eq("id_cliente", id);
 
   if (error) throw error;
-  return data;
 }
 
 async function deleteCliente(id) {
-  const { error } = await sb
-    .from('clientes')
+  const { error } = await supabaseClient
+    .from("clientes")
     .delete()
-    .eq('id_cliente', id);
+    .eq("id_cliente", id);
 
   if (error) throw error;
 }
-
 
 
 // =========================
 // PROVEEDORES
+// tabla: proveedores
 // =========================
-
 async function getProveedores() {
-  const { data, error } = await sb
-    .from('proveedores')
-    .select('*')
-    .order('proveedor', { ascending: true });
+  const { data, error } = await supabaseClient
+    .from("proveedores")
+    .select("*");
 
   if (error) throw error;
   return data;
 }
 
-async function addProveedor(proveedor) {
-  const { data, error } = await sb
-    .from('proveedores')
-    .insert([proveedor])
-    .select();
+async function addProveedor(dataRow) {
+  const { error } = await supabaseClient
+    .from("proveedores")
+    .insert([dataRow]);
 
   if (error) throw error;
-  return data;
 }
 
 async function updateProveedor(id, updates) {
-  const { data, error } = await sb
-    .from('proveedores')
+  const { error } = await supabaseClient
+    .from("proveedores")
     .update(updates)
-    .eq('id_proveedor', id)
-    .select();
+    .eq("id_proveedor", id);
 
   if (error) throw error;
-  return data;
 }
 
 async function deleteProveedor(id) {
-  const { error } = await sb
-    .from('proveedores')
+  const { error } = await supabaseClient
+    .from("proveedores")
     .delete()
-    .eq('id_proveedor', id);
+    .eq("id_proveedor", id);
 
   if (error) throw error;
 }
-
 
 
 // =========================
 // CUENTAS PROPIAS (COMPRAS)
+// tabla: cuentas_propias
 // =========================
-
 async function getCuentasPropias() {
-  const { data, error } = await sb
-    .from('cuentas_propias')
-    .select('*')
-    .order('fecha_compra', { ascending: false });
+  const { data, error } = await supabaseClient
+    .from("cuentas_propias")
+    .select("*");
 
   if (error) throw error;
   return data;
 }
 
-async function addCuentaPropia(cuenta) {
-  const { data, error } = await sb
-    .from('cuentas_propias')
-    .insert([cuenta])
-    .select();
+async function addCuentaPropia(row) {
+  const { error } = await supabaseClient
+    .from("cuentas_propias")
+    .insert([row]);
 
   if (error) throw error;
-  return data;
 }
 
 async function updateCuentaPropia(id, updates) {
-  const { data, error } = await sb
-    .from('cuentas_propias')
+  const { error } = await supabaseClient
+    .from("cuentas_propias")
     .update(updates)
-    .eq('id_cuenta', id)
-    .select();
+    .eq("id_cuenta", id);
 
   if (error) throw error;
-  return data;
 }
 
 async function deleteCuentaPropia(id) {
-  const { error } = await sb
-    .from('cuentas_propias')
+  const { error } = await supabaseClient
+    .from("cuentas_propias")
     .delete()
-    .eq('id_cuenta', id);
+    .eq("id_cuenta", id);
 
   if (error) throw error;
 }
-
 
 
 // =========================
 // VENTAS
+// tabla: ventas
 // =========================
-
 async function getVentas() {
-  const { data, error } = await sb
-    .from('ventas')
-    .select('*')
-    .order('fecha_registro', { ascending: false });
+  const { data, error } = await supabaseClient
+    .from("ventas")
+    .select("*");
 
   if (error) throw error;
   return data;
 }
 
-async function addVenta(venta) {
-  const { data, error } = await sb
-    .from('ventas')
-    .insert([venta])
-    .select();
+async function addVenta(row) {
+  const { error } = await supabaseClient
+    .from("ventas")
+    .insert([row]);
 
   if (error) throw error;
-  return data;
 }
 
 async function updateVenta(id, updates) {
-  const { data, error } = await sb
-    .from('ventas')
+  const { error } = await supabaseClient
+    .from("ventas")
     .update(updates)
-    .eq('id_venta', id)
-    .select();
+    .eq("id_venta", id);
 
   if (error) throw error;
-  return data;
 }
 
 async function deleteVenta(id) {
-  const { error } = await sb
-    .from('ventas')
+  const { error } = await supabaseClient
+    .from("ventas")
     .delete()
-    .eq('id_venta', id);
+    .eq("id_venta", id);
 
   if (error) throw error;
-}
-
-
-
-// =========================
-// UTILIDAD: REFRESH GLOBAL SIMPLE
-// =========================
-
-async function refreshAll(loadFunctions = []) {
-  for (const fn of loadFunctions) {
-    await fn();
-  }
 }
