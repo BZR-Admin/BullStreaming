@@ -5,82 +5,63 @@
   <link rel="stylesheet" href="style.css">
 </head>
 
+<body>
 
-<!-- FLOAT MENU BUTTON -->
 <div id="fab" onclick="toggleMenu()">☰</div>
 
-<!-- MENU PANEL -->
 <div id="sideMenu" class="side-menu">
-
-  <button onclick="go('index.html')">➕ Inicio</button>
-  <button onclick="go('ventas.html')">➕ Nueva venta</button>
-  <button onclick="go('compras.html')">📦 Nueva compra</button>
-  <button onclick="go('cuentas.html')">🎬 Cuentas disponibles</button>
-  <button onclick="go('registros.html')">📊 Registros</button>
-  <button onclick="go('clientes_proveedores.html')">👥 Clientes / Proveedores</button>
-
+  <button onclick="go('index.html')">Inicio</button>
+  <button onclick="go('ventas.html')">Venta</button>
+  <button onclick="go('compras.html')">Compra</button>
+  <button onclick="go('cuentas.html')">Cuentas</button>
+  <button onclick="go('registros.html')">Registros</button>
+  <button onclick="go('clientes_proveedores.html')">Clientes</button>
 </div>
-  
-<body>
 
 <h2>Nueva Venta</h2>
 
-<!-- SWITCH -->
-<div>
+<!-- MODE -->
+<div class="grid">
   <button onclick="setMode('VI')">Venta Independiente</button>
-  <button onclick="setMode('VCP')">Venta Cuenta Propia</button>
+  <button onclick="setMode('VCP')">Cuenta Propia</button>
 </div>
 
-<!-- BOTÓN PARSER -->
-<button onclick="openParser()">📋 Pegar texto</button>
-
 <!-- FORM -->
-<div id="form">
+<div class="form-card">
 
-  <input id="cliente" placeholder="Cliente">
-  <input id="plataforma" placeholder="Plataforma">
-  <input id="servicio" placeholder="Servicio">
+  <select id="cliente"></select>
+
+  <select id="plataforma" onchange="loadServicios()"></select>
+
+  <select id="servicio"></select>
+
   <input id="correo" placeholder="Usuario / Correo">
   <input id="perfil" placeholder="Perfil">
   <input id="vencimiento" type="date">
-  <input id="proveedor" placeholder="Proveedor (solo VCP)">
+
+  <select id="proveedor" style="display:none"></select>
+
   <input id="ganancia" placeholder="Ganancia">
 
-  <button onclick="saveVenta()">Guardar</button>
-
+  <button onclick="saveVenta()">Guardar Venta</button>
 </div>
 
-<!-- MODAL PARSER -->
-<div id="parserBox" style="display:none;">
+<!-- PARSER -->
+<div id="parserBox" style="display:none">
   <textarea id="texto"></textarea>
-  <br>
   <button onclick="parseText()">Detectar</button>
-  <button onclick="clearText()">Limpiar</button>
-  <button onclick="closeParser()">Cerrar</button>
 </div>
 
 <script type="module" src="ventas.js"></script>
+
 <script>
-window.toggleMenu = function () {
-  const menu = document.getElementById("sideMenu");
-  menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+window.toggleMenu = () => {
+  const m = document.getElementById("sideMenu");
+  m.style.display = m.style.display === "flex" ? "none" : "flex";
 };
 
-window.go = function (page) {
-  window.location.href = page;
-};
-
-// cerrar si das click fuera
-document.addEventListener("click", function (e) {
-  const menu = document.getElementById("sideMenu");
-  const fab = document.getElementById("fab");
-
-  if (!menu || !fab) return;
-
-  if (!menu.contains(e.target) && !fab.contains(e.target)) {
-    menu.style.display = "none";
-  }
-});
+window.go = (p) => location.href = p;
 </script>
+
 </body>
 </html>
