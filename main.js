@@ -23,17 +23,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function cargarDatos() {
   try {
-    DB = await getInitialData();
+    const data = await getInitialData();
 
-    await safeRender("Clientes", renderClientes);
-    await safeRender("Proveedores", renderProveedores);
-    await safeRender("Ventas", renderVentas);
-    await safeRender("Compras", renderCompras);
-    await safeRender("Cuentas disponibles", renderCuentasDisponibles);
-    await safeRender("Dashboard", renderDashboard);
+    CACHE = data; // 🔥 guardamos todo en memoria
 
-  } catch (error) {
-    console.error("No se pudieron cargar los datos:", error);
+    await renderClientes();
+    await renderProveedores();
+    await renderVentas();
+    await renderCompras();
+    await renderCuentasDisponibles();
+    await renderDashboard();
+
+  } catch (e) {
+    console.error(e);
   }
 }
 
