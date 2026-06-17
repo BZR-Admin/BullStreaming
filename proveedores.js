@@ -11,6 +11,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+/* =========================
+   AFTER CHANGE (IMPORTANTE)
+========================= */
+
 async function afterProveedorChange() {
   const data = await getInitialData();
 
@@ -19,10 +23,18 @@ async function afterProveedorChange() {
   renderProveedores();
 }
 
+/* =========================
+   RENDER PRINCIPAL
+========================= */
+
 function renderProveedores() {
   renderSelectProveedores();
   renderTablaProveedores();
 }
+
+/* =========================
+   SELECT PROVEEDORES (CACHE)
+========================= */
 
 function renderSelectProveedores() {
   const select = document.getElementById("compraProveedor");
@@ -30,59 +42,70 @@ function renderSelectProveedores() {
 
   select.innerHTML = `<option value="">Seleccionar proveedor</option>`;
 
-  DB.proveedores.forEach(proveedor => {
+  CACHE.proveedores.forEach(proveedor => {
     select.innerHTML += `
-      <option 
-        value="${proveedor.Proveedor}" 
-        data-whatsapp="${proveedor.Whatsapp || ""}"
-      >
+      <option value="${proveedor.Proveedor}" 
+              data-whatsapp="${proveedor.Whatsapp || ""}">
         ${proveedor.Proveedor} - ${proveedor.Whatsapp || ""}
       </option>
     `;
   });
-
-  select.addEventListener("change", () => {
-    const option = select.options[select.selectedIndex];
-    const whatsapp = option.dataset.whatsapp || "";
-    const inputWhatsapp = document.getElementById("compraWhatsapp");
-
-    if (inputWhatsapp) inputWhatsapp.value = whatsapp;
-  });
 }
+
+/* 🔥 FIX IMPORTANTE: evento fuera del render */
+document.addEventListener("change", (e) => {
+  if (e.target.id === "compraProveedor") {
+    const option = e.target.options[e.target.selectedIndex];
+    const whatsapp = option.dataset.whatsapp || "";
+
+    const input = document.getElementById("compraWhatsapp");
+    if (input) input.value = whatsapp;
+  }
+});
+
+/* =========================
+   TABLA PROVEEDORES
+========================= */
 
 function renderTablaProveedores() {
   const tbody = document.getElementById("tablaProveedores");
   if (!tbody) return;
 
-  tbody.innerHTML = "";
+  let html = "";
 
-  DB.proveedores.forEach(proveedor => {
-    tbody.innerHTML += `
+  for (const p of CACHE.proveedores) {
+    html += `
       <tr>
-        <td>${proveedor.ID_Proveedor || ""}</td>
-        <td>${proveedor.Proveedor || ""}</td>
-        <td>${proveedor.Whatsapp || ""}</td>
+        <td>${p.ID_Proveedor || ""}</td>
+        <td>${p.Proveedor || ""}</td>
+        <td>${p.Whatsapp || ""}</td>
         <td>
-          <button class="btn-editar" onclick="editarProveedor('${proveedor.ID_Proveedor}')">Editar</button>
-          <button class="btn-eliminar" onclick="eliminarProveedor('${proveedor.ID_Proveedor}')">Eliminar</button>
+          <button onclick="editarProveedor('${p.ID_Proveedor}')">Editar</button>
+          <button onclick="eliminarProveedor('${p.ID_Proveedor}')">Eliminar</button>
         </td>
       </tr>
     `;
-  });
+  }
+
+  tbody.innerHTML = html;
 }
+
+/* =========================
+   GUARDAR
+========================= */
 
 async function guardarProveedor(event) {
   event.preventDefault();
 
-  const ID_Proveedor = document.getElementById("proveedorId").value;
+  const ID_Proveedor = proveedorId.value;
 
   const proveedor = {
-    Proveedor: document.getElementById("proveedorNombre").value.trim(),
-    Whatsapp: document.getElementById("proveedorWhatsapp").value.trim()
+    Proveedor: proveedorNombre.value.trim(),
+    Whatsapp: proveedorWhatsapp.value.trim()
   };
 
   if (!proveedor.Proveedor || !proveedor.Whatsapp) {
-    alert("Proveedor y Whatsapp son obligatorios.");
+    alert("Completa todos los campos");
     return;
   }
 
@@ -90,52 +113,60 @@ async function guardarProveedor(event) {
     if (ID_Proveedor) {
       proveedor.ID_Proveedor = ID_Proveedor;
       await updateProveedor(proveedor);
-      alert("Proveedor actualizado correctamente.");
     } else {
       await addProveedor(proveedor);
-      alert("Proveedor agregado correctamente.");
     }
 
     limpiarFormProveedor();
-    await refrescarTodo();
+
+    // 🔥 IMPORTANTE: solo actualiza proveedores
+    await afterProveedorChange();
 
   } catch (error) {
     console.error(error);
   }
 }
 
+/* =========================
+   EDITAR
+========================= */
+
 function editarProveedor(ID_Proveedor) {
-  const proveedor = DB.proveedores.find(p => p.ID_Proveedor === ID_Proveedor);
+  const proveedor = CACHE.proveedores.find(p => p.ID_Proveedor === ID_Proveedor);
 
-  if (!proveedor) {
-    alert("Proveedor no encontrado.");
-    return;
-  }
+  if (!proveedor) return alert("Proveedor no encontrado");
 
-  document.getElementById("proveedorId").value = proveedor.ID_Proveedor || "";
-  document.getElementById("proveedorNombre").value = proveedor.Proveedor || "";
-  document.getElementById("proveedorWhatsapp").value = proveedor.Whatsapp || "";
+  proveedorId.value = proveedor.ID_Proveedor || "";
+  proveedorNombre.value = proveedor.Proveedor || "";
+  proveedorWhatsapp.value = proveedor.Whatsapp || "";
 
   mostrarPantalla("proveedores");
 }
 
-async function eliminarProveedor(ID_Proveedor) {
-  const ok = confirmarEliminacion("¿Seguro que deseas eliminar este proveedor?");
+/* =========================
+   ELIMINAR
+========================= */
 
+async function eliminarProveedor(ID_Proveedor) {
+  const ok = confirmarEliminacion("¿Eliminar proveedor?");
   if (!ok) return;
 
   try {
     await deleteProveedor(ID_Proveedor);
-    alert("Proveedor eliminado correctamente.");
-    await refrescarTodo();
+
+    await afterProveedorChange();
 
   } catch (error) {
     console.error(error);
   }
 }
 
+/* =========================
+   LIMPIAR
+========================= */
+
 function limpiarFormProveedor() {
-  document.getElementById("proveedorId").value = "";
-  document.getElementById("proveedorNombre").value = "";
-  document.getElementById("proveedorWhatsapp").value = "";
+  proveedorId.value = "";
+  proveedorNombre.value = "";
+  proveedorWhatsapp.value = "";
 }
