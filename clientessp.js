@@ -1,7 +1,8 @@
+
 // =========================
-// ESTADO LOCAL
+// ESTADO LOCAL (AISLADO)
 // =========================
-let clientes = [];
+let clientesList = [];
 
 
 // =========================
@@ -9,8 +10,12 @@ let clientes = [];
 // =========================
 async function loadClientes() {
   try {
-    clientes = await getClientes();
+    const data = await getClientes();
+
+    clientesList = data;
+
     renderClientes();
+
   } catch (error) {
     console.error("Error cargando clientes:", error);
   }
@@ -25,7 +30,7 @@ function renderClientes() {
 
   if (!tbody) return;
 
-  tbody.innerHTML = clientes.map(c => `
+  tbody.innerHTML = clientesList.map(c => `
     <tr>
       <td>${c.id_cliente}</td>
       <td>${c.nombre}</td>
@@ -44,8 +49,8 @@ function renderClientes() {
 // CREAR CLIENTE
 // =========================
 async function saveCliente() {
-  const nombre = document.getElementById("nombre").value;
-  const whatsapp = document.getElementById("whatsapp").value;
+  const nombre = document.getElementById("cliente_nombre").value;
+  const whatsapp = document.getElementById("cliente_whatsapp").value;
 
   if (!nombre) {
     alert("Nombre obligatorio");
@@ -64,8 +69,8 @@ async function saveCliente() {
 
     await loadClientes();
 
-    document.getElementById("nombre").value = "";
-    document.getElementById("whatsapp").value = "";
+    document.getElementById("cliente_nombre").value = "";
+    document.getElementById("cliente_whatsapp").value = "";
 
   } catch (error) {
     console.error("Error creando cliente:", error);
@@ -77,12 +82,12 @@ async function saveCliente() {
 // ABRIR EDITAR
 // =========================
 function openEditCliente(id) {
-  const cliente = clientes.find(c => c.id_cliente === id);
+  const cliente = clientesList.find(c => c.id_cliente === id);
   if (!cliente) return;
 
-  document.getElementById("edit_id").value = cliente.id_cliente;
-  document.getElementById("edit_nombre").value = cliente.nombre;
-  document.getElementById("edit_whatsapp").value = cliente.whatsapp || "";
+  document.getElementById("edit_id_cliente").value = cliente.id_cliente;
+  document.getElementById("edit_nombre_cliente").value = cliente.nombre;
+  document.getElementById("edit_whatsapp_cliente").value = cliente.whatsapp || "";
 
   document.getElementById("modalCliente").style.display = "block";
 }
@@ -92,9 +97,9 @@ function openEditCliente(id) {
 // ACTUALIZAR CLIENTE
 // =========================
 async function updateClienteUI() {
-  const id = document.getElementById("edit_id").value;
-  const nombre = document.getElementById("edit_nombre").value;
-  const whatsapp = document.getElementById("edit_whatsapp").value;
+  const id = document.getElementById("edit_id_cliente").value;
+  const nombre = document.getElementById("edit_nombre_cliente").value;
+  const whatsapp = document.getElementById("edit_whatsapp_cliente").value;
 
   try {
     await updateCliente(id, {
@@ -121,6 +126,7 @@ async function removeCliente(id) {
   try {
     await deleteCliente(id);
     await loadClientes();
+
   } catch (error) {
     console.error("Error eliminando cliente:", error);
   }
