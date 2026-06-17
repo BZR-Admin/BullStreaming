@@ -3,7 +3,11 @@
 // ESTADO LOCAL (AISLADO)
 // =========================
 let cuentasList = [];
-let clientesList = [];
+
+
+// ⚠️ IMPORTANTE:
+// NO volver a declarar clientesList aquí
+// se usa el de clientessp.js
 
 
 // =========================
@@ -17,7 +21,9 @@ async function loadCuentas() {
     ]);
 
     cuentasList = dataCuentas;
-    clientesList = dataClientes;
+
+    // 👉 usar global existente (SIN redeclarar)
+    window.clientesList = dataClientes;
 
     renderCuentas();
 
@@ -37,7 +43,7 @@ function renderCuentas() {
 
   container.innerHTML = cuentasList.map(c => {
 
-    const clienteAsignado = clientesList.find(
+    const clienteAsignado = (window.clientesList || []).find(
       cl => cl.id_cliente === c.id_cliente
     );
 
@@ -120,7 +126,7 @@ function abrirAsignarCliente(idCuenta) {
 
   if (!select) return;
 
-  select.innerHTML = clientesList.map(c => `
+  select.innerHTML = (window.clientesList || []).map(c => `
     <option value="${c.id_cliente}">
       ${c.nombre}
     </option>
