@@ -1,231 +1,140 @@
-window.pegarMensajeVI = pegarMensajeVI;
-window.detectarDatosVI = detectarDatosVI;
-window.limpiarVentaIndependiente = limpiarVentaIndependiente;
 
-document.addEventListener("DOMContentLoaded", () => {
-  const formVI = document.getElementById("formVentaIndependiente");
-  const formVCP = document.getElementById("formVentaCuentaPropia");
+// =========================
+// ESTADO LOCAL
+// =========================
+let ventasList = [];
+let clientesList = [];
+let cuentasList = [];
 
-  if (formVI) formVI.addEventListener("submit", guardarVentaIndependiente);
-  if (formVCP) formVCP.addEventListener("submit", guardarVentaCuentaPropia);
 
-  const btnPegarVI = document.getElementById("btnPegarVI");
-  const btnLimpiarVI = document.getElementById("btnLimpiarVI");
-  const btnDetectarVI = document.getElementById("btnDetectarVI");
+// =========================
+// CARGAR VENTAS + RELACIONES
+// =========================
+async function loadVentas() {
+  try {
+    const [dataVentas, dataClientes, dataCuentas] = await Promise.all([
+      getVentas(),
+      getClientes(),
+      getCuentasPropias()
+    ]);
 
-  if (btnPegarVI) btnPegarVI.addEventListener("click", pegarMensajeVI);
-  if (btnLimpiarVI) btnLimpiarVI.addEventListener("click", limpiarVentaIndependiente);
-  if (btnDetectarVI) btnDetectarVI.addEventListener("click", detectarDatosVI);
+    ventasList = dataVentas;
+    clientesList = dataClientes;
+    cuentasList = dataCuentas;
 
-  const vcpServicio = document.getElementById("vcpServicio");
-  if (vcpServicio) {
-    vcpServicio.addEventListener("change", renderSelectCuentasVCP);
+    renderVentas();
+
+  } catch (error) {
+    console.error("Error cargando ventas:", error);
   }
-});
-
-/* =========================
-   AFTER UPDATE
-   Antes esto pedía getInitialData() completo al
-   servidor (clientes, proveedores, cuentas, ventas,
-   configs) solo para refrescar una venta. Ahora la
-   venta ya viene del propio addVenta() y se aplica
-   directo al estado local (ver main.js: aplicarVentaLocal),
-   que además recalcula cuentasDisponibles en el cliente.
-   Esta función queda solo como red de seguridad manual.
-========================= */
-
-async function afterVentaChange() {
-  await refrescarModulo("ventas");
 }
 
-/* =========================
-   RENDERS (USAN CACHE, QUE AHORA ES === DB)
-========================= */
 
+// =========================
+// RENDER VENTAS
+// =========================
 function renderVentas() {
-  renderSelectServiciosVI();
-  renderSelectServiciosVCP();
-  renderSelectCuentasVCP();
-  colocarFechasHoy();
+  const tbody = document.getElementById("tablaVentas");
+
+  if (!tbody) return;
+
+  tbody.innerHTML = ventasList.map(v => {
+
+    const cliente = clientesList.find(c => c.id_cliente === v.id_cliente);
+    const cuenta = cuentasList.find(c => c.id_cuenta === v.id_cuenta);
+
+    return `
+      <tr>
+        <td data-label="Cliente">${cliente ? cliente.nombre : "-"}</td>
+        <td data-label="Cuenta">${cuenta ? cuenta.correo_cuenta : "-"}</td>
+        <td data-label="Tipo">${v.tipo_venta}</td>
+        <td data-label="Precio">${v.precio || 0}</td>
+        <td data-label="Fecha">${v.fecha_registro || "-"}</td>
+        <td data-label="Vence">${v.fecha_vencimiento || "-"}</td>
+        <td data-label="Estado">${v.estado}</td>
+
+        <td data-label="Acciones">
+          <div class="acciones">
+
+            <button class="btn-editar"
+              onclick="openEditVenta('${v.id_venta}')">
+              Editar
+            </button>
+
+            <button class="btn-eliminar"
+              onclick="removeVenta('${v.id_venta}')">
+              Eliminar
+            </button>
+
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
 }
 
-function renderSelectServiciosVI() {
-  const select = document.getElementById("viServicio");
-  if (!select) return;
 
-  select.innerHTML = `<option value="">Seleccionar servicio</option>`;
+// =========================
+// CREAR VENTA
+// =========================
+async function saveVenta() {
+  const id_cliente = document.getElementById("venta_id_cliente").value;
+  const id_cuenta = document.getElementById("venta_id_cuenta").value;
+  const tipo_venta = document.getElementById("venta_tipo").value;
+  const precio = parseFloat(document.getElementById("venta_precio").value);
 
-  CACHE.configVentaIndependiente.forEach(servicio => {
-    select.innerHTML += `
-      <option value="${servicio.ID_Servicio}"
-        data-plataforma="${servicio.Plataforma || ""}">
-        ${servicio.Plataforma} - ${servicio.Servicio}
-      </option>
-    `;
-  });
+  if (!id_cliente || !id_cuenta) {
+    alert("Completa cliente y cuenta");
+    return;
+  }
 
-  select.onchange = () => {
-    const opt = select.options[select.selectedIndex];
-    document.getElementById("viPlataforma").value = opt.dataset.plataforma || "";
+  const venta = {
+    id_venta: crypto.randomUUID(),
+    id_cliente,
+    id_cuenta,
+    tipo_venta,
+    precio,
+    fecha_registro: new Date().toISOString().split("T")[0],
+    estado: "Activa"
   };
-}
 
-function renderSelectServiciosVCP() {
-  const select = document.getElementById("vcpServicio");
-  if (!select) return;
+  try {
+    await addVenta(venta);
 
-  select.innerHTML = `<option value="">Seleccionar servicio</option>`;
-
-  CACHE.configCuentaPropia.forEach(servicio => {
-    select.innerHTML += `
-      <option value="${servicio.ID_Servicio}"
-        data-plataforma="${servicio.Plataforma || ""}">
-        ${servicio.Plataforma} - ${servicio.Servicio}
-      </option>
-    `;
-  });
-}
-
-function renderSelectCuentasVCP() {
-  const servicio = document.getElementById("vcpServicio")?.value;
-  const select = document.getElementById("vcpCuenta");
-
-  if (!select) return;
-
-  CACHE.cuentasDisponibles
-    .filter(c =>
-      c.ID_Servicio === servicio &&
-      c.Estado === "Activa" &&
-      Number(c.Disponibles) > 0
-    )
-    .forEach(c => {
-      select.innerHTML += `
-        <option value="${c.Correo_Cuenta}">
-          ${c.Correo_Cuenta} - ${c.Usados}/${c.Maximo}
-        </option>
-      `;
+    // 🔥 marcar cuenta como vendida
+    await updateCuentaPropia(id_cuenta, {
+      estado: "Vendida"
     });
 
-  select.innerHTML = `<option value="">Seleccionar cuenta disponible</option>` + select.innerHTML;
-}
+    await loadVentas();
 
-function colocarFechasHoy() {
-  const hoy = new Date().toISOString().split("T")[0];
+    document.getElementById("venta_precio").value = "";
 
-  ["viFechaRegistro","vcpFechaRegistro","compraFechaCompra"]
-  .forEach(id => {
-    const input = document.getElementById(id);
-    if (input && !input.value) input.value = hoy;
-  });
-}
-
-/* =========================
-   GUARDAR VENTA INDIVIDUAL (VI)
-========================= */
-
-async function guardarVentaIndependiente(event) {
-  event.preventDefault();
-
-  const venta = {
-    Tipo_Venta: "VI",
-    ID_Cliente: viCliente.value,
-    Plataforma: viPlataforma.value.trim(),
-    ID_Servicio: viServicio.value,
-    "Usuario/Correo": viUsuarioCorreo.value.trim(),
-    Perfil: viPerfil.value.trim(),
-    Fecha_Registro: viFechaRegistro.value,
-    Fecha_Vencimiento: viFechaVencimiento.value,
-    Ganancia: viGanancia.value,
-    Estado: "Activa"
-  };
-
-  if (!venta.ID_Cliente || !venta.Plataforma || !venta.ID_Servicio ||
-      !venta["Usuario/Correo"] || !venta.Fecha_Registro ||
-      !venta.Fecha_Vencimiento || !venta.Ganancia) {
-    alert("Completa todos los campos");
-    return;
+  } catch (error) {
+    console.error("Error creando venta:", error);
   }
+}
 
-  const btnSubmit = event.target.querySelector('button[type="submit"]');
-  if (btnSubmit) btnSubmit.disabled = true;
+
+// =========================
+// ELIMINAR VENTA
+// =========================
+async function removeVenta(id) {
+  if (!confirm("¿Eliminar venta?")) return;
 
   try {
-    const ventaGuardada = await addVenta(venta);
-    alert("Venta agregada");
+    await deleteVenta(id);
+    await loadVentas();
 
-    limpiarVentaIndependiente();
-
-    // 🔥 Antes: await afterVentaChange() -> refetch completo del servidor.
-    // Ahora: la venta ya viene confirmada desde el backend (con su ID
-    // generado), así que la aplicamos directo al estado local.
-    aplicarVentaLocal(ventaGuardada);
-
-  } catch (e) {
-    console.error(e);
-    alert("No se pudo guardar la venta. Intenta de nuevo.");
-  } finally {
-    if (btnSubmit) btnSubmit.disabled = false;
+  } catch (error) {
+    console.error("Error eliminando venta:", error);
   }
 }
 
-/* =========================
-   GUARDAR VENTA VCP
-========================= */
 
-async function guardarVentaCuentaPropia(event) {
-  event.preventDefault();
-
-  const servicioId = vcpServicio.value;
-  const correoCuenta = vcpCuenta.value;
-
-  const servicio = CACHE.configCuentaPropia.find(s => s.ID_Servicio === servicioId);
-  const cuenta = CACHE.cuentasDisponibles.find(c =>
-    c.ID_Servicio === servicioId &&
-    c.Correo_Cuenta === correoCuenta
-  );
-
-  if (!cuenta || Number(cuenta.Disponibles) <= 0) {
-    alert("Sin disponibilidad");
-    return;
-  }
-
-  const venta = {
-    Tipo_Venta: "VCP",
-    ID_Cliente: vcpCliente.value,
-    Plataforma: servicio ? servicio.Plataforma : "",
-    ID_Servicio: servicioId,
-    "Usuario/Correo": correoCuenta,
-    Perfil: vcpPerfil.value.trim(),
-    Fecha_Registro: vcpFechaRegistro.value,
-    Fecha_Vencimiento: vcpFechaVencimiento.value,
-    Ganancia: vcpGanancia.value,
-    Estado: "Activa"
-  };
-
-  const btnSubmit = event.target.querySelector('button[type="submit"]');
-  if (btnSubmit) btnSubmit.disabled = true;
-
-  try {
-    const ventaGuardada = await addVenta(venta);
-    alert("Venta VCP agregada");
-
-    limpiarVentaCuentaPropia();
-
-    // 🔥 Igual que en VI: aplicamos la venta confirmada al estado local.
-    // aplicarVentaLocal ya recalcula cuentasDisponibles y vuelve a
-    // pintar selects/tablas relevantes (ver main.js).
-    aplicarVentaLocal(ventaGuardada);
-
-  } catch (e) {
-    console.error(e);
-    alert("No se pudo guardar la venta. Intenta de nuevo.");
-  } finally {
-    if (btnSubmit) btnSubmit.disabled = false;
-  }
-}
-
-window.pegarMensajeVI = pegarMensajeVI;
-window.limpiarVentaIndependiente = limpiarVentaIndependiente;
-window.detectarDatosVI = detectarDatosVI;
-window.guardarVentaIndependiente = guardarVentaIndependiente;
-window.guardarVentaCuentaPropia = guardarVentaCuentaPropia;
+// =========================
+// INICIALIZACIÓN
+// =========================
+document.addEventListener("DOMContentLoaded", () => {
+  loadVentas();
+});
