@@ -7,12 +7,14 @@ let DB = {
   ventas: [],
   cuentasDisponibles: []
 };
-let CACHE = {
+const CACHE = {
   clientes: [],
   proveedores: [],
   ventas: [],
   cuentasPropias: [],
-  cuentasDisponibles: []
+  cuentasDisponibles: [],
+  configVentaIndependiente: [],
+  configCuentaPropia: []
 };
 document.addEventListener("DOMContentLoaded", async () => {
   configurarMenuMovil();
@@ -22,21 +24,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function cargarDatos() {
-  try {
-    const data = await getInitialData();
+  const data = await getInitialData();
 
-    CACHE = data; // 🔥 guardamos todo en memoria
+  Object.assign(CACHE, data);
 
-    await renderClientes();
-    await renderProveedores();
-    await renderVentas();
-    await renderCompras();
-    await renderCuentasDisponibles();
-    await renderDashboard();
-
-  } catch (e) {
-    console.error(e);
-  }
+  renderClientes();
+  renderProveedores();
+  renderVentas();
+  renderCompras();
+  renderCuentasDisponibles();
+  renderDashboard();
 }
 
 async function safeRender(nombre, fn) {
