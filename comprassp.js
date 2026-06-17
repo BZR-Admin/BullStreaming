@@ -1,8 +1,8 @@
 
 // =========================
-// ESTADO LOCAL
+// ESTADO LOCAL (AISLADO)
 // =========================
-let compras = [];
+let comprasList = [];
 
 
 // =========================
@@ -10,8 +10,12 @@ let compras = [];
 // =========================
 async function loadCompras() {
   try {
-    compras = await getCuentasPropias();
+    const data = await getCuentasPropias();
+
+    comprasList = data;
+
     renderCompras();
+
   } catch (error) {
     console.error("Error cargando compras:", error);
   }
@@ -26,7 +30,7 @@ function renderCompras() {
 
   if (!tbody) return;
 
-  tbody.innerHTML = compras.map(c => `
+  tbody.innerHTML = comprasList.map(c => `
     <tr>
       <td>${c.id_cuenta}</td>
       <td>${c.id_servicio}</td>
@@ -45,14 +49,14 @@ function renderCompras() {
 
 
 // =========================
-// CREAR COMPRA (CUENTA PROPIA)
+// CREAR COMPRA
 // =========================
 async function saveCompra() {
-  const id_servicio = document.getElementById("id_servicio").value;
-  const correo_cuenta = document.getElementById("correo_cuenta").value;
-  const proveedor = document.getElementById("proveedor").value;
-  const fecha_compra = document.getElementById("fecha_compra").value;
-  const fecha_vencimiento = document.getElementById("fecha_vencimiento").value;
+  const id_servicio = document.getElementById("compra_id_servicio").value;
+  const correo_cuenta = document.getElementById("compra_correo_cuenta").value;
+  const proveedor = document.getElementById("compra_proveedor").value;
+  const fecha_compra = document.getElementById("compra_fecha_compra").value;
+  const fecha_vencimiento = document.getElementById("compra_fecha_vencimiento").value;
 
   if (!id_servicio || !correo_cuenta) {
     alert("Completa los campos obligatorios");
@@ -72,11 +76,9 @@ async function saveCompra() {
   try {
     await addCuentaPropia(compra);
 
-    // 🔥 actualización instantánea
     await loadCompras();
 
-    // limpiar inputs
-    document.getElementById("correo_cuenta").value = "";
+    document.getElementById("compra_correo_cuenta").value = "";
 
   } catch (error) {
     console.error("Error creando compra:", error);
@@ -85,10 +87,10 @@ async function saveCompra() {
 
 
 // =========================
-// ABRIR EDITAR COMPRA
+// ABRIR EDITAR
 // =========================
 function openEditCompra(id) {
-  const compra = compras.find(c => c.id_cuenta === id);
+  const compra = comprasList.find(c => c.id_cuenta === id);
   if (!compra) return;
 
   document.getElementById("edit_id_cuenta").value = compra.id_cuenta;
@@ -104,13 +106,13 @@ function openEditCompra(id) {
 // ACTUALIZAR COMPRA
 // =========================
 async function updateCompraUI() {
-  const id_cuenta = document.getElementById("edit_id_cuenta").value;
+  const id = document.getElementById("edit_id_cuenta").value;
   const correo_cuenta = document.getElementById("edit_correo_cuenta").value;
   const estado = document.getElementById("edit_estado").value;
   const fecha_vencimiento = document.getElementById("edit_fecha_vencimiento").value;
 
   try {
-    await updateCuentaPropia(id_cuenta, {
+    await updateCuentaPropia(id, {
       correo_cuenta,
       estado,
       fecha_vencimiento
@@ -118,7 +120,6 @@ async function updateCompraUI() {
 
     document.getElementById("modalCompra").style.display = "none";
 
-    // 🔥 refresh instantáneo
     await loadCompras();
 
   } catch (error) {
@@ -136,7 +137,6 @@ async function removeCompra(id) {
   try {
     await deleteCuentaPropia(id);
 
-    // 🔥 refresh instantáneo
     await loadCompras();
 
   } catch (error) {
