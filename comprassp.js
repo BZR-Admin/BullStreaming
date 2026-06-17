@@ -1,6 +1,6 @@
 
 // =========================
-// ESTADO LOCAL (AISLADO)
+// ESTADO LOCAL
 // =========================
 let comprasList = [];
 
@@ -23,7 +23,7 @@ async function loadCompras() {
 
 
 // =========================
-// RENDER TABLA
+// RENDER COMPRAS
 // =========================
 function renderCompras() {
   const tbody = document.getElementById("tablaCompras");
@@ -32,16 +32,27 @@ function renderCompras() {
 
   tbody.innerHTML = comprasList.map(c => `
     <tr>
-      <td>${c.id_cuenta}</td>
-      <td>${c.id_servicio}</td>
-      <td>${c.correo_cuenta}</td>
-      <td>${c.proveedor || ""}</td>
-      <td>${c.fecha_compra || ""}</td>
-      <td>${c.fecha_vencimiento || ""}</td>
-      <td>${c.estado}</td>
-      <td>
-        <button onclick="openEditCompra('${c.id_cuenta}')">Editar</button>
-        <button onclick="removeCompra('${c.id_cuenta}')">Eliminar</button>
+      <td data-label="Servicio">${c.id_servicio}</td>
+      <td data-label="Correo">${c.correo_cuenta}</td>
+      <td data-label="Proveedor">${c.proveedor || "-"}</td>
+      <td data-label="Compra">${c.fecha_compra || "-"}</td>
+      <td data-label="Vence">${c.fecha_vencimiento || "-"}</td>
+      <td data-label="Estado">${c.estado}</td>
+
+      <td data-label="Acciones">
+        <div class="acciones">
+
+          <button class="btn-editar"
+            onclick="openEditCompra('${c.id_cuenta}')">
+            Editar
+          </button>
+
+          <button class="btn-eliminar"
+            onclick="removeCompra('${c.id_cuenta}')">
+            Eliminar
+          </button>
+
+        </div>
       </td>
     </tr>
   `).join("");
@@ -49,94 +60,13 @@ function renderCompras() {
 
 
 // =========================
-// CREAR COMPRA
-// =========================
-async function saveCompra() {
-  const id_servicio = document.getElementById("compra_id_servicio").value;
-  const correo_cuenta = document.getElementById("compra_correo_cuenta").value;
-  const proveedor = document.getElementById("compra_proveedor").value;
-  const fecha_compra = document.getElementById("compra_fecha_compra").value;
-  const fecha_vencimiento = document.getElementById("compra_fecha_vencimiento").value;
-
-  if (!id_servicio || !correo_cuenta) {
-    alert("Completa los campos obligatorios");
-    return;
-  }
-
-  const compra = {
-    id_cuenta: crypto.randomUUID(),
-    id_servicio,
-    correo_cuenta,
-    proveedor,
-    fecha_compra,
-    fecha_vencimiento,
-    estado: "Activa"
-  };
-
-  try {
-    await addCuentaPropia(compra);
-
-    await loadCompras();
-
-    document.getElementById("compra_correo_cuenta").value = "";
-
-  } catch (error) {
-    console.error("Error creando compra:", error);
-  }
-}
-
-
-// =========================
-// ABRIR EDITAR
-// =========================
-function openEditCompra(id) {
-  const compra = comprasList.find(c => c.id_cuenta === id);
-  if (!compra) return;
-
-  document.getElementById("edit_id_cuenta").value = compra.id_cuenta;
-  document.getElementById("edit_correo_cuenta").value = compra.correo_cuenta;
-  document.getElementById("edit_estado").value = compra.estado;
-  document.getElementById("edit_fecha_vencimiento").value = compra.fecha_vencimiento || "";
-
-  document.getElementById("modalCompra").style.display = "block";
-}
-
-
-// =========================
-// ACTUALIZAR COMPRA
-// =========================
-async function updateCompraUI() {
-  const id = document.getElementById("edit_id_cuenta").value;
-  const correo_cuenta = document.getElementById("edit_correo_cuenta").value;
-  const estado = document.getElementById("edit_estado").value;
-  const fecha_vencimiento = document.getElementById("edit_fecha_vencimiento").value;
-
-  try {
-    await updateCuentaPropia(id, {
-      correo_cuenta,
-      estado,
-      fecha_vencimiento
-    });
-
-    document.getElementById("modalCompra").style.display = "none";
-
-    await loadCompras();
-
-  } catch (error) {
-    console.error("Error actualizando compra:", error);
-  }
-}
-
-
-// =========================
 // ELIMINAR COMPRA
 // =========================
 async function removeCompra(id) {
-  if (!confirm("¿Eliminar esta cuenta?")) return;
+  if (!confirm("¿Eliminar cuenta?")) return;
 
   try {
     await deleteCuentaPropia(id);
-
     await loadCompras();
 
   } catch (error) {
