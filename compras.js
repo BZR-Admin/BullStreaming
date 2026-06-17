@@ -217,3 +217,16 @@ async function eliminarCompra(ID_Cuenta) {
     console.error(e);
   }
 }
+
+function obtenerServicioCompra(cuenta) {
+  const servicio = (CACHE.configCuentaPropia || []).find(s =>
+    String(s.ID_Servicio || "").trim() === String(cuenta.ID_Servicio || "").trim()
+  );
+
+  if (servicio && servicio.Servicio) return servicio.Servicio;
+  if (servicio && servicio.Plataforma) return servicio.Plataforma;
+
+  return cuenta.ID_Servicio || "";
+}
+
+window.obtenerServicioCompra = obtenerServicioCompra;
