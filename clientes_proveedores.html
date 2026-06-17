@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clientes / Proveedores</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<h2>Clientes / Proveedores</h2>
+
+<!-- SWITCH -->
+<div>
+  <button onclick="setMode('clientes')">Clientes</button>
+  <button onclick="setMode('proveedores')">Proveedores</button>
+</div>
+
+<!-- FORM -->
+<div class="form">
+
+  <input id="nombre" placeholder="Nombre">
+  <input id="whatsapp" placeholder="WhatsApp">
+
+  <button onclick="save()">Guardar</button>
+
+</div>
+
+<!-- LISTA -->
+<div id="container"></div>
+
+<script type="module" src="../js/clientes_proveedores.js"></script>
+
+</body>
+</html>
