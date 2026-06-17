@@ -1,11 +1,13 @@
 let filtroCompras = "";
 let ordenComprasActual = "";
+
 document.addEventListener("DOMContentLoaded", () => {
   const formCompra = document.getElementById("formCompra");
 
   if (formCompra) {
     formCompra.addEventListener("submit", guardarCompra);
   }
+
   const buscarCompras = document.getElementById("buscarCompras");
   const ordenCompras = document.getElementById("ordenCompras");
 
@@ -24,10 +26,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+/* =========================
+   RENDER PRINCIPAL
+========================= */
+
 function renderCompras() {
   renderSelectServiciosCompra();
   renderTablaCompras();
 }
+
+/* =========================
+   SELECT SERVICIOS (CACHE)
+========================= */
 
 function renderSelectServiciosCompra() {
   const select = document.getElementById("compraServicio");
@@ -35,7 +45,7 @@ function renderSelectServiciosCompra() {
 
   select.innerHTML = `<option value="">Seleccionar servicio</option>`;
 
-  DB.configCuentaPropia.forEach(servicio => {
+  CACHE.configCuentaPropia.forEach(servicio => {
     select.innerHTML += `
       <option value="${servicio.ID_Servicio}">
         ${servicio.Plataforma} - ${servicio.Servicio}
@@ -44,114 +54,99 @@ function renderSelectServiciosCompra() {
   });
 }
 
+/* =========================
+   TABLA PRINCIPAL (OPTIMIZADA)
+========================= */
+
 function renderTablaCompras() {
   const contenedor = document.getElementById("listaRegistroCompras");
   if (!contenedor) return;
 
-  contenedor.innerHTML = "";
+  let cuentas = [...CACHE.cuentasPropias];
 
-  let cuentas = Array.isArray(DB.cuentasPropias)
-  ? [...DB.cuentasPropias]
-  : [];
+  const filtro = filtroCompras || "";
 
-  cuentas = cuentas.filter(cuenta => {
-    const servicio = obtenerServicioCompra(cuenta);
+  cuentas = cuentas.filter(c => {
+    const servicio = obtenerServicioCompra(c);
 
-    const texto = `
-      ${cuenta.ID_Cuenta || ""}
-      ${cuenta.ID_Servicio || ""}
-      ${servicio || ""}
-      ${cuenta.Correo_Cuenta || ""}
-      ${cuenta.Fecha_Compra || ""}
-      ${cuenta.Fecha_Vencimiento || ""}
-      ${cuenta.Proveedor || ""}
-      ${cuenta.Whatsapp || ""}
-      ${cuenta.Estado || ""}
-    `.toLowerCase();
-
-    return texto.includes(filtroCompras || "");
+    return `
+      ${c.ID_Cuenta}
+      ${c.ID_Servicio}
+      ${servicio}
+      ${c.Correo_Cuenta}
+      ${c.Fecha_Compra}
+      ${c.Fecha_Vencimiento}
+      ${c.Proveedor}
+      ${c.Whatsapp}
+      ${c.Estado}
+    `.toLowerCase().includes(filtro);
   });
 
   cuentas.sort((a, b) => {
-    if (ordenComprasActual === "vencimientoAsc") {
-      return new Date(a.Fecha_Vencimiento) - new Date(b.Fecha_Vencimiento);
-    }
+    switch (ordenComprasActual) {
+      case "vencimientoAsc":
+        return new Date(a.Fecha_Vencimiento) - new Date(b.Fecha_Vencimiento);
 
-    if (ordenComprasActual === "vencimientoDesc") {
-      return new Date(b.Fecha_Vencimiento) - new Date(a.Fecha_Vencimiento);
-    }
+      case "vencimientoDesc":
+        return new Date(b.Fecha_Vencimiento) - new Date(a.Fecha_Vencimiento);
 
-    if (ordenComprasActual === "compraAsc") {
-      return new Date(a.Fecha_Compra) - new Date(b.Fecha_Compra);
-    }
+      case "compraAsc":
+        return new Date(a.Fecha_Compra) - new Date(b.Fecha_Compra);
 
-    if (ordenComprasActual === "compraDesc") {
-      return new Date(b.Fecha_Compra) - new Date(a.Fecha_Compra);
-    }
+      case "compraDesc":
+        return new Date(b.Fecha_Compra) - new Date(a.Fecha_Compra);
 
-    return 0;
+      default:
+        return 0;
+    }
   });
 
   if (cuentas.length === 0) {
-    contenedor.innerHTML = `
-      <div class="card">
-        No hay compras para mostrar.
-      </div>
-    `;
+    contenedor.innerHTML = `<div class="card">No hay compras</div>`;
     return;
   }
 
-  cuentas.forEach(cuenta => {
+  let html = "";
+
+  for (const cuenta of cuentas) {
     const servicio = obtenerServicioCompra(cuenta);
     const clase = claseSemaforo(cuenta.Fecha_Vencimiento);
 
-    contenedor.innerHTML += `
+    html += `
       <details class="registro-card ${clase}">
         <summary class="registro-resumen registro-resumen-compras">
-          <span class="registro-principal">
-            ${escaparHtml(servicio || "")}
-          </span>
-
-          <span class="registro-correo">
-            ${escaparHtml(cuenta.Correo_Cuenta || "")}
-          </span>
-
-          <span class="registro-proveedor">
-            Prov. ${escaparHtml(cuenta.Proveedor || "")}
-          </span>
-
-          <span class="registro-vencimiento">
-            Vence: ${formatearFecha(cuenta.Fecha_Vencimiento)}
-          </span>
+          <span>${escaparHtml(servicio || "")}</span>
+          <span>${escaparHtml(cuenta.Correo_Cuenta || "")}</span>
+          <span>Prov. ${escaparHtml(cuenta.Proveedor || "")}</span>
+          <span>Vence: ${formatearFecha(cuenta.Fecha_Vencimiento)}</span>
         </summary>
 
         <div class="registro-detalle">
           <div class="registro-detalle-grid">
-            <div><strong>ID Cuenta:</strong> ${escaparHtml(cuenta.ID_Cuenta || "")}</div>
-            <div><strong>ID Servicio:</strong> ${escaparHtml(cuenta.ID_Servicio || "")}</div>
-            <div><strong>Fecha compra:</strong> ${formatearFecha(cuenta.Fecha_Compra)}</div>
-            <div><strong>Whatsapp:</strong> ${escaparHtml(cuenta.Whatsapp || "")}</div>
-            <div><strong>Estado:</strong> ${escaparHtml(cuenta.Estado || "")}</div>
+            <div><strong>ID:</strong> ${escaparHtml(cuenta.ID_Cuenta)}</div>
+            <div><strong>Servicio:</strong> ${escaparHtml(cuenta.ID_Servicio)}</div>
+            <div><strong>Compra:</strong> ${formatearFecha(cuenta.Fecha_Compra)}</div>
+            <div><strong>WhatsApp:</strong> ${escaparHtml(cuenta.Whatsapp)}</div>
+            <div><strong>Estado:</strong> ${escaparHtml(cuenta.Estado)}</div>
           </div>
 
           <div class="registro-acciones">
-            <button class="btn-whatsapp" onclick="whatsappCompra('${escaparAttr(cuenta.ID_Cuenta)}')">
-              WhatsApp
-            </button>
-
-            <button class="btn-editar" onclick="editarCompra('${escaparAttr(cuenta.ID_Cuenta)}')">
-              Editar
-            </button>
-
-            <button class="btn-eliminar" onclick="eliminarCompra('${escaparAttr(cuenta.ID_Cuenta)}')">
-              Eliminar
-            </button>
+            <button onclick="whatsappCompra('${escaparAttr(cuenta.ID_Cuenta)}')">WhatsApp</button>
+            <button onclick="editarCompra('${escaparAttr(cuenta.ID_Cuenta)}')">Editar</button>
+            <button onclick="eliminarCompra('${escaparAttr(cuenta.ID_Cuenta)}')">Eliminar</button>
           </div>
         </div>
       </details>
     `;
-  });
+  }
+
+  contenedor.innerHTML = html;
 }
+
+/* =========================
+   GUARDAR (SIN REFRESH TOTAL)
+========================= */
+
 async function guardarCompra(event) {
   event.preventDefault();
 
@@ -167,13 +162,9 @@ async function guardarCompra(event) {
     Estado: document.getElementById("compraEstado").value
   };
 
-  if (
-    !cuenta.ID_Servicio ||
-    !cuenta.Correo_Cuenta ||
-    !cuenta.Fecha_Compra ||
-    !cuenta.Fecha_Vencimiento
-  ) {
-    alert("Completa todos los campos obligatorios.");
+  if (!cuenta.ID_Servicio || !cuenta.Correo_Cuenta ||
+      !cuenta.Fecha_Compra || !cuenta.Fecha_Vencimiento) {
+    alert("Completa todos los campos");
     return;
   }
 
@@ -181,100 +172,48 @@ async function guardarCompra(event) {
     if (ID_Cuenta) {
       cuenta.ID_Cuenta = ID_Cuenta;
       await updateCuentaPropia(cuenta);
-
-      alert("Compra actualizada correctamente.");
     } else {
       await addCuentaPropia(cuenta);
-
-      alert("Compra agregada correctamente.");
     }
 
     limpiarFormCompra();
 
+    // 🔥 SOLO ACTUALIZAMOS ESTE MÓDULO
+    await afterCompraChange();
 
   } catch (error) {
     console.error(error);
   }
 }
 
-function editarCompra(ID_Cuenta) {
-  const cuenta = DB.cuentasPropias.find(c => c.ID_Cuenta === ID_Cuenta);
+/* =========================
+   AFTER CHANGE (CLAVE)
+========================= */
 
-  if (!cuenta) {
-    alert("Cuenta no encontrada.");
-    return;
-  }
+async function afterCompraChange() {
+  const data = await getInitialData();
 
-  document.getElementById("compraServicio").value = cuenta.ID_Servicio || "";
-  document.getElementById("compraCorreo").value = cuenta.Correo_Cuenta || "";
-  document.getElementById("compraFechaCompra").value = formatearFecha(cuenta.Fecha_Compra);
-  document.getElementById("compraFechaVencimiento").value = formatearFecha(cuenta.Fecha_Vencimiento);
-  document.getElementById("compraProveedor").value = cuenta.Proveedor || "";
-  document.getElementById("compraWhatsapp").value = cuenta.Whatsapp || "";
-  document.getElementById("compraEstado").value = cuenta.Estado || "Activa";
+  CACHE.cuentasPropias = data.cuentasPropias;
+  CACHE.cuentasDisponibles = data.cuentasDisponibles;
 
-  document.getElementById("formCompra").dataset.editando = cuenta.ID_Cuenta;
-
-  mostrarPantalla("compra");
+  renderCompras();
+  renderCuentasDisponibles();
 }
 
-async function eliminarCompra(ID_Cuenta) {
-  const ok = confirmarEliminacion(
-    "¿Seguro que deseas eliminar esta compra?"
-  );
+/* =========================
+   DELETE
+========================= */
 
+async function eliminarCompra(ID_Cuenta) {
+  const ok = confirmarEliminacion("¿Eliminar compra?");
   if (!ok) return;
 
   try {
     await deleteCuentaPropia(ID_Cuenta);
 
-    alert("Compra eliminada correctamente.");
+    await afterCompraChange();
 
-    await refrescarTodo();
-
-  } catch (error) {
-    console.error(error);
+  } catch (e) {
+    console.error(e);
   }
-}
-
-function limpiarFormCompra() {
-  document.getElementById("formCompra").reset();
-
-  delete document.getElementById("formCompra").dataset.editando;
-}
-
-function whatsappCompra(ID_Cuenta) {
-  const cuenta = DB.cuentasPropias.find(c => c.ID_Cuenta === ID_Cuenta);
-
-  if (!cuenta) {
-    alert("Cuenta no encontrada.");
-    return;
-  }
-
-  const servicio = DB.configCuentaPropia.find(s => s.ID_Servicio === cuenta.ID_Servicio);
-  const plataforma = servicio ? servicio.Plataforma : cuenta.ID_Servicio;
-
-  const mensaje = `¡Hola! Me gustaría renovar el servicio de ${plataforma}:
-
-Cuenta: ${cuenta.Correo_Cuenta || ""}
-
-¿Puedo hacerlo?`;
-
-  abrirWhatsapp(cuenta.Whatsapp, mensaje);
-}
-
-function obtenerServicioCompra(cuenta) {
-  const servicio = (DB.configCuentaPropia || []).find(s =>
-    String(s.ID_Servicio || "").trim() === String(cuenta.ID_Servicio || "").trim()
-  );
-
-  if (servicio && servicio.Servicio) {
-    return servicio.Servicio;
-  }
-
-  if (servicio && servicio.Plataforma) {
-    return servicio.Plataforma;
-  }
-
-  return cuenta.ID_Servicio || "";
 }
