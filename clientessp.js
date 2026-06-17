@@ -23,7 +23,7 @@ async function loadClientes() {
 
 
 // =========================
-// RENDER TABLA
+// RENDER CLIENTES (UI MEJORADA)
 // =========================
 function renderClientes() {
   const tbody = document.getElementById("tablaClientes");
@@ -32,13 +32,23 @@ function renderClientes() {
 
   tbody.innerHTML = clientesList.map(c => `
     <tr>
-      <td>${c.id_cliente}</td>
-      <td>${c.nombre}</td>
-      <td>${c.whatsapp || ""}</td>
-      <td>${c.estado}</td>
-      <td>
-        <button onclick="openEditCliente('${c.id_cliente}')">Editar</button>
-        <button onclick="removeCliente('${c.id_cliente}')">Eliminar</button>
+      <td data-label="ID">${c.id_cliente}</td>
+      <td data-label="Nombre">${c.nombre}</td>
+      <td data-label="WhatsApp">${c.whatsapp || "-"}</td>
+      <td data-label="Estado">${c.estado || "Activo"}</td>
+
+      <td data-label="Acciones">
+        <div class="acciones">
+
+          <button class="btn-editar" onclick="openEditCliente('${c.id_cliente}')">
+            Editar
+          </button>
+
+          <button class="btn-eliminar" onclick="removeCliente('${c.id_cliente}')">
+            Eliminar
+          </button>
+
+        </div>
       </td>
     </tr>
   `).join("");
@@ -53,7 +63,7 @@ async function saveCliente() {
   const whatsapp = document.getElementById("cliente_whatsapp").value;
 
   if (!nombre) {
-    alert("Nombre obligatorio");
+    alert("El nombre es obligatorio");
     return;
   }
 
@@ -79,7 +89,7 @@ async function saveCliente() {
 
 
 // =========================
-// ABRIR EDITAR
+// EDITAR CLIENTE
 // =========================
 function openEditCliente(id) {
   const cliente = clientesList.find(c => c.id_cliente === id);
@@ -125,6 +135,7 @@ async function removeCliente(id) {
 
   try {
     await deleteCliente(id);
+
     await loadClientes();
 
   } catch (error) {
