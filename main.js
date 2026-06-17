@@ -196,6 +196,12 @@ function abrirWhatsapp(numero, mensaje) {
   );
 }
 
+async function refrescarTodo() {
+  await cargarDatos();
+}
+
+window.refrescarTodo = refrescarTodo;
+
 /* =========================
    LOADING
 ========================= */
