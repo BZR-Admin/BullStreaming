@@ -1,10 +1,9 @@
-
 // =========================
-// ESTADO LOCAL
+// ESTADO LOCAL (SOLO ESTE MÓDULO)
 // =========================
 let ventas = [];
-let clientesListLocal = [];
-let cuentasListLocal = [];
+let clientes = [];
+let cuentas = [];
 
 
 // =========================
@@ -19,8 +18,8 @@ async function loadVentas() {
     ]);
 
     ventas = dataVentas;
-    clientesList = dataClientes;
-    cuentasList = dataCuentas;
+    clientes = dataClientes;
+    cuentas = dataCuentas;
 
     renderVentas();
 
@@ -35,13 +34,12 @@ async function loadVentas() {
 // =========================
 function renderVentas() {
   const tbody = document.getElementById("tablaVentas");
-
   if (!tbody) return;
 
   tbody.innerHTML = ventas.map(v => {
 
-    const cliente = clientesList.find(c => c.id_cliente === v.id_cliente);
-    const cuenta = cuentasList.find(c => c.id_cuenta === v.id_cuenta);
+    const cliente = clientes.find(c => c.id_cliente === v.id_cliente);
+    const cuenta = cuentas.find(c => c.id_cuenta === v.id_cuenta);
 
     return `
       <tr>
@@ -53,7 +51,6 @@ function renderVentas() {
         <td>${v.fecha_registro || ""}</td>
         <td>${v.fecha_vencimiento || ""}</td>
         <td>${v.estado}</td>
-
         <td>
           <button onclick="openEditVenta('${v.id_venta}')">Editar</button>
           <button onclick="removeVenta('${v.id_venta}')">Eliminar</button>
@@ -91,7 +88,6 @@ async function saveVenta() {
   try {
     await addVenta(venta);
 
-    // 🔥 IMPORTANTE: marcar cuenta como asignada/vendida
     await updateCuentaPropia(id_cuenta, {
       estado: "Vendida"
     });
@@ -116,6 +112,7 @@ function openEditVenta(id) {
   document.getElementById("edit_id_venta").value = venta.id_venta;
   document.getElementById("edit_precio").value = venta.precio;
   document.getElementById("edit_estado").value = venta.estado;
+
   document.getElementById("modalVenta").style.display = "block";
 }
 
@@ -152,7 +149,6 @@ async function removeVenta(id) {
 
   try {
     await deleteVenta(id);
-
     await loadVentas();
 
   } catch (error) {
