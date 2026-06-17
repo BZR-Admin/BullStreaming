@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nueva Venta</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h2>Nueva Venta</h2>
+
+<!-- SWITCH -->
+<div>
+  <button onclick="setMode('VI')">Venta Independiente</button>
+  <button onclick="setMode('VCP')">Venta Cuenta Propia</button>
+</div>
+
+<!-- BOTÓN PARSER -->
+<button onclick="openParser()">📋 Pegar texto</button>
+
+<!-- FORM -->
+<div id="form">
+
+  <input id="cliente" placeholder="Cliente">
+  <input id="plataforma" placeholder="Plataforma">
+  <input id="servicio" placeholder="Servicio">
+  <input id="correo" placeholder="Usuario / Correo">
+  <input id="perfil" placeholder="Perfil">
+  <input id="vencimiento" type="date">
+  <input id="proveedor" placeholder="Proveedor (solo VCP)">
+  <input id="ganancia" placeholder="Ganancia">
+
+  <button onclick="saveVenta()">Guardar</button>
+
+</div>
+
+<!-- MODAL PARSER -->
+<div id="parserBox" style="display:none;">
+  <textarea id="texto"></textarea>
+  <br>
+  <button onclick="parseText()">Detectar</button>
+  <button onclick="clearText()">Limpiar</button>
+  <button onclick="closeParser()">Cerrar</button>
+</div>
+
+<script type="module" src="ventas.js"></script>
+
+</body>
+</html>
