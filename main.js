@@ -1,3 +1,22 @@
+function configurarMenuMovil() {
+  const btnMenu = document.getElementById("btnMenuMovil");
+  const menu = document.getElementById("menuPrincipal");
+
+  if (!btnMenu || !menu) return;
+
+  btnMenu.addEventListener("click", () => {
+    menu.classList.toggle("menu-abierto");
+  });
+
+  document.querySelectorAll("[data-pantalla]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (window.innerWidth <= 768) {
+        menu.classList.remove("menu-abierto");
+      }
+    });
+  });
+}
+
 let DB = {};
 let CACHE = {};
 
