@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cuentas Propias</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<h2>Cuentas Propias</h2>
+
+<!-- FILTROS -->
+<input id="search" placeholder="Buscar...">
+
+<select id="filterPlatform">
+  <option value="">Plataforma</option>
+</select>
+
+<button onclick="sortBy('vencimiento')">Orden Vencimiento</button>
+<button onclick="sortBy('disponibilidad')">Orden Disponibilidad</button>
+
+<div id="container"></div>
+
+<script type="module" src="../js/cuentas.js"></script>
+
+</body>
+</html>
