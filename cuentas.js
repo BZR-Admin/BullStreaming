@@ -402,7 +402,6 @@ async function guardarEdicionVentaCuenta(ID_Venta) {
     });
 
     alert("Venta actualizada correctamente.");
-    await refrescarTodo();
 
   } catch (error) {
     console.error(error);
