@@ -1,7 +1,7 @@
 // =========================
-// ESTADO LOCAL
+// ESTADO LOCAL (AISLADO)
 // =========================
-let proveedores = [];
+let proveedoresList = [];
 
 
 // =========================
@@ -9,8 +9,12 @@ let proveedores = [];
 // =========================
 async function loadProveedores() {
   try {
-    proveedores = await getProveedores();
+    const data = await getProveedores();
+
+    proveedoresList = data;
+
     renderProveedores();
+
   } catch (error) {
     console.error("Error cargando proveedores:", error);
   }
@@ -25,7 +29,7 @@ function renderProveedores() {
 
   if (!tbody) return;
 
-  tbody.innerHTML = proveedores.map(p => `
+  tbody.innerHTML = proveedoresList.map(p => `
     <tr>
       <td>${p.id_proveedor}</td>
       <td>${p.proveedor}</td>
@@ -43,8 +47,8 @@ function renderProveedores() {
 // CREAR PROVEEDOR
 // =========================
 async function saveProveedor() {
-  const proveedor = document.getElementById("proveedor").value;
-  const whatsapp = document.getElementById("whatsapp").value;
+  const proveedor = document.getElementById("proveedor_nombre").value;
+  const whatsapp = document.getElementById("proveedor_whatsapp").value;
 
   if (!proveedor) {
     alert("Nombre del proveedor obligatorio");
@@ -59,10 +63,11 @@ async function saveProveedor() {
 
   try {
     await addProveedor(data);
+
     await loadProveedores();
 
-    document.getElementById("proveedor").value = "";
-    document.getElementById("whatsapp").value = "";
+    document.getElementById("proveedor_nombre").value = "";
+    document.getElementById("proveedor_whatsapp").value = "";
 
   } catch (error) {
     console.error("Error creando proveedor:", error);
@@ -74,7 +79,7 @@ async function saveProveedor() {
 // ABRIR EDITAR
 // =========================
 function openEditProveedor(id) {
-  const proveedor = proveedores.find(p => p.id_proveedor === id);
+  const proveedor = proveedoresList.find(p => p.id_proveedor === id);
   if (!proveedor) return;
 
   document.getElementById("edit_id_proveedor").value = proveedor.id_proveedor;
