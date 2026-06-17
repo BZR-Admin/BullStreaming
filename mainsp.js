@@ -1,4 +1,3 @@
-
 // =========================
 // MENÚ MÓVIL
 // =========================
@@ -23,6 +22,20 @@ function configurarMenuMovil() {
 
 
 // =========================
+// SAFE LOADER (DEBUG REAL)
+// =========================
+async function safeLoad(name, fn) {
+  try {
+    console.log(`📦 Cargando ${name}...`);
+    await fn();
+    console.log(`✅ OK ${name}`);
+  } catch (e) {
+    console.error(`❌ ERROR en ${name}:`, e);
+  }
+}
+
+
+// =========================
 // INICIO
 // =========================
 document.addEventListener("DOMContentLoaded", async () => {
@@ -30,12 +43,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   configurarMenuMovil();
   configurarNavegacion();
 
-  // 🔥 carga inicial por módulos (NO global DB)
-  if (typeof loadClientes === "function") loadClientes();
-  if (typeof loadProveedores === "function") loadProveedores();
-  if (typeof loadCompras === "function") loadCompras();
-  if (typeof loadCuentas === "function") loadCuentas();
-  if (typeof loadVentas === "function") loadVentas();
+  // 🔥 CARGA POR MÓDULOS (SUPABASE REAL)
+  if (typeof loadClientes === "function") {
+    await safeLoad("clientes", loadClientes);
+  }
+
+  if (typeof loadProveedores === "function") {
+    await safeLoad("proveedores", loadProveedores);
+  }
+
+  // 🔥 TABLA REAL: cuentas_propias
+  if (typeof loadCompras === "function") {
+    await safeLoad("cuentas_propias (compras)", loadCompras);
+  }
+
+  if (typeof loadCuentas === "function") {
+    await safeLoad("cuentas (asignaciones)", loadCuentas);
+  }
+
+  if (typeof loadVentas === "function") {
+    await safeLoad("ventas", loadVentas);
+  }
 
   mostrarPantalla("inicio");
 });
@@ -71,16 +99,14 @@ function mostrarPantalla(nombre) {
 // =========================
 function formatearFecha(fecha) {
   if (!fecha) return "";
-
   const d = new Date(fecha);
   if (isNaN(d)) return fecha;
-
   return d.toISOString().split("T")[0];
 }
 
 
 // =========================
-// SEMÁFORO DE VENCIMIENTOS
+// CONTROL DE VENCIMIENTOS
 // =========================
 function diasParaVencer(fecha) {
   if (!fecha) return 999;
@@ -126,7 +152,7 @@ function abrirWhatsapp(numero, mensaje) {
 
 
 // =========================
-// REFRESH GLOBAL (OPCIONAL)
+// REFRESH GLOBAL
 // =========================
 async function refrescarTodo() {
   if (typeof loadClientes === "function") await loadClientes();
