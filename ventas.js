@@ -24,21 +24,22 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================
-   AFTER UPDATE (IMPORTANTE)
+   AFTER UPDATE
+   Antes esto pedía getInitialData() completo al
+   servidor (clientes, proveedores, cuentas, ventas,
+   configs) solo para refrescar una venta. Ahora la
+   venta ya viene del propio addVenta() y se aplica
+   directo al estado local (ver main.js: aplicarVentaLocal),
+   que además recalcula cuentasDisponibles en el cliente.
+   Esta función queda solo como red de seguridad manual.
 ========================= */
 
 async function afterVentaChange() {
-  const data = await getInitialData();
-
-  CACHE.ventas = data.ventas;
-  CACHE.cuentasDisponibles = data.cuentasDisponibles;
-
-  renderVentas();
-  renderCuentasDisponibles();
+  await refrescarModulo("ventas");
 }
 
 /* =========================
-   RENDERS (USAN CACHE NO DB)
+   RENDERS (USAN CACHE, QUE AHORA ES === DB)
 ========================= */
 
 function renderVentas() {
@@ -91,8 +92,6 @@ function renderSelectCuentasVCP() {
 
   if (!select) return;
 
-  select.innerHTML = `<option value="">Seleccionar cuenta disponible</option>`;
-
   CACHE.cuentasDisponibles
     .filter(c =>
       c.ID_Servicio === servicio &&
@@ -106,6 +105,8 @@ function renderSelectCuentasVCP() {
         </option>
       `;
     });
+
+  select.innerHTML = `<option value="">Seleccionar cuenta disponible</option>` + select.innerHTML;
 }
 
 function colocarFechasHoy() {
@@ -119,7 +120,7 @@ function colocarFechasHoy() {
 }
 
 /* =========================
-   GUARDAR VENTA INDIVIDUAL
+   GUARDAR VENTA INDIVIDUAL (VI)
 ========================= */
 
 async function guardarVentaIndependiente(event) {
@@ -145,17 +146,25 @@ async function guardarVentaIndependiente(event) {
     return;
   }
 
+  const btnSubmit = event.target.querySelector('button[type="submit"]');
+  if (btnSubmit) btnSubmit.disabled = true;
+
   try {
-    await addVenta(venta);
+    const ventaGuardada = await addVenta(venta);
     alert("Venta agregada");
 
     limpiarVentaIndependiente();
 
-    // 🔥 FIX IMPORTANTE
-    await afterVentaChange();
+    // 🔥 Antes: await afterVentaChange() -> refetch completo del servidor.
+    // Ahora: la venta ya viene confirmada desde el backend (con su ID
+    // generado), así que la aplicamos directo al estado local.
+    aplicarVentaLocal(ventaGuardada);
 
   } catch (e) {
     console.error(e);
+    alert("No se pudo guardar la venta. Intenta de nuevo.");
+  } finally {
+    if (btnSubmit) btnSubmit.disabled = false;
   }
 }
 
@@ -193,17 +202,25 @@ async function guardarVentaCuentaPropia(event) {
     Estado: "Activa"
   };
 
+  const btnSubmit = event.target.querySelector('button[type="submit"]');
+  if (btnSubmit) btnSubmit.disabled = true;
+
   try {
-    await addVenta(venta);
+    const ventaGuardada = await addVenta(venta);
     alert("Venta VCP agregada");
 
     limpiarVentaCuentaPropia();
 
-    // 🔥 FIX IMPORTANTE
-    await afterVentaChange();
+    // 🔥 Igual que en VI: aplicamos la venta confirmada al estado local.
+    // aplicarVentaLocal ya recalcula cuentasDisponibles y vuelve a
+    // pintar selects/tablas relevantes (ver main.js).
+    aplicarVentaLocal(ventaGuardada);
 
   } catch (e) {
     console.error(e);
+    alert("No se pudo guardar la venta. Intenta de nuevo.");
+  } finally {
+    if (btnSubmit) btnSubmit.disabled = false;
   }
 }
 
