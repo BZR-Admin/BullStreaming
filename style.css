@@ -237,3 +237,67 @@ input:focus {
     padding: 14px;
   }
 }
+
+/* =========================
+   INDEX LAYOUT PRO
+========================= */
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.title {
+  font-size: 42px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  opacity: 0.7;
+  margin-bottom: 30px;
+}
+
+/* GRID BOTONES */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+/* MENU CARD */
+.menu-card {
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* SELECT FIX (problema blanco/blanco) */
+select {
+  background: #0b1220;
+  color: white;
+  border: 1px solid #00c6ff;
+  padding: 14px;
+  border-radius: 12px;
+  width: 100%;
+  font-size: 15px;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+
+  .title {
+    font-size: 32px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+}
