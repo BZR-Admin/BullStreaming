@@ -3,8 +3,8 @@
 // ESTADO LOCAL
 // =========================
 let ventas = [];
-let clientesList = [];
-let cuentasList = [];
+let clientesListLocal = [];
+let cuentasListLocal = [];
 
 
 // =========================
