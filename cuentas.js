@@ -1,166 +1,68 @@
 import { supabase } from "./supabase.js";
 
-let cuentasGlobal = [];
+let cuentas = [];
 
-// =====================
-// CARGAR CUENTAS
-// =====================
-async function loadCuentas() {
+async function load() {
 
-  const { data: cuentas } = await supabase
+  const { data } = await supabase
     .from("cuentas_propias")
     .select("*");
 
-  cuentasGlobal = cuentas || [];
+  cuentas = data || [];
 
-  render(cuentasGlobal);
+  render();
 }
 
-loadCuentas();
+load();
 
-// =====================
-// RENDER CARDS
-// =====================
-function render(data) {
+async function render() {
 
   const container = document.getElementById("container");
   container.innerHTML = "";
 
-  data.forEach(async (c) => {
+  for (const c of cuentas) {
 
-    const usadas = await countVentas(c.usuario_correo);
-
+    const usadas = await getUsadas(c.correo_cuenta, c.id_servicio);
     const capacidad = await getCapacidad(c.id_servicio);
 
     const estado = usadas >= capacidad ? "llena" : "disponible";
 
-    const dias = diffDays(c.fecha_vencimiento);
-
-    let color = "green";
-    if (dias <= 0) color = "red";
-    else if (dias <= 2) color = "yellow";
-
     const card = document.createElement("div");
-    card.style.border = "1px solid #ccc";
-    card.style.margin = "10px";
-    card.style.padding = "10px";
-    card.style.background = color;
 
     card.innerHTML = `
-      <div>
-        <span style="font-size:20px">
-          ${estado === "disponible" ? "🟢" : "🔴"}
-        </span>
+      <h3>${c.plataforma}</h3>
+      <p>${c.correo_cuenta}</p>
+      <p>${c.proveedor}</p>
+      <p>${usadas}/${capacidad}</p>
+      <p>${estado}</p>
 
-        <h3>${c.plataforma}</h3>
-
-        <p>${c.usuario_correo}</p>
-        <p>${c.id_servicio}</p>
-        <p>${c.fecha_vencimiento}</p>
-
-        <p>${usadas}/${capacidad}</p>
-
-        <button onclick="viewClients('${c.usuario_correo}')">
-          Clientes
-        </button>
-
-        <button onclick="editCuenta('${c.id_cuenta}')">
-          Editar
-        </button>
-
-        <button onclick="deleteCuenta('${c.id_cuenta}')">
-          Eliminar
-        </button>
-
-        <button onclick="whatsappProveedor('${c.proveedor}')">
-          WhatsApp
-        </button>
-
-      </div>
+      <button onclick="verClientes('${c.correo_cuenta}')">Clientes</button>
+      <button onclick="eliminar('${c.id_cuenta}')">Eliminar</button>
     `;
 
     container.appendChild(card);
-  });
+  }
 }
 
-// =====================
-// CONTAR VENTAS
-// =====================
-async function countVentas(email) {
+async function getUsadas(correo, servicio) {
 
   const { count } = await supabase
     .from("ventas")
     .select("*", { count: "exact", head: true })
-    .eq("usuario_correo", email)
+    .eq("usuario_correo", correo)
+    .eq("id_servicio", servicio)
     .eq("tipo_venta", "VCP");
 
   return count || 0;
 }
 
-// =====================
-// CAPACIDAD
-// =====================
-async function getCapacidad(id_servicio) {
+async function getCapacidad(id) {
 
   const { data } = await supabase
     .from("conf_venta_cuenta_propia")
     .select("cantidad")
-    .eq("id_servicio", id_servicio)
+    .eq("id_servicio", id)
     .single();
 
   return data?.cantidad || 5;
 }
-
-// =====================
-// DIAS RESTANTES
-// =====================
-function diffDays(date) {
-  const hoy = new Date();
-  const fin = new Date(date);
-
-  return Math.ceil((fin - hoy) / (1000 * 60 * 60 * 24));
-}
-
-// =====================
-// VER CLIENTES
-// =====================
-window.viewClients = async (email) => {
-
-  const { data } = await supabase
-    .from("ventas")
-    .select("*")
-    .eq("usuario_correo", email)
-    .eq("tipo_venta", "VCP");
-
-  alert(JSON.stringify(data));
-};
-
-// =====================
-// ELIMINAR CUENTA
-// =====================
-window.deleteCuenta = async (id) => {
-
-  if (!confirm("Se eliminará la cuenta y sus clientes")) return;
-
-  const { data: cuenta } = await supabase
-    .from("cuentas_propias")
-    .delete()
-    .eq("id_cuenta", id);
-
-  await supabase
-    .from("ventas")
-    .delete()
-    .eq("id_servicio", id);
-
-  loadCuentas();
-};
-
-// =====================
-// WHATSAPP
-// =====================
-window.whatsappProveedor = (numero) => {
-
-  const msg = `Hola Bull Streaming desea renovar esta cuenta:`;
-
-  window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`);
-};
