@@ -11,6 +11,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+async function afterClienteChange() {
+  const data = await getInitialData();
+
+  CACHE.clientes = data.clientes;
+
+  renderClientes();
+}
+
 function renderClientes() {
   renderSelectClientes();
   renderTablaClientes();
