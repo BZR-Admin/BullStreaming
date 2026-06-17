@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Registros</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<h2>Registros de Ventas</h2>
+
+<!-- FILTROS -->
+<select id="filterPlatform">
+  <option value="">Plataforma</option>
+</select>
+
+<input id="search" placeholder="Buscar...">
+
+<button onclick="sortBy('fecha_registro')">Orden Registro</button>
+<button onclick="sortBy('fecha_vencimiento')">Orden Vencimiento</button>
+
+<div id="container"></div>
+
+<script type="module" src="../js/registros.js"></script>
+
+</body>
+</html>
