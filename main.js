@@ -7,7 +7,8 @@ let DB = {
   ventas: [],
   cuentasDisponibles: []
 };
-const CACHE = {
+
+let CACHE = {
   clientes: [],
   proveedores: [],
   ventas: [],
@@ -16,6 +17,7 @@ const CACHE = {
   configVentaIndependiente: [],
   configCuentaPropia: []
 };
+
 document.addEventListener("DOMContentLoaded", async () => {
   configurarMenuMovil();
   configurarNavegacion();
@@ -23,35 +25,92 @@ document.addEventListener("DOMContentLoaded", async () => {
   mostrarPantalla("inicio");
 });
 
+/* =========================
+   CARGA PRINCIPAL
+========================= */
+
 async function cargarDatos() {
-  const data = await getInitialData();
-
-  Object.assign(CACHE, data);
-
-  renderClientes();
-  renderProveedores();
-  renderVentas();
-  renderCompras();
-  renderCuentasDisponibles();
-  renderDashboard();
-}
-
-async function safeRender(nombre, fn) {
   try {
-    if (typeof fn === "function") {
-      await fn();
-    }
-  } catch (error) {
-    console.error("Error renderizando " + nombre + ":", error);
+    const data = await getInitialData();
+
+    // 🔥 IMPORTANTE: sincronizar ambos estados
+    syncData(data);
+
+    renderClientes();
+    renderProveedores();
+    renderVentas();
+    renderCompras();
+    renderCuentasDisponibles();
+    renderDashboard();
+
+  } catch (e) {
+    console.error("Error cargando datos:", e);
   }
 }
 
+/* =========================
+   SINCRONIZACIÓN GLOBAL
+========================= */
+
+function syncData(data) {
+  Object.assign(DB, data);
+  Object.assign(CACHE, data);
+}
+
+/* =========================
+   REFRESCO INTELIGENTE (NO FULL)
+========================= */
+
+async function refrescarModulo(modulo) {
+  try {
+    const data = await getInitialData();
+    syncData(data);
+
+    switch (modulo) {
+      case "clientes":
+        renderClientes();
+        break;
+
+      case "proveedores":
+        renderProveedores();
+        break;
+
+      case "ventas":
+        renderVentas();
+        renderCuentasDisponibles();
+        break;
+
+      case "compras":
+        renderCompras();
+        renderCuentasDisponibles();
+        break;
+
+      case "dashboard":
+        renderDashboard();
+        break;
+
+      default:
+        renderClientes();
+        renderProveedores();
+        renderVentas();
+        renderCompras();
+        renderCuentasDisponibles();
+        renderDashboard();
+    }
+
+  } catch (error) {
+    console.error("Error refrescando módulo:", error);
+  }
+}
+
+/* =========================
+   NAVEGACIÓN
+========================= */
 
 function configurarNavegacion() {
   document.querySelectorAll("[data-pantalla]").forEach(boton => {
     boton.addEventListener("click", () => {
-      const pantalla = boton.dataset.pantalla;
-      mostrarPantalla(pantalla);
+      mostrarPantalla(boton.dataset.pantalla);
     });
   });
 }
@@ -63,115 +122,83 @@ function mostrarPantalla(nombrePantalla) {
 
   const pantalla = document.getElementById("pantalla-" + nombrePantalla);
 
-  if (pantalla) {
-    pantalla.classList.add("activa");
-  }
+  if (pantalla) pantalla.classList.add("activa");
 
-  document.querySelectorAll("[data-pantalla]").forEach(boton => {
-    boton.classList.remove("activo");
-
-    if (boton.dataset.pantalla === nombrePantalla) {
-      boton.classList.add("activo");
-    }
+  document.querySelectorAll("[data-pantalla]").forEach(btn => {
+    btn.classList.toggle("activo", btn.dataset.pantalla === nombrePantalla);
   });
 }
 
+/* =========================
+   UTILIDADES
+========================= */
+
 function formatearFecha(fecha) {
   if (!fecha) return "";
-
   const date = new Date(fecha);
-
   if (isNaN(date)) return fecha;
-
   return date.toISOString().split("T")[0];
 }
 
 function limpiarFormulario(formId) {
-  const form = document.getElementById(formId);
-  if (form) form.reset();
+  document.getElementById(formId)?.reset();
 }
 
-function confirmarEliminacion(mensaje = "¿Seguro que deseas eliminar este registro?") {
-  return confirm(mensaje);
+function confirmarEliminacion(msg = "¿Seguro que deseas eliminar este registro?") {
+  return confirm(msg);
 }
 
+/* =========================
+   SEMÁFORO
+========================= */
 
 function diasParaVencer(fechaVencimiento) {
   if (!fechaVencimiento) return 999;
 
   const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
+  hoy.setHours(0,0,0,0);
 
-  const vencimiento = new Date(fechaVencimiento);
-  vencimiento.setHours(0, 0, 0, 0);
+  const venc = new Date(fechaVencimiento);
+  venc.setHours(0,0,0,0);
 
-  const diferencia = vencimiento - hoy;
-  return Math.ceil(diferencia / (1000 * 60 * 60 * 24));
+  return Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
 }
 
 function claseSemaforo(fechaVencimiento) {
-  const dias = diasParaVencer(fechaVencimiento);
+  const d = diasParaVencer(fechaVencimiento);
 
-  if (dias <= 0) return "fila-roja";
-  if (dias <= 3) return "fila-amarilla";
-
+  if (d <= 0) return "fila-roja";
+  if (d <= 3) return "fila-amarilla";
   return "fila-verde";
 }
 
-function limpiarTelefono(numero) {
-  return String(numero || "").replace(/\D/g, "");
+/* =========================
+   WHATSAPP
+========================= */
+
+function limpiarTelefono(num) {
+  return String(num || "").replace(/\D/g, "");
 }
 
 function abrirWhatsapp(numero, mensaje) {
-  const telefono = limpiarTelefono(numero);
+  const tel = limpiarTelefono(numero);
 
-  if (!telefono) {
-    alert("No hay número de WhatsApp registrado.");
-    return;
-  }
+  if (!tel) return alert("No hay número registrado");
 
-  const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
-  window.open(url, "_blank");
+  window.open(
+    `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`,
+    "_blank"
+  );
 }
 
-function configurarMenuMovil() {
-  const btnMenu = document.getElementById("btnMenuMovil");
-  const menu = document.getElementById("menuPrincipal");
-
-  if (!btnMenu || !menu) return;
-
-  btnMenu.addEventListener("click", () => {
-    menu.classList.toggle("menu-abierto");
-  });
-
-  document.querySelectorAll("[data-pantalla]").forEach(boton => {
-    boton.addEventListener("click", () => {
-      if (window.innerWidth <= 768) {
-        menu.classList.remove("menu-abierto");
-      }
-    });
-  });
-}
+/* =========================
+   LOADING
+========================= */
 
 function mostrarLoading() {
-  document.getElementById("loadingOverlay")
-    ?.classList.add("activo");
+  document.getElementById("loadingOverlay")?.classList.add("activo");
 }
 
 function ocultarLoading() {
-  document.getElementById("loadingOverlay")
-    ?.classList.remove("activo");
-}
-
-function escaparHtml(valor) {
-  return String(valor ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function escaparAttr(valor) {
-  return escaparHtml(valor);
+  document.getElementById("loadingOverlay")?.classList.remove("activo");
 }
