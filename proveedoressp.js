@@ -1,3 +1,4 @@
+
 // =========================
 // ESTADO LOCAL (AISLADO)
 // =========================
@@ -22,7 +23,7 @@ async function loadProveedores() {
 
 
 // =========================
-// RENDER TABLA
+// RENDER PROVEEDORES (UI PRO)
 // =========================
 function renderProveedores() {
   const tbody = document.getElementById("tablaProveedores");
@@ -31,12 +32,22 @@ function renderProveedores() {
 
   tbody.innerHTML = proveedoresList.map(p => `
     <tr>
-      <td>${p.id_proveedor}</td>
-      <td>${p.proveedor}</td>
-      <td>${p.whatsapp || ""}</td>
-      <td>
-        <button onclick="openEditProveedor('${p.id_proveedor}')">Editar</button>
-        <button onclick="removeProveedor('${p.id_proveedor}')">Eliminar</button>
+      <td data-label="ID">${p.id_proveedor}</td>
+      <td data-label="Proveedor">${p.proveedor}</td>
+      <td data-label="WhatsApp">${p.whatsapp || "-"}</td>
+
+      <td data-label="Acciones">
+        <div class="acciones">
+
+          <button class="btn-editar" onclick="openEditProveedor('${p.id_proveedor}')">
+            Editar
+          </button>
+
+          <button class="btn-eliminar" onclick="removeProveedor('${p.id_proveedor}')">
+            Eliminar
+          </button>
+
+        </div>
       </td>
     </tr>
   `).join("");
@@ -51,14 +62,15 @@ async function saveProveedor() {
   const whatsapp = document.getElementById("proveedor_whatsapp").value;
 
   if (!proveedor) {
-    alert("Nombre del proveedor obligatorio");
+    alert("El nombre del proveedor es obligatorio");
     return;
   }
 
   const data = {
     id_proveedor: crypto.randomUUID(),
     proveedor,
-    whatsapp
+    whatsapp,
+    estado: "Activo"
   };
 
   try {
@@ -76,7 +88,7 @@ async function saveProveedor() {
 
 
 // =========================
-// ABRIR EDITAR
+// EDITAR PROVEEDOR
 // =========================
 function openEditProveedor(id) {
   const proveedor = proveedoresList.find(p => p.id_proveedor === id);
@@ -122,7 +134,9 @@ async function removeProveedor(id) {
 
   try {
     await deleteProveedor(id);
+
     await loadProveedores();
+
   } catch (error) {
     console.error("Error eliminando proveedor:", error);
   }
