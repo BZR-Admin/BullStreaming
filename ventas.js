@@ -206,3 +206,9 @@ async function guardarVentaCuentaPropia(event) {
     console.error(e);
   }
 }
+
+window.pegarMensajeVI = pegarMensajeVI;
+window.limpiarVentaIndependiente = limpiarVentaIndependiente;
+window.detectarDatosVI = detectarDatosVI;
+window.guardarVentaIndependiente = guardarVentaIndependiente;
+window.guardarVentaCuentaPropia = guardarVentaCuentaPropia;
