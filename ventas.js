@@ -11,22 +11,32 @@ window.onload = async () => {
 
 // ================= CLIENTES =================
 async function loadClientes() {
-  const { data } = await supabase.from("clientes").select("*");
+
+  const { data } = await supabase
+    .from("clientes")
+    .select("*");
 
   const sel = document.getElementById("cliente");
-  sel.innerHTML = "<option>Cliente</option>";
+  sel.innerHTML = "<option value=''>Cliente</option>";
 
   data.forEach(c => {
-    sel.innerHTML += `<option value="${c.id_cliente}">${c.nombre}</option>`;
+    sel.innerHTML += `
+      <option value="${c.id_cliente}">
+        ${c.nombre}
+      </option>
+    `;
   });
 }
 
 // ================= PLATAFORMAS =================
 async function loadPlataformas() {
-  const { data } = await supabase.from("conf_venta_cuenta_propia").select("plataforma");
+
+  const { data } = await supabase
+    .from("conf_venta_cuenta_propia")
+    .select("plataforma");
 
   const sel = document.getElementById("plataforma");
-  sel.innerHTML = "<option>Plataforma</option>";
+  sel.innerHTML = "<option value=''>Plataforma</option>";
 
   const unique = [...new Set(data.map(d => d.plataforma))];
 
@@ -35,7 +45,7 @@ async function loadPlataformas() {
   });
 }
 
-// ================= SERVICIOS DEPENDIENTE =================
+// ================= SERVICIOS =================
 window.loadServicios = async () => {
 
   const plataforma = document.getElementById("plataforma").value;
@@ -46,40 +56,126 @@ window.loadServicios = async () => {
     .eq("plataforma", plataforma);
 
   const sel = document.getElementById("servicio");
-  sel.innerHTML = "";
+  sel.innerHTML = "<option value=''>Servicio</option>";
+
+  if (!data || data.length === 0) {
+    alert("No hay servicios para esta plataforma");
+    return;
+  }
 
   data.forEach(s => {
-    sel.innerHTML += `<option value="${s.id_servicio}">${s.servicio}</option>`;
+    sel.innerHTML += `
+      <option value="${s.id_servicio}">
+        ${s.servicio}
+      </option>
+    `;
   });
 };
 
 // ================= PROVEEDORES =================
 async function loadProveedores() {
-  const { data } = await supabase.from("proveedores").select("*");
+
+  const { data } = await supabase
+    .from("proveedores")
+    .select("*");
 
   const sel = document.getElementById("proveedor");
-  sel.innerHTML = "";
+  sel.innerHTML = "<option value=''>Proveedor</option>";
 
   data.forEach(p => {
-    sel.innerHTML += `<option value="${p.proveedor}">${p.proveedor}</option>`;
+    sel.innerHTML += `
+      <option value="${p.proveedor}">
+        ${p.proveedor}
+      </option>
+    `;
   });
 }
 
 // ================= MODE =================
 window.setMode = (m) => {
+
   mode = m;
 
-  document.getElementById("proveedor").style.display =
-    m === "VCP" ? "block" : "none";
+  const prov = document.getElementById("proveedor");
+
+  prov.style.display = (m === "VCP") ? "block" : "none";
 };
 
-// ================= SAVE =================
+// ================= PARSER (PEGA CUENTA) =================
+window.parseText = async () => {
+
+  const text = document.getElementById("texto").value;
+
+  const correo = text.match(/[\w.-]+@[\w.-]+\.\w+/)?.[0];
+  const perfil = text.match(/Perfil:\s*(.*)/i)?.[1];
+  const plataforma = text.match(/DISNEY|NETFLIX|PRIME|HBO|APPLE|SPOTIFY/i)?.[0];
+  const venc = text.match(/Expira:\s*(.*)/i)?.[1];
+
+  if (!correo) return alert("No se detectó correo");
+
+  document.getElementById("correo").value = correo;
+  document.getElementById("perfil").value = perfil || "";
+  document.getElementById("plataforma").value = plataforma || "";
+
+  if (venc) {
+    const d = new Date(venc);
+    if (!isNaN(d)) {
+      document.getElementById("vencimiento").value =
+        d.toISOString().split("T")[0];
+    }
+  }
+
+  if (mode === "VCP") {
+    await validarCuenta(correo);
+  }
+};
+
+// ================= VALIDAR CUENTA VCP =================
+async function validarCuenta(correo) {
+
+  const { data: cuentas } = await supabase
+    .from("cuentas_propias")
+    .select("*")
+    .eq("correo_cuenta", correo);
+
+  if (!cuentas || cuentas.length === 0) {
+    return alert("❌ No se encontró la cuenta");
+  }
+
+  const cuenta = cuentas[0];
+
+  const { count } = await supabase
+    .from("ventas")
+    .select("*", { count: "exact", head: true })
+    .eq("usuario_correo", correo)
+    .eq("tipo_venta", "VCP")
+    .eq("id_servicio", cuenta.id_servicio);
+
+  const { data: conf } = await supabase
+    .from("conf_venta_cuenta_propia")
+    .select("cantidad")
+    .eq("id_servicio", cuenta.id_servicio)
+    .single();
+
+  const capacidad = conf?.cantidad || 5;
+
+  if (count >= capacidad) {
+    return alert("❌ Cuenta detectada está llena");
+  }
+
+  document.getElementById("perfil").value =
+    `Perfil ${count + 1}`;
+
+  alert("✅ Cuenta disponible");
+}
+
+// ================= SAVE VENTA =================
 window.saveVenta = async () => {
 
   const venta = {
     id_venta: crypto.randomUUID(),
     tipo_venta: mode,
-    id_cliente: document.getElementById("cliente").value,
+    id_cliente: document.getElementById("cliente").value || null,
     plataforma: document.getElementById("plataforma").value,
     id_servicio: document.getElementById("servicio").value,
     usuario_correo: document.getElementById("correo").value,
@@ -90,9 +186,24 @@ window.saveVenta = async () => {
     fecha_registro: new Date().toISOString()
   };
 
-  const { error } = await supabase.from("ventas").insert([venta]);
+  const { error } = await supabase
+    .from("ventas")
+    .insert([venta]);
 
-  if (error) return alert("Error al guardar");
+  if (error) {
+    console.error(error);
+    return alert("Error al guardar venta");
+  }
 
-  alert("Venta registrada ✔");
+  alert("✔ Venta registrada correctamente");
+
+  limpiar();
 };
+
+// ================= LIMPIAR =================
+function limpiar() {
+
+  document.getElementById("correo").value = "";
+  document.getElementById("perfil").value = "";
+  document.getElementById("ganancia").value = "";
+}
