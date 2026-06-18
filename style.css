@@ -625,3 +625,61 @@ select {
 .card-body.hidden {
   display: none !important;
 }
+
+/* =========================
+   RESPONSIVE MOBILE PRO FIX
+========================= */
+
+@media (max-width: 768px) {
+
+  body {
+    padding: 10px !important;
+  }
+
+  /* 1 SOLO COLUMNA REAL */
+  #container {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* TARJETA MÁS GRANDE Y LEGIBLE */
+  .card {
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  /* TITULOS MÁS VISIBLES */
+  .card-header h3 {
+    font-size: 17px !important;
+  }
+
+  .card-header p {
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+  }
+
+  /* BADGE MÁS GRANDE */
+  .status-badge {
+    font-size: 12px !important;
+    padding: 8px 10px !important;
+    min-width: 100px !important;
+  }
+
+  /* BOTONES MÁS TACTILES */
+  .btn-grid {
+    grid-template-columns: 1fr !important; /* 👈 CAMBIO CLAVE */
+    gap: 10px !important;
+  }
+
+  .btn-grid button {
+    font-size: 14px !important;
+    padding: 14px !important;
+    border-radius: 12px !important;
+  }
+
+  /* INFO MÁS LIMPIA */
+  .info-grid p {
+    font-size: 13px !important;
+    margin: 6px 0 !important;
+  }
+}
