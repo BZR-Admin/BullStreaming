@@ -356,3 +356,13 @@ select {
   padding: 12px;
   border-radius: 10px;
 }
+
+.activeVI {
+  background: linear-gradient(135deg, #00c6ff, #0072ff) !important;
+  border: 2px solid white;
+}
+
+.activeVCP {
+  background: linear-gradient(135deg, #a855f7, #ec4899) !important;
+  border: 2px solid white;
+}
