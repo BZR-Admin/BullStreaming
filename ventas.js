@@ -2,13 +2,15 @@ import { supabase } from "./supabase.js";
 
 let mode = "VI";
 
-// ================= SAFE FETCH =================
+// ================= SAFE QUERY =================
 async function safeQuery(query) {
   const { data, error } = await query;
+
   if (error) {
     console.error("Supabase error:", error);
     return [];
   }
+
   return data || [];
 }
 
@@ -52,7 +54,7 @@ async function loadPlataformas() {
   const sel = document.getElementById("plataforma");
   sel.innerHTML = "<option value=''>Plataforma</option>";
 
-  const unique = [...new Set(data.map(d => d.plataforma).filter(Boolean))];
+  const unique = [...new Set(data.map(d => d?.plataforma).filter(Boolean))];
 
   unique.forEach(p => {
     sel.innerHTML += `<option value="${p}">${p}</option>`;
@@ -63,6 +65,7 @@ async function loadPlataformas() {
 window.loadServicios = async () => {
 
   const plataforma = document.getElementById("plataforma").value;
+  if (!plataforma) return;
 
   const table = (mode === "VI")
     ? "conf_venta_perfiles_individuales"
@@ -114,8 +117,11 @@ window.setMode = (m) => {
   mode = m;
 
   const prov = document.getElementById("proveedor");
-
   prov.style.display = (m === "VCP") ? "block" : "none";
+
+  // 🔥 reset selects
+  document.getElementById("plataforma").innerHTML = "<option>Cargando...</option>";
+  document.getElementById("servicio").innerHTML = "<option>Servicio</option>";
 
   loadPlataformas();
 
@@ -132,11 +138,8 @@ window.parseText = async () => {
   const text = document.getElementById("texto").value;
 
   const correo = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
-
   const perfil = text.match(/Perfil:\s*(.*)/i)?.[1];
-
   const plataforma = text.match(/DISNEY|NETFLIX|PRIME|HBO|APPLE|SPOTIFY/i)?.[0];
-
   const venc = text.match(/Expira\s*·\s*(.*)/i)?.[1];
 
   if (!correo) return alert("No se detectó correo");
@@ -210,8 +213,7 @@ async function validarCuenta(correo) {
 
   document.getElementById("proveedor").value = cuenta.proveedor || "";
 
-  document.getElementById("perfil").value =
-    `Perfil ${count + 1}`;
+  document.getElementById("perfil").value = `Perfil ${count + 1}`;
 
   alert("✅ Cuenta disponible");
 
