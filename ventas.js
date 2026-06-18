@@ -5,7 +5,12 @@ let mode = "VI";
 // ================= SAFE QUERY =================
 async function safeQuery(query) {
   const { data, error } = await query;
-  if (error) return [];
+
+  if (error) {
+    console.error("Supabase error:", error);
+    return [];
+  }
+
   return data || [];
 }
 
@@ -18,13 +23,20 @@ window.onload = async () => {
 
 // ================= CLIENTES =================
 async function loadClientes() {
-  const data = await safeQuery(supabase.from("clientes").select("*"));
+
+  const data = await safeQuery(
+    supabase.from("clientes").select("*")
+  );
 
   const sel = document.getElementById("cliente");
   sel.innerHTML = "<option value=''>Cliente</option>";
 
   data.forEach(c => {
-    sel.innerHTML += `<option value="${c.id_cliente}">${c.nombre}</option>`;
+    sel.innerHTML += `
+      <option value="${c.id_cliente}">
+        ${c.nombre}
+      </option>
+    `;
   });
 }
 
@@ -60,7 +72,8 @@ window.loadServicios = async () => {
     : "conf_venta_cuenta_propia";
 
   const data = await safeQuery(
-    supabase.from(table)
+    supabase
+      .from(table)
       .select("*")
       .eq("plataforma", plataforma)
   );
@@ -69,30 +82,49 @@ window.loadServicios = async () => {
   sel.innerHTML = "<option value=''>Servicio</option>";
 
   data.forEach(s => {
-    sel.innerHTML += `<option value="${s.id_servicio}">${s.servicio}</option>`;
+    sel.innerHTML += `
+      <option value="${s.id_servicio}">
+        ${s.servicio}
+      </option>
+    `;
   });
 };
 
 // ================= PROVEEDORES =================
 async function loadProveedores() {
-  const data = await safeQuery(supabase.from("proveedores").select("*"));
+
+  const data = await safeQuery(
+    supabase.from("proveedores").select("*")
+  );
 
   const sel = document.getElementById("proveedor");
   sel.innerHTML = "<option value=''>Proveedor</option>";
 
   data.forEach(p => {
-    sel.innerHTML += `<option value="${p.proveedor}">${p.proveedor}</option>`;
+    sel.innerHTML += `
+      <option value="${p.proveedor}">
+        ${p.proveedor}
+      </option>
+    `;
   });
 }
 
-// ================= MODE =================
-window.setMode = (m) => {
+// ================= MODE (FIX CRÍTICO) =================
+window.setMode = async (m) => {
+
   mode = m;
 
   document.getElementById("proveedor").style.display =
     (m === "VCP") ? "block" : "none";
 
-  loadPlataformas();
+  // 🔥 IMPORTANTE: esperar recarga
+  await loadPlataformas();
+
+  // reset servicios
+  document.getElementById("servicio").innerHTML =
+    "<option value=''>Servicio</option>";
+
+  document.getElementById("plataforma").value = "";
 };
 
 // ================= PARSER =================
@@ -101,29 +133,25 @@ window.parseText = async () => {
   const text = document.getElementById("texto").value;
 
   const correo = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
-
-  // 🔥 PERFIL (NO TOCAR)
   const perfil = text.match(/Perfil:\s*(.*)/i)?.[1]?.trim();
-
-  // 🔥 PLATAFORMA
   const plataforma = text.match(/DISNEY|NETFLIX|PRIME|HBO|APPLE|SPOTIFY/i)?.[0];
-
-  // 🔥 SERVICIO (lo dejamos libre o manual)
-  const servicioTexto = text.match(/PREMIUM|BÁSICO|FAMILIAR|ESTÁNDAR|PRO/i)?.[0];
-
   const venc = text.match(/Expira\s*·\s*(.*)/i)?.[1];
 
   if (!correo) return alert("No se detectó correo");
 
+  document.getElementById("correo").value = correo;
+  document.getElementById("perfil").value = perfil || "";
+
   // ================= VI =================
   if (mode === "VI") {
 
-    document.getElementById("correo").value = correo;
-    document.getElementById("perfil").value = perfil || "";
-
     if (plataforma) {
       document.getElementById("plataforma").value = plataforma;
-      await loadServicios(); // 🔥 AHORA SÍ carga servicios
+
+      // 🔥 esperar render select
+      await new Promise(r => setTimeout(r, 150));
+
+      await loadServicios();
     }
 
     if (venc) {
@@ -138,12 +166,6 @@ window.parseText = async () => {
   }
 
   // ================= VCP =================
-  document.getElementById("correo").value = correo;
-
-  if (perfil) {
-    document.getElementById("perfil").value = perfil; // 🔥 NO SE SOBREESCRIBE
-  }
-
   if (plataforma) {
     document.getElementById("plataforma").value = plataforma;
     await loadServicios();
@@ -157,16 +179,15 @@ window.parseText = async () => {
     }
   }
 
-  if (mode === "VCP") {
-    await validarCuenta(correo);
-  }
+  await validarCuenta(correo);
 };
 
 // ================= VALIDAR CUENTA =================
 async function validarCuenta(correo) {
 
   const cuentas = await safeQuery(
-    supabase.from("cuentas_propias")
+    supabase
+      .from("cuentas_propias")
       .select("*")
       .eq("correo_cuenta", correo)
   );
@@ -186,7 +207,8 @@ async function validarCuenta(correo) {
     .eq("id_servicio", cuenta.id_servicio);
 
   const conf = await safeQuery(
-    supabase.from("conf_venta_cuenta_propia")
+    supabase
+      .from("conf_venta_cuenta_propia")
       .select("cantidad, plataforma, servicio")
       .eq("id_servicio", cuenta.id_servicio)
       .single()
@@ -197,13 +219,6 @@ async function validarCuenta(correo) {
   if (count >= capacidad) {
     alert("❌ Cuenta llena");
     return false;
-  }
-
-  // 🔥 SOLO SI NO EXISTE PERFIL
-  const perfilInput = document.getElementById("perfil");
-
-  if (!perfilInput.value) {
-    perfilInput.value = perfilInput.value || `Perfil ${count + 1}`;
   }
 
   document.getElementById("plataforma").value = conf.plataforma;
@@ -240,9 +255,14 @@ window.saveVenta = async () => {
 
   const { error } = await supabase.from("ventas").insert([venta]);
 
-  if (error) return alert("Error");
+  if (error) {
+    console.error(error);
+    return alert("Error al guardar venta");
+  }
 
-  alert("✔ Venta registrada");
+  alert("✔ Venta registrada correctamente");
+
+  limpiar();
 };
 
 // ================= LIMPIAR =================
