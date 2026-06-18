@@ -81,8 +81,6 @@ window.loadServicios = async () => {
   const sel = document.getElementById("servicio");
   sel.innerHTML = "<option value=''>Servicio</option>";
 
-  if (!data.length) return;
-
   data.forEach(s => {
     sel.innerHTML += `
       <option value="${s.id_servicio}">
@@ -116,20 +114,10 @@ window.setMode = (m) => {
 
   mode = m;
 
-  const prov = document.getElementById("proveedor");
-  prov.style.display = (m === "VCP") ? "block" : "none";
-
-  // 🔥 reset selects
-  document.getElementById("plataforma").innerHTML = "<option>Cargando...</option>";
-  document.getElementById("servicio").innerHTML = "<option>Servicio</option>";
+  document.getElementById("proveedor").style.display =
+    (m === "VCP") ? "block" : "none";
 
   loadPlataformas();
-
-  document.getElementById("btnVI")?.classList.remove("activeVI");
-  document.getElementById("btnVCP")?.classList.remove("activeVCP");
-
-  if (m === "VI") document.getElementById("btnVI")?.classList.add("activeVI");
-  if (m === "VCP") document.getElementById("btnVCP")?.classList.add("activeVCP");
 };
 
 // ================= PARSER =================
@@ -138,15 +126,15 @@ window.parseText = async () => {
   const text = document.getElementById("texto").value;
 
   const correo = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
-  const perfil = text.match(/Perfil:\s*(.*)/i)?.[1];
-  const plataforma = text.match(/DISNEY|NETFLIX|PRIME|HBO|APPLE|SPOTIFY/i)?.[0];
+
+  const plataformaTXT = text.match(/DISNEY|NETFLIX|PRIME|HBO|APPLE|SPOTIFY/i)?.[0];
+
   const venc = text.match(/Expira\s*·\s*(.*)/i)?.[1];
 
   if (!correo) return alert("No se detectó correo");
 
   document.getElementById("correo").value = correo;
-  document.getElementById("perfil").value = perfil || "";
-  document.getElementById("plataforma").value = plataforma || "";
+  document.getElementById("plataforma").value = plataformaTXT || "";
 
   if (venc) {
     const d = new Date(venc);
@@ -156,8 +144,20 @@ window.parseText = async () => {
     }
   }
 
+  // ================= VI =================
+  if (mode === "VI") {
+
+    await loadPlataformas();
+    await loadServicios();
+
+    // 🔥 PERFIL AUTOMÁTICO VI (NO del texto)
+    document.getElementById("perfil").value = "Auto asignado";
+  }
+
+  // ================= VCP =================
   if (mode === "VCP") {
     const ok = await validarCuenta(correo);
+
     if (!ok) {
       document.getElementById("correo").value = "";
       document.getElementById("perfil").value = "";
@@ -165,7 +165,7 @@ window.parseText = async () => {
   }
 };
 
-// ================= VALIDAR CUENTA =================
+// ================= VALIDAR VCP =================
 async function validarCuenta(correo) {
 
   const cuentas = await safeQuery(
@@ -192,7 +192,7 @@ async function validarCuenta(correo) {
   const conf = await safeQuery(
     supabase
       .from("conf_venta_cuenta_propia")
-      .select("cantidad, plataforma, servicio")
+      .select("cantidad")
       .eq("id_servicio", cuenta.id_servicio)
       .single()
   );
@@ -204,8 +204,8 @@ async function validarCuenta(correo) {
     return false;
   }
 
-  // ================= AUTO FILL =================
-  document.getElementById("plataforma").value = conf.plataforma;
+  // ================= AUTO FILL VCP =================
+  document.getElementById("plataforma").value = cuenta.plataforma;
 
   await loadServicios();
 
@@ -259,7 +259,6 @@ window.saveVenta = async () => {
 
 // ================= LIMPIAR =================
 function limpiar() {
-
   document.getElementById("correo").value = "";
   document.getElementById("perfil").value = "";
   document.getElementById("ganancia").value = "";
