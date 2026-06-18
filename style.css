@@ -486,4 +486,32 @@ select {
   padding:3px 6px;
 }
 
+.status-red{
+  background: linear-gradient(135deg,#ff4d4d,#b30000);
+  color:white;
+}
 
+.status-yellow{
+  background: linear-gradient(135deg,#ffd60a,#ffb703);
+  color:black;
+}
+
+.status-green{
+  background: linear-gradient(135deg,#00d26a,#007f3f);
+  color:white;
+}
+
+.btn-grid{
+  display:grid;
+  grid-template-columns: repeat(2,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+
+.card-body{
+  padding:12px;
+}
+
+.info-grid p{
+  margin:4px 0;
+}
