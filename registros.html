@@ -3,439 +3,68 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Registros de Ventas | Bull Streaming</title>
-
-  <!-- CSS GENERAL -->
+  <title>Registros | Bull Streaming</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-  <!-- =========================
-       BOTÓN FLOTANTE MENÚ
-  ========================== -->
-  <button
-    id="fab"
-    type="button"
-    aria-label="Abrir menú"
-    title="Menú"
-  >
-    ☰
-  </button>
-
-  <!-- =========================
-       MENÚ LATERAL
-  ========================== -->
-  <nav id="sideMenu" class="side-menu" aria-label="Menú principal">
-
-    <a href="index.html" class="side-menu-link">
-      <button type="button">🏠 Inicio</button>
-    </a>
-
-    <a href="ventas.html" class="side-menu-link">
-      <button type="button">➕ Nueva venta</button>
-    </a>
-
-    <a href="compras.html" class="side-menu-link">
-      <button type="button">📦 Nueva compra</button>
-    </a>
-
-    <a href="cuentas.html" class="side-menu-link">
-      <button type="button">🎬 Cuentas disponibles</button>
-    </a>
-
-    <a href="registros.html" class="side-menu-link">
-      <button type="button" class="activeVI">📊 Registros</button>
-    </a>
-
-    <a href="clientes_proveedores.html" class="side-menu-link">
-      <button type="button">👥 Clientes / Proveedores</button>
-    </a>
-
-  </nav>
-
-  <!-- =========================
-       CONTENEDOR PRINCIPAL
-  ========================== -->
-  <main id="registrosPage" class="registros-page">
-
-    <!-- =========================
-         ENCABEZADO
-    ========================== -->
-    <header class="registros-header">
-
-      <section class="registros-title-box">
-        <h1>📊 Registros de Ventas</h1>
-        <p class="registros-subtitle">
-          Control de vencimientos, renovaciones y clientes de Bull Streaming.
-        </p>
-      </section>
-
-      <section class="registros-summary" aria-label="Resumen de registros">
-
-        <article class="summary-card">
-          <span class="summary-label">Total ventas</span>
-          <strong id="totalVentas">0</strong>
-        </article>
-
-        <article class="summary-card summary-red">
-          <span class="summary-label">Vencen hoy</span>
-          <strong id="totalVencenHoy">0</strong>
-        </article>
-
-        <article class="summary-card summary-yellow">
-          <span class="summary-label">Faltan 1-2 días</span>
-          <strong id="totalVencenPronto">0</strong>
-        </article>
-
-        <article class="summary-card summary-green">
-          <span class="summary-label">Más de 2 días</span>
-          <strong id="totalVigentes">0</strong>
-        </article>
-
-      </section>
-
-    </header>
-
-    <!-- =========================
-         FILTROS Y BUSCADOR
-    ========================== -->
-    <section class="registros-toolbar" aria-label="Filtros de registros">
-
-      <!-- BUSCADOR GENERAL -->
-      <div class="filter-group filter-search">
-        <label for="search">Buscar</label>
-        <input
-          id="search"
-          type="search"
-          placeholder="Buscar por cliente, plataforma, servicio, correo, perfil, fecha, estado..."
-          autocomplete="off"
-        />
-      </div>
-
-      <!-- FILTRO PLATAFORMA -->
-      <div class="filter-group">
-        <label for="filterPlatform">Plataforma</label>
-        <select id="filterPlatform">
-          <option value="">Todas las plataformas</option>
-        </select>
-      </div>
-
-      <!-- FILTRO SERVICIO -->
-      <div class="filter-group">
-        <label for="filterService">Servicio</label>
-        <select id="filterService">
-          <option value="">Todos los servicios</option>
-        </select>
-      </div>
-
-      <!-- FILTRO ESTADO DE VENCIMIENTO -->
-      <div class="filter-group">
-        <label for="filterExpiration">Vencimiento</label>
-        <select id="filterExpiration">
-          <option value="">Todos</option>
-          <option value="hoy">Vence hoy</option>
-          <option value="dos_dias">Falta máximo 2 días</option>
-          <option value="vigente">Falta más de 2 días</option>
-          <option value="vencido">Vencidos</option>
-        </select>
-      </div>
-
-      <!-- FILTRO ESTADO VENTA -->
-      <div class="filter-group">
-        <label for="filterEstado">Estado</label>
-        <select id="filterEstado">
-          <option value="">Todos los estados</option>
-          <option value="Activa">Activa</option>
-          <option value="Inactiva">Inactiva</option>
-          <option value="Vencida">Vencida</option>
-          <option value="Renovada">Renovada</option>
-        </select>
-      </div>
-
-      <!-- ORDENAR POR -->
-      <div class="filter-group">
-        <label for="sortBy">Ordenar por</label>
-        <select id="sortBy">
-          <option value="fecha_vencimiento">Fecha de vencimiento</option>
-          <option value="fecha_registro">Fecha de registro</option>
-          <option value="cliente_nombre">Cliente</option>
-          <option value="plataforma">Plataforma</option>
-          <option value="servicio_nombre">Servicio</option>
-          <option value="usuario_correo">Usuario / Correo</option>
-        </select>
-      </div>
-
-      <!-- DIRECCIÓN ORDEN -->
-      <div class="filter-group">
-        <label for="sortDirection">Dirección</label>
-        <select id="sortDirection">
-          <option value="asc">Ascendente</option>
-          <option value="desc">Descendente</option>
-        </select>
-      </div>
-
-      <!-- BOTONES DE ACCIÓN -->
-      <div class="toolbar-actions">
-
-        <button id="btnApplyFilters" type="button">
-          🔎 Aplicar
-        </button>
-
-        <button id="btnClearFilters" type="button">
-          🧹 Limpiar
-        </button>
-
-        <button id="btnReload" type="button">
-          🔄 Recargar
-        </button>
-
-      </div>
-
-    </section>
-
-    <!-- =========================
-         LEYENDA DE COLORES
-    ========================== -->
-    <section class="color-legend" aria-label="Leyenda de vencimientos">
-
-      <div class="legend-item">
-        <span class="legend-dot legend-red"></span>
-        <span>Rojo: vence hoy o ya venció</span>
-      </div>
-
-      <div class="legend-item">
-        <span class="legend-dot legend-yellow"></span>
-        <span>Amarillo: faltan 1 o 2 días</span>
-      </div>
-
-      <div class="legend-item">
-        <span class="legend-dot legend-green"></span>
-        <span>Verde: faltan más de 2 días</span>
-      </div>
-
-    </section>
-
-    <!-- =========================
-         ESTADO DE CARGA
-    ========================== -->
-    <section id="loadingBox" class="loading-box hidden">
-      <div class="loader"></div>
-      <p>Cargando registros...</p>
-    </section>
-
-    <!-- =========================
-         MENSAJE SIN RESULTADOS
-    ========================== -->
-    <section id="emptyBox" class="empty-box hidden">
-      <h3>Sin registros encontrados</h3>
-      <p>
-        No hay ventas que coincidan con la búsqueda o filtros seleccionados.
-      </p>
-    </section>
-
-    <!-- =========================
-         CONTENEDOR DE TARJETAS
-    ========================== -->
-    <section id="container" class="ventas-container" aria-label="Listado de ventas"></section>
-
-  </main>
-
-  <!-- =========================
-       TEMPLATE DE TARJETA DE VENTA
-       El JS clonará este diseño.
-  ========================== -->
-  <template id="ventaCardTemplate">
-
-    <article class="card venta-card" data-id-venta="">
-
-      <!-- =========================
-           CABECERA VISIBLE DE TARJETA
-           ORDEN SOLICITADO:
-           1. Cliente nombre
-           2. Plataforma / Servicio
-           3. Usuario correo
-           4. Fecha vencimiento
-      ========================== -->
-      <button class="venta-card-header" type="button" aria-expanded="false">
-
-        <div class="venta-card-main">
-
-          <h3 class="venta-cliente" data-field="cliente_nombre">
-            Cliente
-          </h3>
-
-          <p class="venta-servicio">
-            <span data-field="plataforma">Plataforma</span>
-            <span class="separator">/</span>
-            <span data-field="servicio_nombre">Servicio</span>
-          </p>
-
-          <p class="venta-correo">
-            <strong>Usuario:</strong>
-            <span data-field="usuario_correo">usuario_correo</span>
-          </p>
-
-          <p class="venta-vencimiento">
-            <strong>Fecha vencimiento:</strong>
-            <span data-field="fecha_vencimiento">YYYY-MM-DD</span>
-          </p>
-
-        </div>
-
-        <div class="venta-card-status">
-          <span class="status-dot" data-field="status_color"></span>
-          <span class="dias-restantes" data-field="dias_restantes">0 días</span>
-          <span class="expand-icon">⌄</span>
-        </div>
-
-      </button>
-
-      <!-- =========================
-           CONTENIDO EXPANDIBLE
-      ========================== -->
-      <div class="card-content venta-card-content">
-
-        <hr />
-
-        <section class="venta-details">
-
-          <div class="detail-row">
-            <span>Cliente:</span>
-            <strong data-field="cliente_nombre">-</strong>
-          </div>
-
-          <div class="detail-row">
-            <span>WhatsApp cliente:</span>
-            <strong data-field="cliente_whatsapp">-</strong>
-          </div>
-
-          <div class="detail-row">
-            <span>Plataforma:</span>
-            <strong data-field="plataforma">-</strong>
-          </div>
-
-          <div class="detail-row">
-            <span>Servicio:</span>
-            <strong data-field="servicio_nombre">-</strong>
-          </div>
-
-          <div class="detail-row">
-            <span>Usuario / Correo:</span>
-            <strong data-field="usuario_correo">-</strong>
-          </div>
-
-          <div class="detail-row">
-            <span>Perfil:</span>
-            <strong data-field="perfil">-</strong>
-          </div>
-
-          <div class="detail-row">
-            <span>Fecha registro:</span>
-            <strong data-field="fecha_registro">-</strong>
-          </div>
-
-          <div class="detail-row">
-            <span>Fecha vencimiento:</span>
-            <strong data-field="fecha_vencimiento">-</strong>
-          </div>
-
-          <div class="detail-row">
-            <span>Tipo de venta:</span>
-            <strong data-field="tipo_venta">-</strong>
-          </div>
-
-          <div class="detail-row">
-            <span>Estado:</span>
-            <strong data-field="estado">-</strong>
-          </div>
-
-        </section>
-
-        <!-- =========================
-             BOTONES AL EXPANDIR
-        ========================== -->
-        <section class="venta-actions">
-
-          <button
-            type="button"
-            class="btn-whatsapp"
-            data-action="whatsapp-renovacion"
-            title="Enviar mensaje de renovación por WhatsApp"
-          >
-            💬 WhatsApp renovación
-          </button>
-
-          <button
-            type="button"
-            class="btn-renovar"
-            data-action="renovar"
-            title="Renovar venta"
-          >
-            🔁 Renovar
-          </button>
-
-          <button
-            type="button"
-            class="btn-editar"
-            data-action="editar"
-            title="Editar venta"
-          >
-            ✏️ Editar
-          </button>
-
-          <button
-            type="button"
-            class="btn-eliminar"
-            data-action="eliminar"
-            title="Eliminar venta"
-          >
-            🗑️ Eliminar
-          </button>
-
-        </section>
-
-      </div>
-
-    </article>
-
-  </template>
-
-  <!-- =========================
-       SCRIPT PRINCIPAL
-  ========================== -->
-  <script type="module" src="registros.js"></script>
-
-  <!-- =========================
-       SCRIPT PEQUEÑO SOLO PARA MENÚ
-       El JS fuerte de registros lo hacemos después.
-  ========================== -->
-  <script>
-    const fab = document.getElementById("fab");
-    const sideMenu = document.getElementById("sideMenu");
-
-    fab.addEventListener("click", function (event) {
-      event.stopPropagation();
-
-      if (sideMenu.style.display === "flex") {
-        sideMenu.style.display = "none";
-      } else {
-        sideMenu.style.display = "flex";
-      }
-    });
-
-    document.addEventListener("click", function (event) {
-      if (!sideMenu || !fab) return;
-
-      const clickedInsideMenu = sideMenu.contains(event.target);
-      const clickedFab = fab.contains(event.target);
-
-      if (!clickedInsideMenu && !clickedFab) {
-        sideMenu.style.display = "none";
-      }
-    });
-  </script>
+<!-- BOTÓN MENÚ -->
+<button id="fab">☰</button>
+
+<!-- MENÚ -->
+<nav id="sideMenu" class="side-menu">
+
+  <button onclick="location.href='index.html'">Inicio</button>
+  <button onclick="location.href='ventas.html'">Nueva venta</button>
+  <button onclick="location.href='cuentas.html'">Cuentas</button>
+  <button onclick="location.href='registros.html'">Registros</button>
+
+</nav>
+
+<!-- =========================
+     CONTROLES (SOLO LOS QUE SIRVEN)
+========================= -->
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
+
+  <!-- BUSCADOR -->
+  <input
+    id="search"
+    type="text"
+    placeholder="Buscar cliente, plataforma, correo, perfil..."
+    style="flex:1; padding:10px; border-radius:10px;"
+  />
+
+  <!-- FILTRO PLATAFORMA -->
+  <select id="filterPlatform" style="padding:10px; border-radius:10px;">
+    <option value="">Todas las plataformas</option>
+  </select>
+
+  <!-- ORDEN -->
+  <select id="sortBy" style="padding:10px; border-radius:10px;">
+    <option value="fecha_vencimiento">Ordenar por vencimiento</option>
+    <option value="fecha_registro">Ordenar por registro</option>
+  </select>
+
+</div>
+
+<!-- =========================
+     CONTENEDOR
+========================= -->
+<div id="container"></div>
+
+<!-- JS -->
+<script type="module" src="registros.js"></script>
+
+<!-- MENU SCRIPT -->
+<script>
+const fab = document.getElementById("fab");
+const menu = document.getElementById("sideMenu");
+
+fab.onclick = () => {
+  menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+};
+</script>
 
 </body>
 </html>
