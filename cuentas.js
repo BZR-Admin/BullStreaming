@@ -68,7 +68,7 @@ async function loadClientes() {
 }
 
 async function loadProveedores() {
-  const { data } = await supabase.from("proveedor").select("*");
+  const { data } = await supabase.from("proveedores").select("*");
   proveedores = data || [];
 
   proveedores.forEach(p => {
@@ -77,7 +77,7 @@ async function loadProveedores() {
 }
 
 async function loadServicios() {
-  const { data } = await supabase.from("conf_venta_puenta_propia").select("*");
+  const { data } = await supabase.from("conf_venta_cuenta_propia").select("*");
   servicios = data || [];
 
   servicios.forEach(s => {
