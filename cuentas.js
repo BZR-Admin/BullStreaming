@@ -15,7 +15,7 @@ window.onload = async () => {
 
 // ================= CLIENTES MAP =================
 async function loadClientes(){
-  const {data} = await supabase.from("Clientes").select("*");
+  const {data} = await supabase.from("clientes").select("*");
 
   data.forEach(c=>{
     clientes[c.id_cliente]=c.nombre;
@@ -24,7 +24,7 @@ async function loadClientes(){
 
 // ================= PROVEEDORES MAP =================
 async function loadProveedores(){
-  const {data} = await supabase.from("Proveedor").select("*");
+  const {data} = await supabase.from("proveedores").select("*");
 
   data.forEach(p=>{
     proveedores[p.proveedor]=p.whatsapp;
@@ -33,7 +33,7 @@ async function loadProveedores(){
 
 // ================= CUENTAS =================
 async function loadCuentas(){
-  const {data} = await supabase.from("Cuentas_Propias").select("*");
+  const {data} = await supabase.from("cuentas_propias").select("*");
   cuentas = data || [];
   render();
 }
@@ -56,7 +56,7 @@ async function render(){
   for(const c of cuentas){
 
     const clienteVentas = await supabase
-      .from("Ventas")
+      .from("ventas")
       .select("*")
       .eq("usuario_correo", c.correo_cuenta)
       .eq("tipo_venta","VCP");
@@ -64,7 +64,7 @@ async function render(){
     const used = clienteVentas.data?.length || 0;
 
     const conf = await supabase
-      .from("Conf_Venta_Cuenta_Propia")
+      .from("conf_venta_cuenta_propia")
       .select("*")
       .eq("id_servicio", c.id_servicio)
       .single();
