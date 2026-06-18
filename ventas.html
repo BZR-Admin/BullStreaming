@@ -7,49 +7,113 @@
 
 <body>
 
+<!-- MENU FLOTANTE -->
 <div id="fab" onclick="toggleMenu()">☰</div>
 
 <div id="sideMenu" class="side-menu">
   <button onclick="go('index.html')">Inicio</button>
-  <button onclick="go('ventas.html')">Venta</button>
-  <button onclick="go('compras.html')">Compra</button>
+  <button onclick="go('ventas.html')">Ventas</button>
+  <button onclick="go('compras.html')">Compras</button>
   <button onclick="go('cuentas.html')">Cuentas</button>
   <button onclick="go('registros.html')">Registros</button>
   <button onclick="go('clientes_proveedores.html')">Clientes</button>
 </div>
 
-<h2>Nueva Venta</h2>
-
-<!-- MODE -->
-<div class="grid">
-  <button onclick="setMode('VI')">Venta Independiente</button>
-  <button onclick="setMode('VCP')">Cuenta Propia</button>
+<!-- HEADER -->
+<div class="header">
+  <h2>Nueva Venta</h2>
+  <p class="subtitle">Gestión de ventas VI / VCP</p>
 </div>
 
-<!-- FORM -->
+<!-- SWITCH MODE -->
+<div class="mode-switch">
+
+  <button class="mode-btn" onclick="setMode('VI')">
+    🔵 Venta Independiente
+  </button>
+
+  <button class="mode-btn" onclick="setMode('VCP')">
+    🟣 Cuenta Propia
+  </button>
+
+</div>
+
+<!-- BOTÓN PARSER -->
+<div class="parser-btn">
+  <button onclick="toggleParser()">📋 Insertar texto de cuenta</button>
+</div>
+
+<!-- FORM CARD -->
 <div class="form-card">
 
-  <select id="cliente"></select>
+  <div class="grid">
 
-  <select id="plataforma" onchange="loadServicios()"></select>
+    <div>
+      <label>Cliente</label>
+      <select id="cliente"></select>
+    </div>
 
-  <select id="servicio"></select>
+    <div>
+      <label>Plataforma</label>
+      <select id="plataforma" onchange="loadServicios()"></select>
+    </div>
 
-  <input id="correo" placeholder="Usuario / Correo">
-  <input id="perfil" placeholder="Perfil">
-  <input id="vencimiento" type="date">
+    <div>
+      <label>Servicio</label>
+      <select id="servicio"></select>
+    </div>
 
-  <select id="proveedor" style="display:none"></select>
+    <div>
+      <label>Usuario / Correo</label>
+      <input id="correo" placeholder="correo@ejemplo.com">
+    </div>
 
-  <input id="ganancia" placeholder="Ganancia">
+    <div>
+      <label>Perfil</label>
+      <input id="perfil" placeholder="Perfil asignado">
+    </div>
 
-  <button onclick="saveVenta()">Guardar Venta</button>
+    <div>
+      <label>Fecha vencimiento</label>
+      <input id="vencimiento" type="date">
+    </div>
+
+    <div>
+      <label>Proveedor (VCP)</label>
+      <select id="proveedor" style="display:none"></select>
+    </div>
+
+    <div>
+      <label>Ganancia</label>
+      <input id="ganancia" placeholder="0.00">
+    </div>
+
+  </div>
+
+  <div class="actions">
+    <button class="primary" onclick="saveVenta()">💾 Guardar Venta</button>
+  </div>
+
 </div>
 
-<!-- PARSER -->
-<div id="parserBox" style="display:none">
-  <textarea id="texto"></textarea>
-  <button onclick="parseText()">Detectar</button>
+<!-- PARSER MODAL -->
+<div id="parserBox" class="modal" style="display:none">
+
+  <div class="modal-content">
+
+    <h3>Insertar cuenta</h3>
+
+    <textarea id="texto" placeholder="Pega aquí la cuenta..."></textarea>
+
+    <div class="modal-actions">
+      <button onclick="pasteText()">📋 Pegar</button>
+      <button onclick="clearText()">🧹 Limpiar</button>
+      <button onclick="parseText()">🔍 Detectar</button>
+      <button onclick="toggleParser()">❌ Cerrar</button>
+    </div>
+
+  </div>
+
 </div>
 
 <script type="module" src="ventas.js"></script>
@@ -61,6 +125,20 @@ window.toggleMenu = () => {
 };
 
 window.go = (p) => location.href = p;
+
+window.toggleParser = () => {
+  const p = document.getElementById("parserBox");
+  p.style.display = p.style.display === "flex" ? "none" : "flex";
+};
+
+window.pasteText = async () => {
+  const t = await navigator.clipboard.readText();
+  document.getElementById("texto").value = t;
+};
+
+window.clearText = () => {
+  document.getElementById("texto").value = "";
+};
 </script>
 
 </body>
