@@ -5,10 +5,7 @@ let mode = "VI";
 // ================= SAFE QUERY =================
 async function safeQuery(query) {
   const { data, error } = await query;
-  if (error) {
-    console.error("Supabase error:", error);
-    return [];
-  }
+  if (error) return [];
   return data || [];
 }
 
@@ -21,20 +18,13 @@ window.onload = async () => {
 
 // ================= CLIENTES =================
 async function loadClientes() {
-
-  const data = await safeQuery(
-    supabase.from("clientes").select("*")
-  );
+  const data = await safeQuery(supabase.from("clientes").select("*"));
 
   const sel = document.getElementById("cliente");
   sel.innerHTML = "<option value=''>Cliente</option>";
 
   data.forEach(c => {
-    sel.innerHTML += `
-      <option value="${c.id_cliente}">
-        ${c.nombre}
-      </option>
-    `;
+    sel.innerHTML += `<option value="${c.id_cliente}">${c.nombre}</option>`;
   });
 }
 
@@ -80,46 +70,31 @@ window.loadServicios = async () => {
   sel.innerHTML = "<option value=''>Servicio</option>";
 
   data.forEach(s => {
-    sel.innerHTML += `
-      <option value="${s.id_servicio}">
-        ${s.servicio}
-      </option>
-    `;
+    sel.innerHTML += `<option value="${s.id_servicio}">${s.servicio}</option>`;
   });
 };
 
 // ================= PROVEEDORES =================
 async function loadProveedores() {
-
-  const data = await safeQuery(
-    supabase.from("proveedores").select("*")
-  );
+  const data = await safeQuery(supabase.from("proveedores").select("*"));
 
   const sel = document.getElementById("proveedor");
   sel.innerHTML = "<option value=''>Proveedor</option>";
 
   data.forEach(p => {
-    sel.innerHTML += `
-      <option value="${p.proveedor}">
-        ${p.proveedor}
-      </option>
-    `;
+    sel.innerHTML += `<option value="${p.proveedor}">${p.proveedor}</option>`;
   });
 }
 
-// ================= MODE (FIX CRÍTICO) =================
-window.setMode = async (m) => {
+// ================= MODE =================
+window.setMode = (m) => {
 
   mode = m;
 
   document.getElementById("proveedor").style.display =
     (m === "VCP") ? "block" : "none";
 
-  // 🔥 FIX IMPORTANTE: esperar carga completa
-  await loadPlataformas();
-
-  document.getElementById("servicio").innerHTML =
-    "<option value=''>Servicio</option>";
+  loadPlataformas();
 };
 
 // ================= PARSER =================
@@ -128,11 +103,8 @@ window.parseText = async () => {
   const text = document.getElementById("texto").value;
 
   const correo = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
-
   const perfil = text.match(/Perfil:\s*(.*)/i)?.[1]?.trim();
-
   const plataforma = text.match(/DISNEY|NETFLIX|PRIME|HBO|APPLE|SPOTIFY/i)?.[0];
-
   const venc = text.match(/Expira\s*·\s*(.*)/i)?.[1];
 
   if (!correo) return alert("No se detectó correo");
@@ -140,15 +112,31 @@ window.parseText = async () => {
   document.getElementById("correo").value = correo;
   document.getElementById("perfil").value = perfil || "";
 
-  // ================= VI =================
+  // ================= VI (FIX REAL) =================
   if (mode === "VI") {
 
     if (plataforma) {
-
       document.getElementById("plataforma").value = plataforma;
 
-      // 🔥 FIX: asegurar que select esté listo
-      await loadServicios();
+      // 🔥 DIRECTO SIN loadServicios (FIX CLAVE)
+      const table = "conf_venta_perfiles_independientes";
+
+      const data = await safeQuery(
+        supabase.from(table)
+          .select("*")
+          .eq("plataforma", plataforma)
+      );
+
+      const sel = document.getElementById("servicio");
+      sel.innerHTML = "<option value=''>Servicio</option>";
+
+      data.forEach(s => {
+        sel.innerHTML += `
+          <option value="${s.id_servicio}">
+            ${s.servicio}
+          </option>
+        `;
+      });
     }
 
     if (venc) {
@@ -163,28 +151,20 @@ window.parseText = async () => {
   }
 
   // ================= VCP =================
-  if (plataforma) {
-    document.getElementById("plataforma").value = plataforma;
-    await loadServicios();
-  }
+  document.getElementById("plataforma").value = plataforma || "";
 
-  if (venc) {
-    const d = new Date(venc);
-    if (!isNaN(d)) {
-      document.getElementById("vencimiento").value =
-        d.toISOString().split("T")[0];
-    }
+  const ok = await validarCuenta(correo);
+  if (!ok) {
+    document.getElementById("correo").value = "";
+    document.getElementById("perfil").value = "";
   }
-
-  await validarCuenta(correo);
 };
 
 // ================= VALIDAR CUENTA =================
 async function validarCuenta(correo) {
 
   const cuentas = await safeQuery(
-    supabase
-      .from("cuentas_propias")
+    supabase.from("cuentas_propias")
       .select("*")
       .eq("correo_cuenta", correo)
   );
@@ -204,8 +184,7 @@ async function validarCuenta(correo) {
     .eq("id_servicio", cuenta.id_servicio);
 
   const conf = await safeQuery(
-    supabase
-      .from("conf_venta_cuenta_propia")
+    supabase.from("conf_venta_cuenta_propia")
       .select("cantidad, plataforma, servicio")
       .eq("id_servicio", cuenta.id_servicio)
       .single()
@@ -218,16 +197,12 @@ async function validarCuenta(correo) {
     return false;
   }
 
-  // ================= AUTO FILL VCP =================
   document.getElementById("plataforma").value = conf.plataforma;
 
   await loadServicios();
 
   document.getElementById("servicio").value = cuenta.id_servicio;
   document.getElementById("proveedor").value = cuenta.proveedor || "";
-
-  document.getElementById("perfil").value =
-    document.getElementById("perfil").value || `Perfil ${count + 1}`;
 
   return true;
 }
@@ -256,14 +231,9 @@ window.saveVenta = async () => {
 
   const { error } = await supabase.from("ventas").insert([venta]);
 
-  if (error) {
-    console.error(error);
-    return alert("Error al guardar venta");
-  }
+  if (error) return alert("Error");
 
-  alert("✔ Venta registrada correctamente");
-
-  limpiar();
+  alert("✔ Venta registrada");
 };
 
 // ================= LIMPIAR =================
