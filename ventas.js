@@ -68,7 +68,7 @@ window.loadServicios = async () => {
   if (!plataforma) return;
 
   const table = (mode === "VI")
-    ? "conf_venta_perfiles_individuales"
+    ? "conf_venta_perfiles_independientes"
     : "conf_venta_cuenta_propia";
 
   const data = await safeQuery(
