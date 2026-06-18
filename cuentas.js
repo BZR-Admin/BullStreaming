@@ -1,7 +1,7 @@
 import { supabase } from "./supabase.js";
 
 /* =========================
-   ESTADO
+   ESTADO GLOBAL
 ========================= */
 let cuentas = [];
 let ventas = [];
@@ -18,10 +18,15 @@ let serviciosMap = {};
 ========================= */
 window.addEventListener("DOMContentLoaded", async () => {
   setupEvents();
+  setupModalClose();
+  setupAgregarCliente();
 
-  await loadClientes();
-  await loadProveedores();
-  await loadServicios();
+  await Promise.all([
+    loadClientes(),
+    loadProveedores(),
+    loadServicios()
+  ]);
+
   await loadVentas();
   await loadCuentas();
 });
@@ -61,8 +66,8 @@ function colorByDate(v) {
 async function loadClientes() {
   const { data } = await supabase.from("clientes").select("*");
   clientes = data || [];
-   applyView();
 
+  clientesMap = {};
   clientes.forEach(c => {
     clientesMap[c.id_cliente] = c;
   });
@@ -71,8 +76,8 @@ async function loadClientes() {
 async function loadProveedores() {
   const { data } = await supabase.from("proveedores").select("*");
   proveedores = data || [];
-   applyView();
 
+  proveedoresMap = {};
   proveedores.forEach(p => {
     proveedoresMap[p.proveedor] = p;
   });
@@ -81,8 +86,8 @@ async function loadProveedores() {
 async function loadServicios() {
   const { data } = await supabase.from("conf_venta_cuenta_propia").select("*");
   servicios = data || [];
-   applyView();
 
+  serviciosMap = {};
   servicios.forEach(s => {
     serviciosMap[s.id_servicio] = s;
   });
@@ -91,13 +96,12 @@ async function loadServicios() {
 async function loadVentas() {
   const { data } = await supabase.from("ventas").select("*");
   ventas = data || [];
-   applyView();
 }
 
 async function loadCuentas() {
   const { data } = await supabase.from("cuentas_propias").select("*");
   cuentas = data || [];
-  applyView();
+  applyView(); // SOLO AQUÍ SE RENDERIZA
 }
 
 /* =========================
@@ -136,7 +140,7 @@ function getDisponibilidad(c) {
 }
 
 /* =========================
-   CLIENTES CUENTA (FIX REAL)
+   CLIENTES
 ========================= */
 function getClientes(c) {
   const correo = getCorreo(c);
@@ -167,7 +171,6 @@ function render(data) {
 
     card.innerHTML = `
       <div class="card-header">
-
         <div>
           <h3>${servicio?.servicio || "Servicio"}</h3>
           <p><b>Correo:</b> ${correo}</p>
@@ -180,7 +183,6 @@ function render(data) {
           <div class="status ${disp.full ? "red" : "green"}"></div>
           <p>${disp.usadas}/${disp.max}</p>
         </div>
-
       </div>
 
       <div class="card-body hidden">
@@ -214,8 +216,7 @@ function render(data) {
         }
 
         ${!disp.full ? `
-          <button style="width:100%; margin-top:10px;"
-            onclick="abrirModal('${c.id_cuenta}')">
+          <button onclick="abrirModal('${c.id_cuenta}')" style="width:100%; margin-top:10px;">
             + Agregar cliente
           </button>
         ` : ""}
@@ -241,7 +242,69 @@ function setupToggle() {
 }
 
 /* =========================
-   WHATSAPP (FIX PROVEEDOR)
+   MODAL OPEN
+========================= */
+window.abrirModal = (idCuenta) => {
+  document.getElementById("addCuentaId").value = idCuenta;
+
+  const select = document.getElementById("addCliente");
+  select.innerHTML = clientes.map(c =>
+    `<option value="${c.id_cliente}">${c.nombre}</option>`
+  ).join("");
+
+  document.getElementById("modalAgregarCliente").showModal();
+};
+
+/* =========================
+   MODAL CLOSE FIX
+========================= */
+function setupModalClose() {
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-modal-close]");
+    if (!btn) return;
+
+    const modal = document.getElementById(btn.dataset.modalClose);
+    if (modal) modal.close();
+  });
+}
+
+/* =========================
+   🔥 FIX CRÍTICO: AGREGAR CLIENTE
+========================= */
+function setupAgregarCliente() {
+  const form = document.getElementById("formAgregarCliente");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const idCuenta = document.getElementById("addCuentaId").value;
+    const idCliente = document.getElementById("addCliente").value;
+    const perfil = document.getElementById("addPerfil").value;
+    const fecha = document.getElementById("addFechaVencimiento").value;
+
+    const cuenta = cuentas.find(c => c.id_cuenta === idCuenta);
+
+    if (!cuenta) return;
+
+    await supabase.from("ventas").insert([{
+      id_cliente: idCliente,
+      cliente: clientesMap[idCliente]?.nombre,
+      usuario_correo: cuenta.correo_cuenta,
+      plataforma: getPlataforma(cuenta),
+      id_servicio: cuenta.id_servicio,
+      perfil,
+      fecha_vencimiento: fecha
+    }]);
+
+    document.getElementById("modalAgregarCliente").close();
+
+    await loadVentas();
+    applyView();
+  });
+}
+
+/* =========================
+   WHATSAPP
 ========================= */
 window.whatsappProveedor = (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
@@ -251,51 +314,22 @@ window.whatsappProveedor = (id) => {
 
   if (!tel) return alert("Proveedor sin número");
 
-  const msg = `Hola Bull Streaming desea renovar esta cuenta ${getCorreo(c)} de ${getServicio(c)?.servicio}`;
+  const msg = `Hola Bull Streaming desea renovar ${getCorreo(c)} (${getServicio(c)?.servicio})`;
 
   window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
 };
 
 /* =========================
-   MODAL AGREGAR CLIENTE (FIX REAL)
-========================= */
-window.abrirModal = (idCuenta) => {
-  const modal = document.getElementById("modalAgregarCliente");
-
-  document.getElementById("addCuentaId").value = idCuenta;
-
-  const select = document.getElementById("addCliente");
-
-  select.innerHTML = clientes
-    .map(c => `<option value="${c.id_cliente}">${c.nombre}</option>`)
-    .join("");
-
-  modal.showModal();
-};
-
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-modal-close]");
-  if (!btn) return;
-
-  const modalId = btn.dataset.modalClose;
-  const modal = document.getElementById(modalId);
-
-  if (modal) modal.close();
-});
-
-/* =========================
-   EDITAR CORREO (CASCADE)
+   EDIT / DELETE
 ========================= */
 window.editarCorreo = async (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
   const nuevo = prompt("Nuevo correo", getCorreo(c));
   if (!nuevo) return;
 
-  const old = getCorreo(c);
-
   await supabase.from("ventas")
     .update({ usuario_correo: nuevo })
-    .eq("usuario_correo", old);
+    .eq("usuario_correo", getCorreo(c));
 
   await supabase.from("cuentas_propias")
     .update({ correo_cuenta: nuevo })
@@ -305,9 +339,6 @@ window.editarCorreo = async (id) => {
   await loadCuentas();
 };
 
-/* =========================
-   ELIMINAR CUENTA
-========================= */
 window.eliminarCuenta = async (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
 
@@ -325,9 +356,6 @@ window.eliminarCuenta = async (id) => {
   await loadCuentas();
 };
 
-/* =========================
-   EDITAR FECHA
-========================= */
 window.editarFecha = async (id) => {
   const nueva = prompt("YYYY-MM-DD");
   if (!nueva) return;
@@ -340,7 +368,7 @@ window.editarFecha = async (id) => {
 };
 
 /* =========================
-   CLIENTES EDIT / DELETE
+   CLIENTES EDIT
 ========================= */
 window.editarVenta = async (id) => {
   const v = ventas.find(x => x.id_venta === id);
@@ -366,7 +394,7 @@ window.eliminarVenta = async (id) => {
 };
 
 /* =========================
-   SEARCH + SORT FIX FINAL
+   SEARCH + SORT
 ========================= */
 function applyView() {
   let data = [...cuentas];
@@ -383,23 +411,23 @@ function applyView() {
 
   const sort = document.getElementById("sortBy")?.value;
 
-   if (sort === "plataforma") {
-  data.sort((a, b) =>
-    getPlataforma(a).localeCompare(getPlataforma(b))
-  );
-}
+  if (sort === "plataforma") {
+    data.sort((a, b) =>
+      getPlataforma(a).localeCompare(getPlataforma(b))
+    );
+  }
 
-if (sort === "fecha_vencimiento") {
-  data.sort((a, b) =>
-    new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
-  );
-}
+  if (sort === "fecha_vencimiento") {
+    data.sort((a, b) =>
+      new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
+    );
+  }
 
-if (sort === "disponibilidad") {
-  data.sort((a, b) =>
-    getDisponibilidad(b).free - getDisponibilidad(a).free
-  );
-}
+  if (sort === "disponibilidad") {
+    data.sort((a, b) =>
+      getDisponibilidad(b).free - getDisponibilidad(a).free
+    );
+  }
 
   render(data);
 }
