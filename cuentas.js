@@ -65,7 +65,7 @@ async function loadClientes() {
 }
 
 async function loadProveedores() {
-  const { data } = await supabase.from("proveedor").select("*");
+  const { data } = await supabase.from("proveedores").select("*");
   proveedores = data || [];
   proveedores.forEach(p => proveedoresMap[p.proveedores] = p);
 }
