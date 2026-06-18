@@ -30,7 +30,11 @@ async function loadClientes() {
   sel.innerHTML = "<option value=''>Cliente</option>";
 
   data.forEach(c => {
-    sel.innerHTML += `<option value="${c.id_cliente}">${c.nombre}</option>`;
+    sel.innerHTML += `
+      <option value="${c.id_cliente}">
+        ${c.nombre}
+      </option>
+    `;
   });
 }
 
@@ -76,7 +80,11 @@ window.loadServicios = async () => {
   sel.innerHTML = "<option value=''>Servicio</option>";
 
   data.forEach(s => {
-    sel.innerHTML += `<option value="${s.id_servicio}">${s.servicio}</option>`;
+    sel.innerHTML += `
+      <option value="${s.id_servicio}">
+        ${s.servicio}
+      </option>
+    `;
   });
 };
 
@@ -91,11 +99,15 @@ async function loadProveedores() {
   sel.innerHTML = "<option value=''>Proveedor</option>";
 
   data.forEach(p => {
-    sel.innerHTML += `<option value="${p.proveedor}">${p.proveedor}</option>`;
+    sel.innerHTML += `
+      <option value="${p.proveedor}">
+        ${p.proveedor}
+      </option>
+    `;
   });
 }
 
-// ================= MODE =================
+// ================= MODE (FIX CRÍTICO) =================
 window.setMode = async (m) => {
 
   mode = m;
@@ -103,10 +115,9 @@ window.setMode = async (m) => {
   document.getElementById("proveedor").style.display =
     (m === "VCP") ? "block" : "none";
 
-  // 🔥 CRÍTICO: esperar carga completa
+  // 🔥 FIX IMPORTANTE: esperar carga completa
   await loadPlataformas();
 
-  // reset servicios
   document.getElementById("servicio").innerHTML =
     "<option value=''>Servicio</option>";
 };
@@ -126,19 +137,18 @@ window.parseText = async () => {
 
   if (!correo) return alert("No se detectó correo");
 
+  document.getElementById("correo").value = correo;
+  document.getElementById("perfil").value = perfil || "";
+
   // ================= VI =================
   if (mode === "VI") {
 
-    document.getElementById("correo").value = correo;
-    document.getElementById("perfil").value = perfil || "";
-
     if (plataforma) {
+
       document.getElementById("plataforma").value = plataforma;
 
-      // 🔥 FIX: esperar DOM + select listo
-      setTimeout(async () => {
-        await loadServicios();
-      }, 150);
+      // 🔥 FIX: asegurar que select esté listo
+      await loadServicios();
     }
 
     if (venc) {
@@ -153,12 +163,6 @@ window.parseText = async () => {
   }
 
   // ================= VCP =================
-  document.getElementById("correo").value = correo;
-
-  if (perfil) {
-    document.getElementById("perfil").value = perfil;
-  }
-
   if (plataforma) {
     document.getElementById("plataforma").value = plataforma;
     await loadServicios();
@@ -172,16 +176,15 @@ window.parseText = async () => {
     }
   }
 
-  if (mode === "VCP") {
-    await validarCuenta(correo);
-  }
+  await validarCuenta(correo);
 };
 
 // ================= VALIDAR CUENTA =================
 async function validarCuenta(correo) {
 
   const cuentas = await safeQuery(
-    supabase.from("cuentas_propias")
+    supabase
+      .from("cuentas_propias")
       .select("*")
       .eq("correo_cuenta", correo)
   );
@@ -215,13 +218,16 @@ async function validarCuenta(correo) {
     return false;
   }
 
+  // ================= AUTO FILL VCP =================
   document.getElementById("plataforma").value = conf.plataforma;
 
   await loadServicios();
 
   document.getElementById("servicio").value = cuenta.id_servicio;
-
   document.getElementById("proveedor").value = cuenta.proveedor || "";
+
+  document.getElementById("perfil").value =
+    document.getElementById("perfil").value || `Perfil ${count + 1}`;
 
   return true;
 }
@@ -230,9 +236,7 @@ async function validarCuenta(correo) {
 window.saveVenta = async () => {
 
   if (mode === "VCP") {
-    const ok = await validarCuenta(
-      document.getElementById("correo").value
-    );
+    const ok = await validarCuenta(document.getElementById("correo").value);
     if (!ok) return;
   }
 
@@ -250,13 +254,16 @@ window.saveVenta = async () => {
     fecha_registro: new Date().toISOString()
   };
 
-  const { error } = await supabase
-    .from("ventas")
-    .insert([venta]);
+  const { error } = await supabase.from("ventas").insert([venta]);
 
-  if (error) return alert("Error");
+  if (error) {
+    console.error(error);
+    return alert("Error al guardar venta");
+  }
 
-  alert("✔ Venta registrada");
+  alert("✔ Venta registrada correctamente");
+
+  limpiar();
 };
 
 // ================= LIMPIAR =================
