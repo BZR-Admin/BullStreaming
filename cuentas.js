@@ -1,7 +1,7 @@
 import { supabase } from "./supabase.js";
 
 /* =========================
-   ESTADOS GLOBALES
+   ESTADO GLOBAL
 ========================= */
 let cuentas = [];
 let ventas = [];
@@ -9,9 +9,9 @@ let clientes = [];
 let proveedores = [];
 let servicios = [];
 
-let serviciosMap = {};
 let clientesMap = {};
 let proveedoresMap = {};
+let serviciosMap = {};
 
 /* =========================
    INIT
@@ -29,9 +29,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 /* =========================
    HELPERS
 ========================= */
-const safe = (v) => (v === null || v === undefined ? "" : String(v));
-
-const get = (id) => document.getElementById(id);
+const safe = (v) => (v ?? "").toString().trim();
 
 function parseDate(v) {
   if (!v) return null;
@@ -70,16 +68,16 @@ async function loadClientes() {
 }
 
 async function loadProveedores() {
-  const { data } = await supabase.from("proveedores").select("*");
+  const { data } = await supabase.from("proveedor").select("*");
   proveedores = data || [];
 
   proveedores.forEach(p => {
-    proveedoresMap[p.nombre] = p;
+    proveedoresMap[p.proveedor] = p;
   });
 }
 
 async function loadServicios() {
-  const { data } = await supabase.from("conf_venta_cuenta_propia").select("*");
+  const { data } = await supabase.from("conf_venta_puenta_propia").select("*");
   servicios = data || [];
 
   servicios.forEach(s => {
@@ -96,19 +94,35 @@ async function loadCuentas() {
   const { data } = await supabase.from("cuentas_propias").select("*");
   cuentas = data || [];
 
-  render();
+  applyView();
 }
 
 /* =========================
-   DISPONIBILIDAD
+   SERVICIO
+========================= */
+function getServicio(cuenta) {
+  return serviciosMap[cuenta.id_servicio];
+}
+
+/* =========================
+   CORREO (FIX IMPORTANTE)
+========================= */
+function getCorreo(c) {
+  return safe(c.correo_cuenta || c.usuario_correo);
+}
+
+/* =========================
+   DISPONIBILIDAD REAL
 ========================= */
 function getDisponibilidad(cuenta) {
+  const correo = getCorreo(cuenta);
+
   const usadas = ventas.filter(v =>
-    v.usuario_correo === cuenta.usuario_correo
+    v.usuario_correo === correo
   ).length;
 
-  const servicio = serviciosMap[cuenta.id_servicio];
-  const max = servicio?.capacidad || 0;
+  const servicio = getServicio(cuenta);
+  const max = servicio?.cantidad || 0;
 
   return {
     usadas,
@@ -118,54 +132,48 @@ function getDisponibilidad(cuenta) {
 }
 
 /* =========================
-   CLIENTES POR CUENTA
+   CLIENTES CUENTA
 ========================= */
 function getClientesCuenta(cuenta) {
-  return ventas.filter(v =>
-    v.usuario_correo === cuenta.usuario_correo
-  );
-}
+  const correo = getCorreo(cuenta);
 
-/* =========================
-   SERVICIO NOMBRE
-========================= */
-function getServicioNombre(cuenta) {
-  const s = serviciosMap[cuenta.id_servicio];
-  return s?.servicio || "Servicio";
+  return ventas.filter(v =>
+    v.usuario_correo === correo
+  );
 }
 
 /* =========================
    RENDER
 ========================= */
-function render() {
-  const container = get("container");
+function render(data) {
+  const container = document.getElementById("container");
   container.innerHTML = "";
 
-  cuentas.forEach(cuenta => {
+  data.forEach(cuenta => {
+
+    const correo = getCorreo(cuenta);
+    const servicio = getServicio(cuenta);
 
     const disp = getDisponibilidad(cuenta);
     const clientesCuenta = getClientesCuenta(cuenta);
-    const servicioNombre = getServicioNombre(cuenta);
 
     const color = colorByDate(cuenta.fecha_vencimiento);
 
     const card = document.createElement("div");
     card.className = `card ${color}`;
 
-    const dotColor = disp.full ? "red" : "green";
-
     card.innerHTML = `
-      <div class="card-header" data-id="${cuenta.id}">
+      <div class="card-header">
 
         <div>
-          <h3>${servicioNombre}</h3>
-          <p><b>Usuario:</b> ${cuenta.usuario_correo}</p>
+          <h3>${servicio?.servicio || "Servicio"}</h3>
+          <p><b>Correo:</b> ${correo}</p>
           <p><b>Proveedor:</b> ${cuenta.proveedor || "-"}</p>
           <p><b>Vence:</b> ${cuenta.fecha_vencimiento || "-"}</p>
         </div>
 
         <div style="text-align:right;">
-          <div class="status ${dotColor}"></div>
+          <div class="status ${disp.full ? "red" : "green"}"></div>
           <p>${disp.usadas}/${disp.max}</p>
         </div>
 
@@ -174,10 +182,10 @@ function render() {
       <div class="card-body hidden">
 
         <div class="btn-grid">
-          <button onclick="whatsappProveedor('${cuenta.id}')">💬 WhatsApp</button>
-          <button onclick="editarCorreo('${cuenta.id}')">✏️ Editar correo</button>
-          <button onclick="editarFechaCuenta('${cuenta.id}')">📅 Vencimiento</button>
-          <button onclick="eliminarCuenta('${cuenta.id}')">🗑️ Eliminar</button>
+          <button onclick="whatsappProveedor('${cuenta.id_cuenta}')">WhatsApp</button>
+          <button onclick="editarCorreo('${cuenta.id_cuenta}')">Editar correo</button>
+          <button onclick="editarFecha('${cuenta.id_cuenta}')">Editar fecha</button>
+          <button onclick="eliminarCuenta('${cuenta.id_cuenta}')">Eliminar</button>
         </div>
 
         <hr>
@@ -187,10 +195,7 @@ function render() {
         ${
           clientesCuenta.map(v => `
             <div class="cliente-row">
-              <span>
-                ${v.cliente} - ${v.perfil} - ${v.fecha_vencimiento}
-              </span>
-
+              <span>${v.cliente} - ${v.perfil} - ${v.fecha_vencimiento}</span>
               <div>
                 <button onclick="editarVenta('${v.id_venta}')">Editar</button>
                 <button onclick="eliminarVenta('${v.id_venta}')">Eliminar</button>
@@ -199,9 +204,9 @@ function render() {
           `).join("")
         }
 
-        <button style="margin-top:10px; width:100%;"
-          onclick="abrirAgregarCliente('${cuenta.id}')">
-          ➕ Agregar cliente
+        <button style="width:100%; margin-top:10px;"
+          onclick="abrirModal('${cuenta.id_cuenta}')">
+          + Agregar cliente
         </button>
 
       </div>
@@ -214,194 +219,128 @@ function render() {
 }
 
 /* =========================
-   TOGGLE CARD
+   TOGGLE
 ========================= */
 function setupToggle() {
-  document.querySelectorAll(".card-header").forEach(h => {
-    h.onclick = () => {
-      h.parentElement.querySelector(".card-body").classList.toggle("hidden");
+  document.querySelectorAll(".card-header").forEach(el => {
+    el.onclick = () => {
+      el.parentElement.querySelector(".card-body").classList.toggle("hidden");
     };
   });
 }
 
 /* =========================
-   WHATSAPP PROVEEDOR
+   WHATSAPP (FIX)
 ========================= */
 window.whatsappProveedor = (id) => {
-  const cuenta = cuentas.find(c => c.id === id);
-  if (!cuenta) return;
+  const c = cuentas.find(x => x.id_cuenta === id);
+  if (!c) return;
 
-  const prov = proveedoresMap[cuenta.proveedor];
+  const prov = proveedoresMap[c.proveedor];
+  const tel = safe(prov?.whatsapp).replace(/\D/g, "");
 
-  const tel = prov?.whatsapp?.replace(/\D/g, "");
   if (!tel) return alert("Proveedor sin WhatsApp");
 
-  const msg = `Hola Bull Streaming desea renovar esta cuenta ${cuenta.usuario_correo} de ${getServicioNombre(cuenta)}. ¿Puedo hacerlo?`;
+  const msg = `Hola Bull Streaming desea renovar esta cuenta ${getCorreo(c)} de ${c.id_servicio}`;
 
   window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
 };
 
 /* =========================
-   EDITAR CORREO (CASCADE)
+   EDITAR CORREO (CASCADE FIX)
 ========================= */
 window.editarCorreo = async (id) => {
-  const cuenta = cuentas.find(c => c.id === id);
-  if (!cuenta) return;
-
-  const nuevo = prompt("Nuevo correo:", cuenta.usuario_correo);
+  const c = cuentas.find(x => x.id_cuenta === id);
+  const nuevo = prompt("Nuevo correo:", getCorreo(c));
   if (!nuevo) return;
 
-  if (!confirm("Se cambiará en TODOS los clientes de esta cuenta. ¿Continuar?")) return;
+  if (!confirm("Esto actualizará TODOS los clientes de esta cuenta")) return;
 
-  await supabase
-    .from("ventas")
-    .update({ usuario_correo: nuevo })
-    .eq("usuario_correo", cuenta.usuario_correo);
+  const old = getCorreo(c);
 
-  await supabase
-    .from("cuentas_propias")
+  await supabase.from("ventas")
     .update({ usuario_correo: nuevo })
-    .eq("id", id);
+    .eq("usuario_correo", old);
+
+  await supabase.from("cuentas_propias")
+    .update({ correo_cuenta: nuevo })
+    .eq("id_cuenta", id);
 
   await loadVentas();
   await loadCuentas();
 };
 
 /* =========================
-   ELIMINAR CUENTA (CASCADE)
+   ELIMINAR CUENTA
 ========================= */
 window.eliminarCuenta = async (id) => {
-  const cuenta = cuentas.find(c => c.id === id);
-  if (!cuenta) return;
+  const c = cuentas.find(x => x.id_cuenta === id);
 
-  if (!confirm("Se eliminarán TODOS los clientes de esta cuenta. ¿Continuar?")) return;
+  if (!confirm("Eliminar cuenta y todos sus clientes?")) return;
 
-  await supabase
-    .from("ventas")
+  const correo = getCorreo(c);
+
+  await supabase.from("ventas")
     .delete()
-    .eq("usuario_correo", cuenta.usuario_correo);
+    .eq("usuario_correo", correo);
 
-  await supabase
-    .from("cuentas_propias")
+  await supabase.from("cuentas_propias")
     .delete()
-    .eq("id", id);
+    .eq("id_cuenta", id);
 
   await loadVentas();
   await loadCuentas();
 };
 
 /* =========================
-   EDITAR FECHA CUENTA
+   EDITAR FECHA
 ========================= */
-window.editarFechaCuenta = async (id) => {
-  const nueva = prompt("Nueva fecha (YYYY-MM-DD)");
+window.editarFecha = async (id) => {
+  const nueva = prompt("Nueva fecha YYYY-MM-DD");
   if (!nueva) return;
 
-  await supabase
-    .from("cuentas_propias")
+  await supabase.from("cuentas_propias")
     .update({ fecha_vencimiento: nueva })
-    .eq("id", id);
+    .eq("id_cuenta", id);
 
   await loadCuentas();
 };
 
 /* =========================
-   CLIENTES: EDITAR VENTA
+   SEARCH + SORT + FILTER (FIX CLAVE)
 ========================= */
-window.editarVenta = async (id) => {
-  const v = ventas.find(x => x.id_venta === id);
-  if (!v) return;
+function applyView() {
+  const q = (document.getElementById("search")?.value || "").toLowerCase();
 
-  const perfil = prompt("Perfil:", v.perfil);
-  if (!perfil) return;
+  let data = [...cuentas];
 
-  const fecha = prompt("Fecha vencimiento:", v.fecha_vencimiento);
-  if (!fecha) return;
+  if (q) {
+    data = data.filter(c => {
+      const correo = getCorreo(c);
+      return (
+        correo.toLowerCase().includes(q) ||
+        (c.proveedor || "").toLowerCase().includes(q) ||
+        (c.id_servicio || "").toLowerCase().includes(q)
+      );
+    });
+  }
 
-  await supabase
-    .from("ventas")
-    .update({ perfil, fecha_vencimiento: fecha })
-    .eq("id_venta", id);
+  const sort = document.getElementById("sortBy")?.value;
 
-  await loadVentas();
-  render();
-};
+  if (sort === "fecha_vencimiento") {
+    data.sort((a,b) =>
+      new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
+    );
+  }
+
+  render(data);
+}
 
 /* =========================
-   ELIMINAR VENTA
-========================= */
-window.eliminarVenta = async (id) => {
-  if (!confirm("Eliminar cliente de la cuenta?")) return;
-
-  await supabase
-    .from("ventas")
-    .delete()
-    .eq("id_venta", id);
-
-  await loadVentas();
-  render();
-};
-
-/* =========================
-   AGREGAR CLIENTE
-========================= */
-window.abrirAgregarCliente = (idCuenta) => {
-  const modal = get("modalAgregarCliente");
-  const select = get("addCliente");
-
-  select.innerHTML = clientes.map(c =>
-    `<option value="${c.id_cliente}">${c.nombre}</option>`
-  ).join("");
-
-  get("addCuentaId").value = idCuenta;
-
-  modal.showModal();
-};
-
-get("formAgregarCliente").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const idCuenta = get("addCuentaId").value;
-  const clienteId = get("addCliente").value;
-  const perfil = get("addPerfil").value;
-  const fecha = get("addFechaVencimiento").value;
-
-  const cuenta = cuentas.find(c => c.id === idCuenta);
-  const cliente = clientesMap[clienteId];
-
-  await supabase.from("ventas").insert([{
-    cliente: cliente.nombre,
-    id_cliente: clienteId,
-    usuario_correo: cuenta.usuario_correo,
-    plataforma: cuenta.plataforma,
-    id_servicio: cuenta.id_servicio,
-    perfil,
-    fecha_vencimiento: fecha
-  }]);
-
-  get("modalAgregarCliente").close();
-
-  await loadVentas();
-  render();
-});
-
-/* =========================
-   CLOSE MODALS
-========================= */
-document.querySelectorAll("[data-modal-close]").forEach(btn => {
-  btn.onclick = () => {
-    const modal = document.getElementById(btn.dataset.modalClose);
-    modal?.close();
-  };
-});
-
-/* =========================
-   EVENTOS
+   EVENTS
 ========================= */
 function setupEvents() {
-  const search = get("search");
-  const platform = get("filterPlatform");
-
-  search?.addEventListener("input", render);
-  platform?.addEventListener("change", render);
+  document.getElementById("search")?.addEventListener("input", applyView);
+  document.getElementById("sortBy")?.addEventListener("change", applyView);
+  document.getElementById("filterPlatform")?.addEventListener("change", applyView);
 }
