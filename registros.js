@@ -6,20 +6,18 @@ let clientesMap = {};
 // ===================== INIT =====================
 window.onload = async () => {
 
-  await Promise.all([
-    loadClientes(),
-    loadVentas()
-  ]);
+  await loadClientes();
+  await loadVentas();
 
-  setupPlatformFilter();
-  setupEvents();
+  setupFilters();
 };
 
 // ===================== CLIENTES =====================
 async function loadClientes() {
+
   const { data } = await supabase.from("clientes").select("*");
 
-  if (!data) return;
+  if (!Array.isArray(data)) return;
 
   data.forEach(c => {
     clientesMap[c.id_cliente] = {
@@ -41,12 +39,14 @@ async function loadVentas() {
     return;
   }
 
-  ventas = data || [];
+  ventas = Array.isArray(data) ? data : [];
+
+  setupPlatformOptions();
   render(ventas);
 }
 
 // ===================== PLATAFORMAS =====================
-function setupPlatformFilter() {
+function setupPlatformOptions() {
 
   const select = document.getElementById("filterPlatform");
   if (!select) return;
@@ -77,25 +77,31 @@ function render(data) {
       whatsapp: ""
     };
 
+    // 🔥 FIX SERVICIO (sin ID)
+    const servicioNombre =
+      v.servicio_nombre ||
+      v.servicio ||
+      v.plan ||
+      v.id_servicio ||
+      "Servicio";
+
     const dias = diff(v.fecha_vencimiento);
-    const status = getStatus(dias);
+    const color = getColor(dias);
 
     const card = document.createElement("div");
-
-    card.className = `card ${status.className}`;
+    card.className = `card ${color}`;
 
     card.innerHTML = `
-
       <div class="card-header" onclick="toggleCard(this.parentElement)">
 
         <div>
           <h3>${cliente.nombre}</h3>
-          <p>${v.plataforma} / ${v.servicio || v.id_servicio}</p>
-          <p>${v.usuario_correo}</p>
+          <p>${v.plataforma} / ${servicioNombre}</p>
+          <p>${v.usuario_correo || ""}</p>
           <p><b>Vence:</b> ${v.fecha_vencimiento}</p>
         </div>
 
-        <div class="status-badge">
+        <div>
           <span>${dias} días</span>
         </div>
 
@@ -103,18 +109,14 @@ function render(data) {
 
       <div class="card-body hidden">
 
-        <div class="info-grid">
+        <p><b>Cliente:</b> ${cliente.nombre}</p>
+        <p><b>WhatsApp:</b> ${cliente.whatsapp || "-"}</p>
+        <p><b>Plataforma:</b> ${v.plataforma}</p>
+        <p><b>Servicio:</b> ${servicioNombre}</p>
+        <p><b>Usuario:</b> ${v.usuario_correo}</p>
+        <p><b>Perfil:</b> ${v.perfil}</p>
+        <p><b>Vencimiento:</b> ${v.fecha_vencimiento}</p>
 
-          <p><b>Cliente:</b> ${cliente.nombre}</p>
-          <p><b>WhatsApp:</b> ${cliente.whatsapp}</p>
-          <p><b>Plataforma:</b> ${v.plataforma}</p>
-          <p><b>Usuario:</b> ${v.usuario_correo}</p>
-          <p><b>Perfil:</b> ${v.perfil}</p>
-          <p><b>Vencimiento:</b> ${v.fecha_vencimiento}</p>
-
-        </div>
-
-        <!-- BOTONES EN 2 FILAS -->
         <div class="btn-grid">
 
           <button onclick="sendWhatsApp(
@@ -126,9 +128,7 @@ function render(data) {
           )">💬 WhatsApp</button>
 
           <button onclick="renovar('${v.id_venta}')">🔁 Renovar</button>
-
           <button onclick="editar('${v.id_venta}')">✏️ Editar</button>
-
           <button onclick="eliminar('${v.id_venta}')">🗑️ Eliminar</button>
 
         </div>
@@ -143,6 +143,7 @@ function render(data) {
 // ===================== TOGGLE =====================
 window.toggleCard = (el) => {
   const body = el.querySelector(".card-body");
+  if (!body) return;
   body.classList.toggle("hidden");
 };
 
@@ -151,28 +152,18 @@ function diff(date) {
   return Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24));
 }
 
-// ===================== STATUS VISUAL PRO =====================
-function getStatus(dias) {
+// ===================== COLOR =====================
+function getColor(dias) {
 
-  if (dias <= 0) {
-    return {
-      className: "status-red"
-    };
-  }
-
-  if (dias <= 2) {
-    return {
-      className: "status-yellow"
-    };
-  }
-
-  return {
-    className: "status-green"
-  };
+  if (dias <= 0) return "red";
+  if (dias <= 2) return "yellow";
+  return "green";
 }
 
 // ===================== WHATSAPP =====================
 window.sendWhatsApp = (tel, usuario, perfil, fecha, plataforma) => {
+
+  if (!tel) return;
 
   const msg = `¡Hola! Bull Streaming te informa que está por vencer tu servicio de ${plataforma}.
 
@@ -199,7 +190,7 @@ window.renovar = async (id) => {
     .update({ fecha_vencimiento: nueva })
     .eq("id_venta", id);
 
-  loadVentas();
+  await loadVentas();
 };
 
 // ===================== EDITAR =====================
@@ -221,7 +212,7 @@ window.editar = async (id) => {
     .update(update)
     .eq("id_venta", id);
 
-  loadVentas();
+  await loadVentas();
 };
 
 // ===================== ELIMINAR =====================
@@ -234,12 +225,13 @@ window.eliminar = async (id) => {
     .delete()
     .eq("id_venta", id);
 
-  loadVentas();
+  await loadVentas();
 };
 
-// ===================== FILTRO PLATAFORMA + SORT =====================
-function setupEvents() {
+// ===================== FILTROS + SEARCH + SORT =====================
+function setupFilters() {
 
+  const search = document.getElementById("search");
   const platform = document.getElementById("filterPlatform");
   const sort = document.getElementById("sortBy");
 
@@ -247,19 +239,39 @@ function setupEvents() {
 
     let data = [...ventas];
 
-    // FILTRO PLATAFORMA
-    if (platform.value) {
+    // 🔍 SEARCH GLOBAL
+    const q = (search?.value || "").toLowerCase();
+
+    if (q) {
+      data = data.filter(v => {
+
+        const cliente = clientesMap[v.id_cliente]?.nombre || "";
+        const servicio = v.servicio || v.servicio_nombre || "";
+        const correo = v.usuario_correo || "";
+
+        return (
+          cliente.toLowerCase().includes(q) ||
+          servicio.toLowerCase().includes(q) ||
+          correo.toLowerCase().includes(q) ||
+          v.plataforma?.toLowerCase().includes(q) ||
+          v.perfil?.toLowerCase().includes(q)
+        );
+      });
+    }
+
+    // 🟦 FILTRO PLATAFORMA
+    if (platform?.value) {
       data = data.filter(v => v.plataforma === platform.value);
     }
 
-    // ORDEN SOLO 2 OPCIONES
-    if (sort.value === "fecha_vencimiento") {
+    // ⏳ SORT SOLO FECHAS
+    if (sort?.value === "fecha_vencimiento") {
       data.sort((a, b) =>
         new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
       );
     }
 
-    if (sort.value === "fecha_registro") {
+    if (sort?.value === "fecha_registro") {
       data.sort((a, b) =>
         new Date(a.fecha_registro) - new Date(b.fecha_registro)
       );
@@ -268,6 +280,7 @@ function setupEvents() {
     render(data);
   }
 
-  platform.addEventListener("change", apply);
-  sort.addEventListener("change", apply);
+  search?.addEventListener("input", apply);
+  platform?.addEventListener("change", apply);
+  sort?.addEventListener("change", apply);
 }
