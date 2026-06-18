@@ -5,59 +5,45 @@
   <link rel="stylesheet" href="style.css">
 </head>
 
-<!-- FLOAT MENU BUTTON -->
+<body>
+
 <div id="fab" onclick="toggleMenu()">☰</div>
 
-<!-- MENU PANEL -->
 <div id="sideMenu" class="side-menu">
-
-  <button onclick="go('index.html')">➕ Inicio</button>
-  <button onclick="go('ventas.html')">➕ Nueva venta</button>
-  <button onclick="go('compras.html')">📦 Nueva compra</button>
-  <button onclick="go('cuentas.html')">🎬 Cuentas disponibles</button>
-  <button onclick="go('registros.html')">📊 Registros</button>
-  <button onclick="go('clientes_proveedores.html')">👥 Clientes / Proveedores</button>
-
+  <button onclick="go('index.html')">Inicio</button>
+  <button onclick="go('ventas.html')">Ventas</button>
+  <button onclick="go('compras.html')">Compras</button>
+  <button onclick="go('cuentas.html')">Cuentas</button>
+  <button onclick="go('registros.html')">Registros</button>
+  <button onclick="go('clientes_proveedores.html')">Clientes</button>
 </div>
-  
-<body>
 
 <h2>Cuentas Propias</h2>
 
-<!-- FILTROS -->
-<input id="search" placeholder="Buscar...">
+<div class="toolbar">
 
-<select id="filterPlatform">
-  <option value="">Plataforma</option>
-</select>
+  <input id="search" placeholder="Buscar...">
 
-<button onclick="sortBy('vencimiento')">Orden Vencimiento</button>
-<button onclick="sortBy('disponibilidad')">Orden Disponibilidad</button>
+  <select id="filterPlatform">
+    <option value="">Plataforma</option>
+  </select>
+
+  <button onclick="sortBy('vencimiento')">Vencimiento</button>
+  <button onclick="sortBy('disponibilidad')">Disponibilidad</button>
+
+</div>
 
 <div id="container"></div>
 
 <script type="module" src="cuentas.js"></script>
+
 <script>
-window.toggleMenu = function () {
-  const menu = document.getElementById("sideMenu");
-  menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+window.toggleMenu = () => {
+  const m = document.getElementById("sideMenu");
+  m.style.display = m.style.display === "flex" ? "none" : "flex";
 };
-
-window.go = function (page) {
-  window.location.href = page;
-};
-
-// cerrar si das click fuera
-document.addEventListener("click", function (e) {
-  const menu = document.getElementById("sideMenu");
-  const fab = document.getElementById("fab");
-
-  if (!menu || !fab) return;
-
-  if (!menu.contains(e.target) && !fab.contains(e.target)) {
-    menu.style.display = "none";
-  }
-});
+window.go = (p) => location.href = p;
 </script>
+
 </body>
 </html>
