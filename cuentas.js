@@ -1,192 +1,407 @@
 import { supabase } from "./supabase.js";
 
+/* =========================
+   ESTADOS GLOBALES
+========================= */
 let cuentas = [];
+let ventas = [];
+let clientes = [];
+let proveedores = [];
+let servicios = [];
+
+let serviciosMap = {};
 let clientesMap = {};
 let proveedoresMap = {};
 
-// ================= INIT =================
-window.onload = async () => {
+/* =========================
+   INIT
+========================= */
+window.addEventListener("DOMContentLoaded", async () => {
+  setupEvents();
+
   await loadClientes();
   await loadProveedores();
+  await loadServicios();
+  await loadVentas();
   await loadCuentas();
+});
 
-  document.getElementById("search").addEventListener("input", render);
-};
+/* =========================
+   HELPERS
+========================= */
+const safe = (v) => (v === null || v === undefined ? "" : String(v));
 
-// ================= CLIENTES =================
+const get = (id) => document.getElementById(id);
+
+function parseDate(v) {
+  if (!v) return null;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function diffDays(v) {
+  const d = parseDate(v);
+  if (!d) return 9999;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  d.setHours(0,0,0,0);
+
+  return Math.ceil((d - today) / 86400000);
+}
+
+function colorByDate(v) {
+  const d = diffDays(v);
+  if (d <= 0) return "red";
+  if (d <= 2) return "yellow";
+  return "green";
+}
+
+/* =========================
+   LOAD DATA
+========================= */
 async function loadClientes() {
   const { data } = await supabase.from("clientes").select("*");
+  clientes = data || [];
 
-  (data || []).forEach(c => {
-    clientesMap[c.id_cliente] = c.nombre;
+  clientes.forEach(c => {
+    clientesMap[c.id_cliente] = c;
   });
 }
 
-// ================= PROVEEDORES =================
 async function loadProveedores() {
   const { data } = await supabase.from("proveedores").select("*");
+  proveedores = data || [];
 
-  (data || []).forEach(p => {
-    proveedoresMap[p.proveedor] = p.whatsapp;
+  proveedores.forEach(p => {
+    proveedoresMap[p.nombre] = p;
   });
 }
 
-// ================= CUENTAS =================
+async function loadServicios() {
+  const { data } = await supabase.from("conf_venta_cuenta_propia").select("*");
+  servicios = data || [];
+
+  servicios.forEach(s => {
+    serviciosMap[s.id_servicio] = s;
+  });
+}
+
+async function loadVentas() {
+  const { data } = await supabase.from("ventas").select("*");
+  ventas = data || [];
+}
+
 async function loadCuentas() {
   const { data } = await supabase.from("cuentas_propias").select("*");
+  cuentas = data || [];
 
-  // 🔥 eliminar duplicados por id_cuenta
-  const unique = [...new Map((data || []).map(c => [c.id_cuenta, c])).values()];
-
-  cuentas = unique;
   render();
 }
 
-// ================= RENDER =================
-async function render() {
+/* =========================
+   DISPONIBILIDAD
+========================= */
+function getDisponibilidad(cuenta) {
+  const usadas = ventas.filter(v =>
+    v.usuario_correo === cuenta.usuario_correo
+  ).length;
 
-  const container = document.getElementById("container");
+  const servicio = serviciosMap[cuenta.id_servicio];
+  const max = servicio?.capacidad || 0;
+
+  return {
+    usadas,
+    max,
+    full: usadas >= max
+  };
+}
+
+/* =========================
+   CLIENTES POR CUENTA
+========================= */
+function getClientesCuenta(cuenta) {
+  return ventas.filter(v =>
+    v.usuario_correo === cuenta.usuario_correo
+  );
+}
+
+/* =========================
+   SERVICIO NOMBRE
+========================= */
+function getServicioNombre(cuenta) {
+  const s = serviciosMap[cuenta.id_servicio];
+  return s?.servicio || "Servicio";
+}
+
+/* =========================
+   RENDER
+========================= */
+function render() {
+  const container = get("container");
   container.innerHTML = "";
 
-  const search = (document.getElementById("search").value || "").toLowerCase();
+  cuentas.forEach(cuenta => {
 
-  for (const c of cuentas) {
+    const disp = getDisponibilidad(cuenta);
+    const clientesCuenta = getClientesCuenta(cuenta);
+    const servicioNombre = getServicioNombre(cuenta);
 
-    // 🔥 ventas de esa cuenta
-    const { data: ventas } = await supabase
-      .from("ventas")
-      .select("*")
-      .eq("usuario_correo", c.correo_cuenta)
-      .eq("tipo_venta", "vcp");
-
-    const used = ventas?.length || 0;
-
-    const { data: conf } = await supabase
-      .from("conf_venta_cuenta_propia")
-      .select("*")
-      .eq("id_servicio", c.id_servicio)
-      .single();
-
-    const cap = conf?.cantidad || 5;
-
-    const clienteNames = (ventas || [])
-      .map(v => clientesMap[v.id_cliente])
-      .join(" ");
-
-    // ================= SEARCH REAL =================
-    const match =
-      !search ||
-      (c.correo_cuenta || "").toLowerCase().includes(search) ||
-      (c.proveedor || "").toLowerCase().includes(search) ||
-      (conf?.plataforma || "").toLowerCase().includes(search) ||
-      (conf?.servicio || "").toLowerCase().includes(search) ||
-      clienteNames.toLowerCase().includes(search);
-
-    if (!match) continue;
-
-    const wa = proveedoresMap[c.proveedor] || "";
+    const color = colorByDate(cuenta.fecha_vencimiento);
 
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = `card ${color}`;
+
+    const dotColor = disp.full ? "red" : "green";
 
     card.innerHTML = `
-      <div class="card-header" onclick="toggle(this)">
+      <div class="card-header" data-id="${cuenta.id}">
+
         <div>
-          <h3>${conf?.plataforma || ""} / ${conf?.servicio || ""}</h3>
-          <p>${c.correo_cuenta}</p>
-          <p>${c.proveedor}</p>
-          <p>${used}/${cap}</p>
-          <p>${c.fecha_vencimiento || ""}</p>
+          <h3>${servicioNombre}</h3>
+          <p><b>Usuario:</b> ${cuenta.usuario_correo}</p>
+          <p><b>Proveedor:</b> ${cuenta.proveedor || "-"}</p>
+          <p><b>Vence:</b> ${cuenta.fecha_vencimiento || "-"}</p>
         </div>
 
-        <div class="dot ${used >= cap ? 'red' : 'green'}"></div>
+        <div style="text-align:right;">
+          <div class="status ${dotColor}"></div>
+          <p>${disp.usadas}/${disp.max}</p>
+        </div>
+
       </div>
 
-      <div class="actions">
-        <button onclick="wa('${wa}','${c.correo_cuenta}')">WA</button>
-        <button onclick="editCorreo('${c.id_cuenta}')">✏️C</button>
-        <button onclick="editFecha('${c.id_cuenta}')">📅F</button>
-        <button onclick="delCuenta('${c.id_cuenta}')">🗑</button>
-      </div>
+      <div class="card-body hidden">
 
-      <div class="body hidden">
+        <div class="btn-grid">
+          <button onclick="whatsappProveedor('${cuenta.id}')">💬 WhatsApp</button>
+          <button onclick="editarCorreo('${cuenta.id}')">✏️ Editar correo</button>
+          <button onclick="editarFechaCuenta('${cuenta.id}')">📅 Vencimiento</button>
+          <button onclick="eliminarCuenta('${cuenta.id}')">🗑️ Eliminar</button>
+        </div>
 
-        ${(ventas || []).map(v => `
-          <div class="row">
-            <span>${clientesMap[v.id_cliente] || "cliente"} - ${v.perfil}</span>
-            <button class="mini" onclick="editCliente('${v.id_venta}')">✏</button>
-            <button class="mini danger" onclick="delCliente('${v.id_venta}')">x</button>
-          </div>
-        `).join("")}
+        <hr>
 
-        <button class="addBtn" onclick="addCliente('${c.id_cuenta}','${c.id_servicio}','${c.correo_cuenta}')">
-          + cliente
+        <h4>Clientes</h4>
+
+        ${
+          clientesCuenta.map(v => `
+            <div class="cliente-row">
+              <span>
+                ${v.cliente} - ${v.perfil} - ${v.fecha_vencimiento}
+              </span>
+
+              <div>
+                <button onclick="editarVenta('${v.id_venta}')">Editar</button>
+                <button onclick="eliminarVenta('${v.id_venta}')">Eliminar</button>
+              </div>
+            </div>
+          `).join("")
+        }
+
+        <button style="margin-top:10px; width:100%;"
+          onclick="abrirAgregarCliente('${cuenta.id}')">
+          ➕ Agregar cliente
         </button>
 
       </div>
     `;
 
     container.appendChild(card);
-  }
+  });
+
+  setupToggle();
 }
 
-// ================= TOGGLE =================
-window.toggle = (el) => {
-  el.parentElement.querySelector(".body").classList.toggle("hidden");
+/* =========================
+   TOGGLE CARD
+========================= */
+function setupToggle() {
+  document.querySelectorAll(".card-header").forEach(h => {
+    h.onclick = () => {
+      h.parentElement.querySelector(".card-body").classList.toggle("hidden");
+    };
+  });
+}
+
+/* =========================
+   WHATSAPP PROVEEDOR
+========================= */
+window.whatsappProveedor = (id) => {
+  const cuenta = cuentas.find(c => c.id === id);
+  if (!cuenta) return;
+
+  const prov = proveedoresMap[cuenta.proveedor];
+
+  const tel = prov?.whatsapp?.replace(/\D/g, "");
+  if (!tel) return alert("Proveedor sin WhatsApp");
+
+  const msg = `Hola Bull Streaming desea renovar esta cuenta ${cuenta.usuario_correo} de ${getServicioNombre(cuenta)}. ¿Puedo hacerlo?`;
+
+  window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
 };
 
-// ================= WHATSAPP =================
-window.wa = (num, correo) => {
-  if (!num) return alert("sin whatsapp proveedor");
+/* =========================
+   EDITAR CORREO (CASCADE)
+========================= */
+window.editarCorreo = async (id) => {
+  const cuenta = cuentas.find(c => c.id === id);
+  if (!cuenta) return;
 
-  window.open(`https://wa.me/${num}?text=${encodeURIComponent(
-    "Renovar cuenta " + correo
-  )}`);
+  const nuevo = prompt("Nuevo correo:", cuenta.usuario_correo);
+  if (!nuevo) return;
+
+  if (!confirm("Se cambiará en TODOS los clientes de esta cuenta. ¿Continuar?")) return;
+
+  await supabase
+    .from("ventas")
+    .update({ usuario_correo: nuevo })
+    .eq("usuario_correo", cuenta.usuario_correo);
+
+  await supabase
+    .from("cuentas_propias")
+    .update({ usuario_correo: nuevo })
+    .eq("id", id);
+
+  await loadVentas();
+  await loadCuentas();
 };
 
-// ================= EDIT CLIENTE =================
-window.editCliente = async (id) => {
-  const nuevoPerfil = prompt("Nuevo perfil");
-  const nuevaFecha = prompt("Nueva fecha (YYYY-MM-DD)");
+/* =========================
+   ELIMINAR CUENTA (CASCADE)
+========================= */
+window.eliminarCuenta = async (id) => {
+  const cuenta = cuentas.find(c => c.id === id);
+  if (!cuenta) return;
 
-  await supabase.from("ventas")
-    .update({ perfil: nuevoPerfil, fecha_vencimiento: nuevaFecha })
+  if (!confirm("Se eliminarán TODOS los clientes de esta cuenta. ¿Continuar?")) return;
+
+  await supabase
+    .from("ventas")
+    .delete()
+    .eq("usuario_correo", cuenta.usuario_correo);
+
+  await supabase
+    .from("cuentas_propias")
+    .delete()
+    .eq("id", id);
+
+  await loadVentas();
+  await loadCuentas();
+};
+
+/* =========================
+   EDITAR FECHA CUENTA
+========================= */
+window.editarFechaCuenta = async (id) => {
+  const nueva = prompt("Nueva fecha (YYYY-MM-DD)");
+  if (!nueva) return;
+
+  await supabase
+    .from("cuentas_propias")
+    .update({ fecha_vencimiento: nueva })
+    .eq("id", id);
+
+  await loadCuentas();
+};
+
+/* =========================
+   CLIENTES: EDITAR VENTA
+========================= */
+window.editarVenta = async (id) => {
+  const v = ventas.find(x => x.id_venta === id);
+  if (!v) return;
+
+  const perfil = prompt("Perfil:", v.perfil);
+  if (!perfil) return;
+
+  const fecha = prompt("Fecha vencimiento:", v.fecha_vencimiento);
+  if (!fecha) return;
+
+  await supabase
+    .from("ventas")
+    .update({ perfil, fecha_vencimiento: fecha })
     .eq("id_venta", id);
 
-  loadCuentas();
+  await loadVentas();
+  render();
 };
 
-// ================= DELETE CLIENTE =================
-window.delCliente = async (id) => {
-  await supabase.from("ventas")
+/* =========================
+   ELIMINAR VENTA
+========================= */
+window.eliminarVenta = async (id) => {
+  if (!confirm("Eliminar cliente de la cuenta?")) return;
+
+  await supabase
+    .from("ventas")
     .delete()
     .eq("id_venta", id);
 
-  loadCuentas();
+  await loadVentas();
+  render();
 };
 
-// ================= ADD CLIENTE =================
-window.addCliente = async (idCuenta, idServicio, correo) => {
+/* =========================
+   AGREGAR CLIENTE
+========================= */
+window.abrirAgregarCliente = (idCuenta) => {
+  const modal = get("modalAgregarCliente");
+  const select = get("addCliente");
 
-  const cliente = prompt("ID cliente");
-  const perfil = prompt("Perfil");
-  const fecha = prompt("Fecha vencimiento");
+  select.innerHTML = clientes.map(c =>
+    `<option value="${c.id_cliente}">${c.nombre}</option>`
+  ).join("");
+
+  get("addCuentaId").value = idCuenta;
+
+  modal.showModal();
+};
+
+get("formAgregarCliente").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const idCuenta = get("addCuentaId").value;
+  const clienteId = get("addCliente").value;
+  const perfil = get("addPerfil").value;
+  const fecha = get("addFechaVencimiento").value;
+
+  const cuenta = cuentas.find(c => c.id === idCuenta);
+  const cliente = clientesMap[clienteId];
 
   await supabase.from("ventas").insert([{
-    id_venta: crypto.randomUUID(),
-    tipo_venta: "vcp",
-    id_cliente: cliente,
-    id_servicio: idServicio,
-    usuario_correo: correo,
+    cliente: cliente.nombre,
+    id_cliente: clienteId,
+    usuario_correo: cuenta.usuario_correo,
+    plataforma: cuenta.plataforma,
+    id_servicio: cuenta.id_servicio,
     perfil,
-    fecha_vencimiento: fecha,
-    estado: "Activa"
+    fecha_vencimiento: fecha
   }]);
 
-  loadCuentas();
-};
+  get("modalAgregarCliente").close();
 
-// ================= PLACEHOLDERS =================
-window.editCorreo = async (id) => alert("editar correo pendiente");
-window.editFecha = async (id) => alert("editar fecha pendiente");
-window.delCuenta = async (id) => alert("delete cuenta pendiente");
+  await loadVentas();
+  render();
+});
+
+/* =========================
+   CLOSE MODALS
+========================= */
+document.querySelectorAll("[data-modal-close]").forEach(btn => {
+  btn.onclick = () => {
+    const modal = document.getElementById(btn.dataset.modalClose);
+    modal?.close();
+  };
+});
+
+/* =========================
+   EVENTOS
+========================= */
+function setupEvents() {
+  const search = get("search");
+  const platform = get("filterPlatform");
+
+  search?.addEventListener("input", render);
+  platform?.addEventListener("change", render);
+}
