@@ -1,139 +1,400 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Nueva Venta</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Registros de Ventas</title>
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 
-<body>
+<body class="page-registros">
 
-<!-- MENU FLOTANTE -->
-<div id="fab" onclick="toggleMenu()">☰</div>
+  <!-- =========================
+       MENÚ FLOTANTE
+  ========================== -->
+  <button id="fab" class="fab" type="button" onclick="toggleMenu()" aria-label="Abrir menú">
+    ☰
+  </button>
 
-<div id="sideMenu" class="side-menu">
-  <button onclick="go('index.html')">Inicio</button>
-  <button onclick="go('ventas.html')">Ventas</button>
-  <button onclick="go('compras.html')">Compras</button>
-  <button onclick="go('cuentas.html')">Cuentas</button>
-  <button onclick="go('registros.html')">Registros</button>
-  <button onclick="go('clientes_proveedores.html')">Clientes</button>
-</div>
+  <nav id="sideMenu" class="side-menu" aria-label="Menú principal">
+    <button type="button" onclick="go('index.html')">Inicio</button>
+    <button type="button" onclick="go('ventas.html')">Ventas</button>
+    <button type="button" onclick="go('compras.html')">Compras</button>
+    <button type="button" onclick="go('cuentas.html')">Cuentas</button>
+    <button type="button" onclick="go('registros.html')">Registros</button>
+    <button type="button" onclick="go('clientes_proveedores.html')">Clientes</button>
+  </nav>
 
-<!-- HEADER -->
-<div class="header">
-  <h2>Nueva Venta</h2>
-  <p class="subtitle">Gestión de ventas VI / VCP</p>
-</div>
 
-<!-- SWITCH MODE -->
-<div class="mode-switch">
-<button id="btnVI" onclick="setMode('VI')">Venta Independiente</button>
-<button id="btnVCP" onclick="setMode('VCP')">Cuenta Propia</button>
+  <!-- =========================
+       CONTENIDO PRINCIPAL
+  ========================== -->
+  <main class="registros-page">
 
-</div>
+    <!-- HEADER -->
+    <header class="header registros-header">
+      <h2>Registros de Ventas</h2>
+      <p class="subtitle">
+        Consulta, ordena, filtra y gestiona las ventas registradas.
+      </p>
+    </header>
 
-<!-- BOTÓN PARSER -->
-<div class="parser-btn">
-  <button onclick="toggleParser()">📋 Insertar texto de cuenta</button>
-</div>
 
-<!-- FORM CARD -->
-<div class="form-card">
+    <!-- =========================
+         FILTROS Y ORDENAMIENTO
+    ========================== -->
+    <section class="registros-toolbar" aria-label="Filtros de registros">
 
-  <div class="grid">
+      <div class="toolbar-row">
 
-    <div>
-      <label>Cliente</label>
-      <select id="cliente"></select>
+        <div class="field field-platform">
+          <label for="plataforma" class="sr-only">Filtrar por plataforma</label>
+
+          <select id="plataforma" name="plataforma">
+            <option value="">Plataforma</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="toolbar-row">
+
+        <div class="field field-search">
+          <label for="search" class="sr-only">Buscar venta</label>
+
+          <input
+            id="search"
+            name="search"
+            type="search"
+            autocomplete="off"
+            placeholder="Buscar por cliente, plataforma, servicio, correo, perfil, fecha o estado..."
+          />
+        </div>
+
+      </div>
+
+      <div class="toolbar-row toolbar-actions">
+
+        <button
+          id="btnOrdenRegistro"
+          class="primary"
+          type="button"
+          data-sort="fecha_registro"
+          aria-label="Ordenar por fecha de registro"
+        >
+          Orden Registro
+        </button>
+
+        <button
+          id="btnOrdenVencimiento"
+          class="primary"
+          type="button"
+          data-sort="fecha_vencimiento"
+          aria-label="Ordenar por fecha de vencimiento"
+        >
+          Orden Vencimiento
+        </button>
+
+        <button
+          id="btnLimpiarFiltros"
+          class="secondary"
+          type="button"
+          aria-label="Limpiar filtros"
+        >
+          Limpiar
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         RESUMEN OPCIONAL
+    ========================== -->
+    <section id="resumenRegistros" class="resumen-registros" aria-label="Resumen de ventas">
+
+      <div class="resumen-card">
+        <span class="resumen-label">Total</span>
+        <strong id="totalVentas">0</strong>
+      </div>
+
+      <div class="resumen-card">
+        <span class="resumen-label">Activas</span>
+        <strong id="ventasActivas">0</strong>
+      </div>
+
+      <div class="resumen-card">
+        <span class="resumen-label">Por vencer</span>
+        <strong id="ventasPorVencer">0</strong>
+      </div>
+
+      <div class="resumen-card">
+        <span class="resumen-label">Vencidas</span>
+        <strong id="ventasVencidas">0</strong>
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         ESTADOS DE CARGA
+    ========================== -->
+    <div id="loader" class="state-box">
+      Cargando registros...
     </div>
 
-    <div>
-      <label>Plataforma</label>
-      <select id="plataforma" onchange="loadServicios()"></select>
+    <div id="emptyState" class="state-box" hidden>
+      No se encontraron ventas con los filtros actuales.
     </div>
 
-    <div>
-      <label>Servicio</label>
-      <select id="servicio"></select>
-    </div>
 
-    <div>
-      <label>Usuario / Correo</label>
-      <input id="correo" placeholder="correo@ejemplo.com">
-    </div>
+    <!-- =========================
+         CONTENEDOR DE TARJETAS
+    ========================== -->
+    <section
+      id="container"
+      class="registros-grid"
+      aria-live="polite"
+      aria-label="Lista de registros de ventas"
+    >
+      <!-- Las tarjetas se generan desde registros.js -->
+    </section>
 
-    <div>
-      <label>Perfil</label>
-      <input id="perfil" placeholder="Perfil asignado">
-    </div>
+  </main>
 
-    <div>
-      <label>Fecha vencimiento</label>
-      <input id="vencimiento" type="date">
-    </div>
 
-    <div>
-      <label>Proveedor (VCP)</label>
-      <select id="proveedor" style="display:none"></select>
-    </div>
+  <!-- =========================
+       TEMPLATE TARJETA VENTA
+       El JS lo puede clonar para mantener el orden exacto:
+       1. Cliente
+       2. Plataforma / Servicio
+       3. Usuario correo
+       4. Fecha vencimiento
+  ========================== -->
+  <template id="ventaCardTemplate">
 
-    <div>
-      <label>Ganancia</label>
-      <input id="ganancia" placeholder="0.00">
+    <article class="venta-card" tabindex="0">
+
+      <div class="venta-card-main">
+
+        <div class="venta-line venta-cliente">
+          <span class="venta-label">Cliente</span>
+          <strong data-cliente></strong>
+        </div>
+
+        <div class="venta-line venta-servicio">
+          <span class="venta-label">Plataforma / Servicio</span>
+          <strong data-plataforma-servicio></strong>
+        </div>
+
+        <div class="venta-line venta-correo">
+          <span class="venta-label">Usuario</span>
+          <strong data-usuario-correo></strong>
+        </div>
+
+        <div class="venta-line venta-vencimiento">
+          <span class="venta-label">Fecha vencimiento</span>
+          <strong data-fecha-vencimiento></strong>
+        </div>
+
+      </div>
+
+      <div class="venta-card-extra" hidden>
+
+        <div class="venta-extra-info">
+
+          <div>
+            <span>Perfil</span>
+            <strong data-perfil></strong>
+          </div>
+
+          <div>
+            <span>Tipo venta</span>
+            <strong data-tipo-venta></strong>
+          </div>
+
+          <div>
+            <span>Fecha registro</span>
+            <strong data-fecha-registro></strong>
+          </div>
+
+          <div>
+            <span>Estado</span>
+            <strong data-estado></strong>
+          </div>
+
+        </div>
+
+        <div class="venta-actions">
+
+          <button
+            class="btn-card btn-whatsapp"
+            type="button"
+            data-action="whatsapp"
+          >
+            WhatsApp
+          </button>
+
+          <button
+            class="btn-card btn-renovar"
+            type="button"
+            data-action="renovar"
+          >
+            Renovar
+          </button>
+
+          <button
+            class="btn-card btn-editar"
+            type="button"
+            data-action="editar"
+          >
+            Editar
+          </button>
+
+          <button
+            class="btn-card btn-eliminar"
+            type="button"
+            data-action="eliminar"
+          >
+            Eliminar
+          </button>
+
+        </div>
+
+      </div>
+
+    </article>
+
+  </template>
+
+
+  <!-- =========================
+       MODAL EDITAR / RENOVAR
+       Lo dejamos listo para el JS.
+  ========================== -->
+  <div id="ventaModal" class="modal" hidden>
+
+    <div class="modal-content venta-modal-content">
+
+      <div class="modal-header">
+        <h3 id="ventaModalTitle">Editar venta</h3>
+
+        <button
+          id="btnCerrarModal"
+          class="modal-close"
+          type="button"
+          aria-label="Cerrar"
+        >
+          ✕
+        </button>
+      </div>
+
+      <form id="ventaForm">
+
+        <input type="hidden" id="modalIdVenta" />
+
+        <div class="grid">
+
+          <div>
+            <label for="modalCliente">Cliente</label>
+            <select id="modalCliente" name="modalCliente"></select>
+          </div>
+
+          <div>
+            <label for="modalPlataforma">Plataforma</label>
+            <input id="modalPlataforma" name="modalPlataforma" type="text" readonly />
+          </div>
+
+          <div>
+            <label for="modalServicio">Servicio</label>
+            <input id="modalServicio" name="modalServicio" type="text" readonly />
+          </div>
+
+          <div>
+            <label for="modalUsuarioCorreo">Usuario / Correo</label>
+            <input id="modalUsuarioCorreo" name="modalUsuarioCorreo" type="text" />
+          </div>
+
+          <div>
+            <label for="modalPerfil">Perfil</label>
+            <input id="modalPerfil" name="modalPerfil" type="text" />
+          </div>
+
+          <div>
+            <label for="modalFechaVencimiento">Fecha vencimiento</label>
+            <input id="modalFechaVencimiento" name="modalFechaVencimiento" type="date" />
+          </div>
+
+          <div>
+            <label for="modalGanancia">Ganancia</label>
+            <input id="modalGanancia" name="modalGanancia" type="number" step="0.01" />
+          </div>
+
+          <div>
+            <label for="modalEstado">Estado</label>
+            <select id="modalEstado" name="modalEstado">
+              <option value="Activa">Activa</option>
+              <option value="Renovada">Renovada</option>
+              <option value="Vencida">Vencida</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="modal-actions">
+
+          <button id="btnGuardarVenta" class="primary" type="submit">
+            Guardar cambios
+          </button>
+
+          <button id="btnCancelarModal" class="secondary" type="button">
+            Cancelar
+          </button>
+
+        </div>
+
+      </form>
+
     </div>
 
   </div>
 
-  <div class="actions">
-    <button class="primary" onclick="saveVenta()">💾 Guardar Venta</button>
-  </div>
 
-</div>
+  <!-- =========================
+       TOAST / MENSAJES
+  ========================== -->
+  <div id="toast" class="toast" hidden></div>
 
-<!-- PARSER MODAL -->
-<div id="parserBox" class="modal" style="display:none">
 
-  <div class="modal-content">
+  <!-- =========================
+       SCRIPT PRINCIPAL
+  ========================== -->
+  <script type="module" src="registros.js"></script>
 
-    <h3>Insertar cuenta</h3>
 
-    <textarea id="texto" placeholder="Pega aquí la cuenta..."></textarea>
+  <!-- =========================
+       FUNCIONES BÁSICAS DEL MENÚ
+       No ponemos sortBy aquí para evitar el error:
+       "sortBy is not defined".
+       Eso lo manejaremos correctamente en registros.js.
+  ========================== -->
+  <script>
+    window.toggleMenu = () => {
+      const menu = document.getElementById("sideMenu");
 
-    <div class="modal-actions">
-      <button onclick="pasteText()">📋 Pegar</button>
-      <button onclick="clearText()">🧹 Limpiar</button>
-      <button onclick="parseText()">🔍 Detectar</button>
-      <button onclick="toggleParser()">❌ Cerrar</button>
-    </div>
+      if (!menu) return;
 
-  </div>
+      menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+    };
 
-</div>
-
-<script type="module" src="ventas.js"></script>
-
-<script>
-window.toggleMenu = () => {
-  const m = document.getElementById("sideMenu");
-  m.style.display = m.style.display === "flex" ? "none" : "flex";
-};
-
-window.go = (p) => location.href = p;
-
-window.toggleParser = () => {
-  const p = document.getElementById("parserBox");
-  p.style.display = p.style.display === "flex" ? "none" : "flex";
-};
-
-window.pasteText = async () => {
-  const t = await navigator.clipboard.readText();
-  document.getElementById("texto").value = t;
-};
-
-window.clearText = () => {
-  document.getElementById("texto").value = "";
-};
-</script>
+    window.go = (page) => {
+      location.href = page;
+    };
+  </script>
 
 </body>
 </html>
