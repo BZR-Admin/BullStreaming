@@ -22,7 +22,7 @@ window.onload = async () => {
 async function loadClientes(){
 
   const data = await safe(
-    supabase.from("Clientes").select("*")
+    supabase.from("clientes").select("*")
   );
 
   clientesMap = {};
@@ -35,7 +35,7 @@ async function loadClientes(){
 async function loadCuentas(){
 
   cuentas = await safe(
-    supabase.from("Cuentas_Propias").select("*")
+    supabase.from("cuentas_propias").select("*")
   );
 
   render();
@@ -102,7 +102,7 @@ async function render(){
 // ================= CLIENTES =================
 async function getClientes(correo){
   return await safe(
-    supabase.from("Ventas")
+    supabase.from("ventas")
     .select("*")
     .eq("usuario_correo",correo)
     .eq("tipo_venta","VCP")
@@ -112,7 +112,7 @@ async function getClientes(correo){
 // ================= USED =================
 async function getUsed(correo,id){
   const {count} = await supabase
-  .from("Ventas")
+  .from("ventas")
   .select("*",{count:"exact",head:true})
   .eq("usuario_correo",correo)
   .eq("id_servicio",id);
@@ -123,7 +123,7 @@ async function getUsed(correo,id){
 // ================= CAP =================
 async function getCap(id){
   const d = await safe(
-    supabase.from("Conf_Venta_Cuenta_Propia")
+    supabase.from("conf_venta_cuenta_propia")
     .select("cantidad")
     .eq("id_servicio",id)
     .single()
