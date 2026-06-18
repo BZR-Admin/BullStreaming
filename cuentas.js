@@ -98,6 +98,13 @@ async function loadCuentas() {
 }
 
 /* =========================
+   CORREO REAL
+========================= */
+function getCorreo(c) {
+  return safe(c.correo_cuenta);
+}
+
+/* =========================
    SERVICIO
 ========================= */
 function getServicio(cuenta) {
@@ -105,16 +112,10 @@ function getServicio(cuenta) {
 }
 
 /* =========================
-   CORREO (FIX IMPORTANTE)
-========================= */
-function getCorreo(c) {
-  return safe(c.correo_cuenta || c.usuario_correo);
-}
-
-/* =========================
-   DISPONIBILIDAD REAL
+   DISPONIBILIDAD (ARREGLADO)
 ========================= */
 function getDisponibilidad(cuenta) {
+
   const correo = getCorreo(cuenta);
 
   const usadas = ventas.filter(v =>
@@ -122,7 +123,8 @@ function getDisponibilidad(cuenta) {
   ).length;
 
   const servicio = getServicio(cuenta);
-  const max = servicio?.cantidad || 0;
+
+  const max = servicio?.capacidad || 0; // 🔥 FIX REAL DEL EXCEL
 
   return {
     usadas,
@@ -132,7 +134,7 @@ function getDisponibilidad(cuenta) {
 }
 
 /* =========================
-   CLIENTES CUENTA
+   CLIENTES POR CUENTA
 ========================= */
 function getClientesCuenta(cuenta) {
   const correo = getCorreo(cuenta);
@@ -146,6 +148,7 @@ function getClientesCuenta(cuenta) {
    RENDER
 ========================= */
 function render(data) {
+
   const container = document.getElementById("container");
   container.innerHTML = "";
 
@@ -193,19 +196,21 @@ function render(data) {
         <h4>Clientes</h4>
 
         ${
-          clientesCuenta.map(v => `
-            <div class="cliente-row">
-              <span>${v.cliente} - ${v.perfil} - ${v.fecha_vencimiento}</span>
-              <div>
-                <button onclick="editarVenta('${v.id_venta}')">Editar</button>
-                <button onclick="eliminarVenta('${v.id_venta}')">Eliminar</button>
-              </div>
-            </div>
-          `).join("")
+          clientesCuenta.length === 0
+            ? `<p style="opacity:0.6">Sin clientes</p>`
+            : clientesCuenta.map(v => `
+                <div class="cliente-row">
+                  <span>${v.cliente} - ${v.perfil} - ${v.fecha_vencimiento}</span>
+                  <div>
+                    <button onclick="editarVenta('${v.id_venta}')">Editar</button>
+                    <button onclick="eliminarVenta('${v.id_venta}')">Eliminar</button>
+                  </div>
+                </div>
+              `).join("")
         }
 
         <button style="width:100%; margin-top:10px;"
-          onclick="abrirModal('${cuenta.id_cuenta}')">
+          onclick="abrirModalAgregar('${cuenta.id_cuenta}')">
           + Agregar cliente
         </button>
 
@@ -230,9 +235,10 @@ function setupToggle() {
 }
 
 /* =========================
-   WHATSAPP (FIX)
+   WHATSAPP
 ========================= */
 window.whatsappProveedor = (id) => {
+
   const c = cuentas.find(x => x.id_cuenta === id);
   if (!c) return;
 
@@ -241,20 +247,19 @@ window.whatsappProveedor = (id) => {
 
   if (!tel) return alert("Proveedor sin WhatsApp");
 
-  const msg = `Hola Bull Streaming desea renovar esta cuenta ${getCorreo(c)} de ${c.id_servicio}`;
+  const msg = `Hola Bull Streaming desea renovar la cuenta ${getCorreo(c)}`;
 
   window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
 };
 
 /* =========================
-   EDITAR CORREO (CASCADE FIX)
+   EDITAR CORREO
 ========================= */
 window.editarCorreo = async (id) => {
+
   const c = cuentas.find(x => x.id_cuenta === id);
   const nuevo = prompt("Nuevo correo:", getCorreo(c));
   if (!nuevo) return;
-
-  if (!confirm("Esto actualizará TODOS los clientes de esta cuenta")) return;
 
   const old = getCorreo(c);
 
@@ -271,14 +276,14 @@ window.editarCorreo = async (id) => {
 };
 
 /* =========================
-   ELIMINAR CUENTA
+   ELIMINAR
 ========================= */
 window.eliminarCuenta = async (id) => {
+
   const c = cuentas.find(x => x.id_cuenta === id);
-
-  if (!confirm("Eliminar cuenta y todos sus clientes?")) return;
-
   const correo = getCorreo(c);
+
+  if (!confirm("Eliminar cuenta y clientes?")) return;
 
   await supabase.from("ventas")
     .delete()
@@ -293,10 +298,11 @@ window.eliminarCuenta = async (id) => {
 };
 
 /* =========================
-   EDITAR FECHA
+   FECHA
 ========================= */
 window.editarFecha = async (id) => {
-  const nueva = prompt("Nueva fecha YYYY-MM-DD");
+
+  const nueva = prompt("Fecha YYYY-MM-DD");
   if (!nueva) return;
 
   await supabase.from("cuentas_propias")
@@ -307,22 +313,61 @@ window.editarFecha = async (id) => {
 };
 
 /* =========================
-   SEARCH + SORT + FILTER (FIX CLAVE)
+   EDITAR / ELIMINAR CLIENTES
+========================= */
+window.editarVenta = async (id) => {
+
+  const v = ventas.find(x => x.id_venta === id);
+  if (!v) return;
+
+  const perfil = prompt("Perfil:", v.perfil);
+  const fecha = prompt("Fecha:", v.fecha_vencimiento);
+
+  await supabase.from("ventas")
+    .update({ perfil, fecha_vencimiento: fecha })
+    .eq("id_venta", id);
+
+  await loadVentas();
+  applyView();
+};
+
+window.eliminarVenta = async (id) => {
+
+  if (!confirm("Eliminar cliente?")) return;
+
+  await supabase.from("ventas")
+    .delete()
+    .eq("id_venta", id);
+
+  await loadVentas();
+  applyView();
+};
+
+/* =========================
+   MODAL FIX (evita error)
+========================= */
+window.abrirModalAgregar = (id) => {
+  const modal = document.getElementById("modalAgregarCliente");
+  const input = document.getElementById("addCuentaId");
+
+  input.value = id;
+  modal.showModal();
+};
+
+/* =========================
+   SEARCH + SORT (FIX FINAL)
 ========================= */
 function applyView() {
+
   const q = (document.getElementById("search")?.value || "").toLowerCase();
 
   let data = [...cuentas];
 
   if (q) {
-    data = data.filter(c => {
-      const correo = getCorreo(c);
-      return (
-        correo.toLowerCase().includes(q) ||
-        (c.proveedor || "").toLowerCase().includes(q) ||
-        (c.id_servicio || "").toLowerCase().includes(q)
-      );
-    });
+    data = data.filter(c =>
+      getCorreo(c).toLowerCase().includes(q) ||
+      (c.proveedor || "").toLowerCase().includes(q)
+    );
   }
 
   const sort = document.getElementById("sortBy")?.value;
@@ -330,6 +375,12 @@ function applyView() {
   if (sort === "fecha_vencimiento") {
     data.sort((a,b) =>
       new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
+    );
+  }
+
+  if (sort === "disponibilidad") {
+    data.sort((a,b) =>
+      getDisponibilidad(b).usadas - getDisponibilidad(a).usadas
     );
   }
 
@@ -342,5 +393,4 @@ function applyView() {
 function setupEvents() {
   document.getElementById("search")?.addEventListener("input", applyView);
   document.getElementById("sortBy")?.addEventListener("change", applyView);
-  document.getElementById("filterPlatform")?.addEventListener("change", applyView);
 }
