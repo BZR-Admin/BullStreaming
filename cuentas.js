@@ -61,6 +61,7 @@ function colorByDate(v) {
 async function loadClientes() {
   const { data } = await supabase.from("clientes").select("*");
   clientes = data || [];
+   applyView();
 
   clientes.forEach(c => {
     clientesMap[c.id_cliente] = c;
@@ -70,6 +71,7 @@ async function loadClientes() {
 async function loadProveedores() {
   const { data } = await supabase.from("proveedores").select("*");
   proveedores = data || [];
+   applyView();
 
   proveedores.forEach(p => {
     proveedoresMap[p.proveedor] = p;
@@ -79,6 +81,7 @@ async function loadProveedores() {
 async function loadServicios() {
   const { data } = await supabase.from("conf_venta_cuenta_propia").select("*");
   servicios = data || [];
+   applyView();
 
   servicios.forEach(s => {
     serviciosMap[s.id_servicio] = s;
@@ -88,6 +91,7 @@ async function loadServicios() {
 async function loadVentas() {
   const { data } = await supabase.from("ventas").select("*");
   ventas = data || [];
+   applyView();
 }
 
 async function loadCuentas() {
@@ -269,6 +273,16 @@ window.abrirModal = (idCuenta) => {
   modal.showModal();
 };
 
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-modal-close]");
+  if (!btn) return;
+
+  const modalId = btn.dataset.modalClose;
+  const modal = document.getElementById(modalId);
+
+  if (modal) modal.close();
+});
+
 /* =========================
    EDITAR CORREO (CASCADE)
 ========================= */
@@ -369,17 +383,23 @@ function applyView() {
 
   const sort = document.getElementById("sortBy")?.value;
 
-  if (sort === "fecha_vencimiento") {
-    data.sort((a, b) =>
-      new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
-    );
-  }
+   if (sort === "plataforma") {
+  data.sort((a, b) =>
+    getPlataforma(a).localeCompare(getPlataforma(b))
+  );
+}
 
-  if (sort === "disponibilidad") {
-    data.sort((a, b) =>
-      getDisponibilidad(b).free - getDisponibilidad(a).free
-    );
-  }
+if (sort === "fecha_vencimiento") {
+  data.sort((a, b) =>
+    new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
+  );
+}
+
+if (sort === "disponibilidad") {
+  data.sort((a, b) =>
+    getDisponibilidad(b).free - getDisponibilidad(a).free
+  );
+}
 
   render(data);
 }
