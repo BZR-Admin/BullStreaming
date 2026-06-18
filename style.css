@@ -460,8 +460,6 @@ select {
 
 .card{background:#0f172a;color:white;margin:10px;border-radius:12px;overflow:hidden}
 .card-header{display:flex;justify-content:space-between;padding:10px;cursor:pointer}
-.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;padding:8px}
-.actions button{font-size:11px;padding:6px;border-radius:6px;border:none}
 .body{padding:10px}
 .row{display:flex;justify-content:space-between;font-size:11px;margin:5px 0}
 .add{margin-top:10px;width:100%;padding:6px}
