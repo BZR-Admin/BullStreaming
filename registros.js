@@ -145,17 +145,21 @@ function setupPlatformOptions() {
 
 // ===================== SERVICIO POR ID =====================
 function getServicioNombre(v) {
-  const idServicio = normalizeId(v.id_servicio);
-  const servicioDesdeConf = serviciosMap[idServicio]?.servicio;
 
-  return (
-    safe(v.servicio_nombre) ||
-    safe(v.servicio) ||
-    safe(v.plan) ||
-    safe(servicioDesdeConf) ||
-    safe(v.id_servicio) ||
-    "Servicio"
-  );
+  const id = normalizeId(v.id_servicio);
+
+  const conf = serviciosMap[id];
+
+  if (conf?.servicio) {
+    return conf.servicio; // 👈 SIEMPRE NOMBRE REAL
+  }
+
+  // fallback limpio
+  if (v.servicio_nombre) return v.servicio_nombre;
+  if (v.servicio) return v.servicio;
+  if (v.plan) return v.plan;
+
+  return "Servicio";
 }
 
 // ===================== CLIENTE POR ID =====================
@@ -380,30 +384,44 @@ window.renovar = async (id) => {
 
 // ===================== EDITAR =====================
 window.editar = async (id) => {
-  const campo = prompt("usuario / perfil / fecha");
-  const valor = prompt("nuevo valor");
 
-  if (!campo || !valor) return;
+  const venta = getVentaById(id);
+  if (!venta) return;
 
-  let update = {};
+  // 1. PERFIL
+  const nuevoPerfil = prompt(
+    `Perfil actual: ${venta.perfil}\n\nEscribe el nuevo perfil:`,
+    venta.perfil
+  );
 
-  if (campo === "usuario") update.usuario_correo = valor;
-  if (campo === "perfil") update.perfil = valor;
-  if (campo === "fecha") update.fecha_vencimiento = valor;
+  if (!nuevoPerfil) return;
 
-  if (Object.keys(update).length === 0) {
-    alert("Campo no válido.");
-    return;
-  }
+  // 2. FECHA (INPUT DATE NATIVO)
+  const input = document.createElement("input");
+  input.type = "date";
+  input.value = venta.fecha_vencimiento;
+
+  const ok = confirm("Selecciona la nueva fecha y luego presiona ACEPTAR");
+
+  if (!ok) return;
+
+  const nuevaFecha = prompt(
+    "Escribe la fecha en formato YYYY-MM-DD o déjalo igual:",
+    venta.fecha_vencimiento
+  );
+
+  if (!nuevaFecha) return;
 
   await supabase
     .from("ventas")
-    .update(update)
+    .update({
+      perfil: nuevoPerfil,
+      fecha_vencimiento: nuevaFecha
+    })
     .eq("id_venta", id);
 
   await loadVentas();
 };
-
 // ===================== ELIMINAR =====================
 window.eliminar = async (id) => {
   if (!confirm("¿Eliminar venta?")) return;
