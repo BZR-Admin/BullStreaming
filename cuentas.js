@@ -305,7 +305,7 @@ function setupAgregarCliente() {
     await loadVentas();
     applyView();
   });
-}
+
     document.getElementById("modalAgregarCliente").close();
 
     await loadVentas();
