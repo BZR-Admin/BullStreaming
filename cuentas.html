@@ -1,47 +1,184 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Cuentas Propias</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cuentas propias | Bull Streaming</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-<div id="fab" onclick="toggleMenu()">☰</div>
+<!-- BOTÓN MENÚ -->
+<button id="fab" type="button">☰</button>
 
-<div id="sideMenu" class="side-menu">
-  <button onclick="go('index.html')">Inicio</button>
-  <button onclick="go('ventas.html')">Ventas</button>
-  <button onclick="go('compras.html')">Compras</button>
-  <button onclick="go('cuentas.html')">Cuentas</button>
-  <button onclick="go('registros.html')">Registros</button>
-  <button onclick="go('clientes_proveedores.html')">Clientes</button>
-</div>
+<!-- MENÚ -->
+<nav id="sideMenu" class="side-menu">
 
-  
-<h2>Cuentas Propias</h2>
+  <button type="button" onclick="location.href='index.html'">Inicio</button>
+  <button type="button" onclick="location.href='ventas.html'">Nueva venta</button>
+  <button type="button" onclick="location.href='cuentas.html'">Cuentas</button>
+  <button type="button" onclick="location.href='registros.html'">Registros</button>
 
-<div class="toolbar">
-  <input id="search" placeholder="Buscar cliente / proveedor / usuario">
+</nav>
 
-  <select id="filterPlatform">
-    <option value="">Plataforma</option>
+<!-- =========================
+     TÍTULO
+========================= -->
+<header style="margin-bottom:15px;">
+  <h1>Cuentas propias</h1>
+  <p style="opacity:0.75; font-size:14px; line-height:1.4;">
+    Inventario de cuentas completas adquiridas a proveedores.
+  </p>
+</header>
+
+<!-- =========================
+     CONTROLES
+========================= -->
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
+
+  <!-- BUSCADOR -->
+  <input
+    id="search"
+    type="text"
+    placeholder="Buscar plataforma, servicio, correo, proveedor..."
+    style="flex:1; padding:10px; border-radius:10px;"
+  />
+
+  <!-- FILTRO PLATAFORMA -->
+  <select id="filterPlatform" style="padding:10px; border-radius:10px;">
+    <option value="">Todas las plataformas</option>
   </select>
 
-  <button onclick="sortBy('vencimiento')">Vencimiento</button>
-  <button onclick="sortBy('disponibilidad')">Disponibilidad</button>
+  <!-- ORDEN -->
+  <select id="sortBy" style="padding:10px; border-radius:10px;">
+    <option value="fecha_vencimiento">Ordenar por vencimiento</option>
+    <option value="disponibilidad">Ordenar por disponibilidad</option>
+  </select>
+
 </div>
 
+<!-- =========================
+     LEYENDA
+========================= -->
+<section
+  style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:15px; font-size:13px; opacity:0.9;"
+  aria-label="Leyenda de estados"
+>
+  <span><b>Rojo:</b> vence hoy o vencida</span>
+  <span><b>Amarillo:</b> faltan 1 a 2 días</span>
+  <span><b>Verde:</b> faltan más de 2 días</span>
+
+  <span style="display:flex; align-items:center; gap:6px;">
+    <span class="status green" aria-hidden="true"></span>
+    Disponible
+  </span>
+
+  <span style="display:flex; align-items:center; gap:6px;">
+    <span class="status red" aria-hidden="true"></span>
+    Llena
+  </span>
+</section>
+
+<!-- =========================
+     CONTENEDOR DE TARJETAS
+     El JS renderizará aquí las cuentas_propias
+========================= -->
 <div id="container"></div>
 
+<!-- =========================
+     MODAL: EDITAR CLIENTE/VENTA
+     Se usará para editar perfil y fecha de vencimiento
+========================= -->
+<dialog id="modalEditarCliente" class="app-modal">
+  <form id="formEditarCliente" method="dialog">
+    <h2>Editar cliente de la cuenta</h2>
+
+    <input id="editVentaId" type="hidden" />
+
+    <label for="editPerfil">Nuevo perfil</label>
+    <input
+      id="editPerfil"
+      type="text"
+      placeholder="Ejemplo: Bull A"
+      autocomplete="off"
+      required
+    />
+
+    <label for="editFechaVencimiento">Nueva fecha de vencimiento</label>
+    <input id="editFechaVencimiento" type="date" required />
+
+    <div class="btn-grid">
+      <button type="submit" value="guardar">Guardar cambios</button>
+      <button type="button" data-modal-close="modalEditarCliente">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- =========================
+     MODAL: AGREGAR CLIENTE
+     Se usará para crear una venta VCP usando la cuenta seleccionada
+========================= -->
+<dialog id="modalAgregarCliente" class="app-modal">
+  <form id="formAgregarCliente" method="dialog">
+    <h2>Agregar cliente</h2>
+
+    <input id="addCuentaId" type="hidden" />
+
+    <label for="addCliente">Cliente</label>
+    <select id="addCliente" required>
+      <option value="">Selecciona un cliente</option>
+    </select>
+
+    <label for="addPerfil">Perfil</label>
+    <input
+      id="addPerfil"
+      type="text"
+      placeholder="Ejemplo: Bull B"
+      autocomplete="off"
+      required
+    />
+
+    <label for="addFechaVencimiento">Fecha de vencimiento</label>
+    <input id="addFechaVencimiento" type="date" required />
+
+    <div class="btn-grid">
+      <button type="submit" value="guardar">Agregar cliente</button>
+      <button type="button" data-modal-close="modalAgregarCliente">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- =========================
+     MODAL: EDITAR VENCIMIENTO DE CUENTA
+========================= -->
+<dialog id="modalEditarCuentaFecha" class="app-modal">
+  <form id="formEditarCuentaFecha" method="dialog">
+    <h2>Editar vencimiento de cuenta</h2>
+
+    <input id="editCuentaFechaId" type="hidden" />
+
+    <label for="editCuentaFechaVencimiento">Nueva fecha de vencimiento</label>
+    <input id="editCuentaFechaVencimiento" type="date" required />
+
+    <div class="btn-grid">
+      <button type="submit" value="guardar">Guardar fecha</button>
+      <button type="button" data-modal-close="modalEditarCuentaFecha">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- JS PRINCIPAL -->
 <script type="module" src="cuentas.js"></script>
 
+<!-- MENU SCRIPT -->
 <script>
-window.toggleMenu = () => {
-  const m = document.getElementById("sideMenu");
-  m.style.display = m.style.display === "flex" ? "none" : "flex";
+const fab = document.getElementById("fab");
+const menu = document.getElementById("sideMenu");
+
+fab.onclick = () => {
+  menu.style.display = menu.style.display === "flex" ? "none" : "flex";
 };
-window.go = (p) => location.href = p;
 </script>
 
 </body>
