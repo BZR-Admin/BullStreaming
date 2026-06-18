@@ -1,7 +1,7 @@
 import { supabase } from "./supabase.js";
 
 /* =========================
-   ESTADO GLOBAL
+   ESTADO
 ========================= */
 let cuentas = [];
 let ventas = [];
@@ -56,7 +56,7 @@ function colorByDate(v) {
 }
 
 /* =========================
-   LOAD DATA
+   LOAD
 ========================= */
 async function loadClientes() {
   const { data } = await supabase.from("clientes").select("*");
@@ -107,15 +107,23 @@ function getCorreo(c) {
 /* =========================
    SERVICIO
 ========================= */
-function getServicio(cuenta) {
-  return serviciosMap[cuenta.id_servicio];
+function getServicio(c) {
+  return serviciosMap[c.id_servicio];
 }
 
 /* =========================
-   DISPONIBILIDAD (ARREGLADO)
+   CLIENTE NAME FIX
+========================= */
+function getClienteNombre(v) {
+  if (v.cliente) return v.cliente;
+  const cli = clientesMap[v.id_cliente];
+  return cli?.nombre || "Sin cliente";
+}
+
+/* =========================
+   DISPONIBILIDAD FIX (capacidad)
 ========================= */
 function getDisponibilidad(cuenta) {
-
   const correo = getCorreo(cuenta);
 
   const usadas = ventas.filter(v =>
@@ -124,7 +132,8 @@ function getDisponibilidad(cuenta) {
 
   const servicio = getServicio(cuenta);
 
-  const max = servicio?.capacidad || 0; // 🔥 FIX REAL DEL EXCEL
+  // 🔥 FIX: en tu Excel es capacidad o limite
+  const max = servicio?.capacidad || servicio?.limite || servicio?.cantidad || 0;
 
   return {
     usadas,
@@ -148,7 +157,6 @@ function getClientesCuenta(cuenta) {
    RENDER
 ========================= */
 function render(data) {
-
   const container = document.getElementById("container");
   container.innerHTML = "";
 
@@ -196,21 +204,20 @@ function render(data) {
         <h4>Clientes</h4>
 
         ${
-          clientesCuenta.length === 0
-            ? `<p style="opacity:0.6">Sin clientes</p>`
-            : clientesCuenta.map(v => `
-                <div class="cliente-row">
-                  <span>${v.cliente} - ${v.perfil} - ${v.fecha_vencimiento}</span>
-                  <div>
-                    <button onclick="editarVenta('${v.id_venta}')">Editar</button>
-                    <button onclick="eliminarVenta('${v.id_venta}')">Eliminar</button>
-                  </div>
-                </div>
-              `).join("")
+          clientesCuenta.map(v => `
+            <div class="cliente-row">
+              <span>${getClienteNombre(v)} - ${v.perfil} - ${v.fecha_vencimiento}</span>
+
+              <div>
+                <button onclick="editarVenta('${v.id_venta}')">Editar</button>
+                <button onclick="eliminarVenta('${v.id_venta}')">Eliminar</button>
+              </div>
+            </div>
+          `).join("")
         }
 
         <button style="width:100%; margin-top:10px;"
-          onclick="abrirModalAgregar('${cuenta.id_cuenta}')">
+          onclick="abrirModal('${cuenta.id_cuenta}')">
           + Agregar cliente
         </button>
 
@@ -238,25 +245,21 @@ function setupToggle() {
    WHATSAPP
 ========================= */
 window.whatsappProveedor = (id) => {
-
   const c = cuentas.find(x => x.id_cuenta === id);
   if (!c) return;
 
   const prov = proveedoresMap[c.proveedor];
   const tel = safe(prov?.whatsapp).replace(/\D/g, "");
 
-  if (!tel) return alert("Proveedor sin WhatsApp");
-
-  const msg = `Hola Bull Streaming desea renovar la cuenta ${getCorreo(c)}`;
+  const msg = `Hola Bull Streaming desea renovar ${getCorreo(c)} - ${c.id_servicio}`;
 
   window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
 };
 
 /* =========================
-   EDITAR CORREO
+   EDITAR CORREO (CASCADE)
 ========================= */
 window.editarCorreo = async (id) => {
-
   const c = cuentas.find(x => x.id_cuenta === id);
   const nuevo = prompt("Nuevo correo:", getCorreo(c));
   if (!nuevo) return;
@@ -279,11 +282,9 @@ window.editarCorreo = async (id) => {
    ELIMINAR
 ========================= */
 window.eliminarCuenta = async (id) => {
-
   const c = cuentas.find(x => x.id_cuenta === id);
-  const correo = getCorreo(c);
 
-  if (!confirm("Eliminar cuenta y clientes?")) return;
+  const correo = getCorreo(c);
 
   await supabase.from("ventas")
     .delete()
@@ -301,8 +302,7 @@ window.eliminarCuenta = async (id) => {
    FECHA
 ========================= */
 window.editarFecha = async (id) => {
-
-  const nueva = prompt("Fecha YYYY-MM-DD");
+  const nueva = prompt("YYYY-MM-DD");
   if (!nueva) return;
 
   await supabase.from("cuentas_propias")
@@ -313,12 +313,10 @@ window.editarFecha = async (id) => {
 };
 
 /* =========================
-   EDITAR / ELIMINAR CLIENTES
+   VENTAS
 ========================= */
 window.editarVenta = async (id) => {
-
   const v = ventas.find(x => x.id_venta === id);
-  if (!v) return;
 
   const perfil = prompt("Perfil:", v.perfil);
   const fecha = prompt("Fecha:", v.fecha_vencimiento);
@@ -328,37 +326,22 @@ window.editarVenta = async (id) => {
     .eq("id_venta", id);
 
   await loadVentas();
-  applyView();
+  loadCuentas();
 };
 
 window.eliminarVenta = async (id) => {
-
-  if (!confirm("Eliminar cliente?")) return;
-
   await supabase.from("ventas")
     .delete()
     .eq("id_venta", id);
 
   await loadVentas();
-  applyView();
+  loadCuentas();
 };
 
 /* =========================
-   MODAL FIX (evita error)
-========================= */
-window.abrirModalAgregar = (id) => {
-  const modal = document.getElementById("modalAgregarCliente");
-  const input = document.getElementById("addCuentaId");
-
-  input.value = id;
-  modal.showModal();
-};
-
-/* =========================
-   SEARCH + SORT (FIX FINAL)
+   SEARCH + SORT FIX
 ========================= */
 function applyView() {
-
   const q = (document.getElementById("search")?.value || "").toLowerCase();
 
   let data = [...cuentas];
