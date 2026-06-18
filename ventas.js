@@ -55,7 +55,7 @@ window.loadServicios = async () => {
   const plataforma = document.getElementById("plataforma").value;
 
   const table = (mode === "VI")
-    ? "conf_venta_independiente"
+    ? "conf_venta_perfiles_independientes"
     : "conf_venta_cuenta_propia";
 
   const { data } = await supabase
@@ -236,3 +236,25 @@ function limpiar() {
   document.getElementById("perfil").value = "";
   document.getElementById("ganancia").value = "";
 }
+
+window.setMode = (m) => {
+
+  mode = m;
+
+  const prov = document.getElementById("proveedor");
+
+  prov.style.display = (m === "VCP") ? "block" : "none";
+
+  // 🔥 RESET
+  document.getElementById("btnVI").classList.remove("activeVI");
+  document.getElementById("btnVCP").classList.remove("activeVCP");
+
+  // 🔥 ACTIVO
+  if (m === "VI") {
+    document.getElementById("btnVI").classList.add("activeVI");
+  }
+
+  if (m === "VCP") {
+    document.getElementById("btnVCP").classList.add("activeVCP");
+  }
+};
