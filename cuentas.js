@@ -1,43 +1,40 @@
 import { supabase } from "./supabase.js";
 
 let cuentas = [];
-let clientesMap = {};
-
-// ================= SAFE =================
-async function safe(q){
-  const {data,error}=await q;
-  return error ? [] : data || [];
-}
+let clientes = {};
+let proveedores = {};
 
 // ================= INIT =================
 window.onload = async () => {
-
   await loadClientes();
+  await loadProveedores();
   await loadCuentas();
 
   document.getElementById("search").addEventListener("input", render);
 };
 
-// ================= CLIENTES =================
+// ================= CLIENTES MAP =================
 async function loadClientes(){
+  const {data} = await supabase.from("Clientes").select("*");
 
-  const data = await safe(
-    supabase.from("clientes").select("*")
-  );
-
-  clientesMap = {};
   data.forEach(c=>{
-    clientesMap[c.id_cliente]=c.nombre;
+    clientes[c.id_cliente]=c.nombre;
+  });
+}
+
+// ================= PROVEEDORES MAP =================
+async function loadProveedores(){
+  const {data} = await supabase.from("Proveedor").select("*");
+
+  data.forEach(p=>{
+    proveedores[p.proveedor]=p.whatsapp;
   });
 }
 
 // ================= CUENTAS =================
 async function loadCuentas(){
-
-  cuentas = await safe(
-    supabase.from("cuentas_propias").select("*")
-  );
-
+  const {data} = await supabase.from("Cuentas_Propias").select("*");
+  cuentas = data || [];
   render();
 }
 
@@ -45,60 +42,84 @@ async function loadCuentas(){
 async function render(){
 
   const container = document.getElementById("container");
-  container.innerHTML="";
+  container.innerHTML = "";
 
   const search = document.getElementById("search").value.toLowerCase();
-  const filter = document.getElementById("filterPlatform").value;
 
-  let list = cuentas;
+  // orden por plataforma fijo
+  const ordenPlataformas = ["NETFLIX","DISNEY","PRIME","HBO","APPLE"];
 
-  // 🔥 FILTER
-  if(filter){
-    list = list.filter(c=>c.plataforma===filter);
-  }
+  cuentas.sort((a,b)=>{
+    return ordenPlataformas.indexOf(a.plataforma) - ordenPlataformas.indexOf(b.plataforma);
+  });
 
-  // 🔥 SEARCH (REAL GLOBAL)
-  if(search){
-    list = list.filter(c=>
-      (c.correo_cuenta||"").toLowerCase().includes(search) ||
-      (c.plataforma||"").toLowerCase().includes(search) ||
-      (c.servicio||"").toLowerCase().includes(search) ||
-      (c.proveedor||"").toLowerCase().includes(search)
-    );
-  }
+  for(const c of cuentas){
 
-  for(const c of list){
+    const clienteVentas = await supabase
+      .from("Ventas")
+      .select("*")
+      .eq("usuario_correo", c.correo_cuenta)
+      .eq("tipo_venta","VCP");
 
-    const used = await getUsed(c.correo_cuenta,c.id_servicio);
-    const cap = await getCap(c.id_servicio);
+    const used = clienteVentas.data?.length || 0;
+
+    const conf = await supabase
+      .from("Conf_Venta_Cuenta_Propia")
+      .select("*")
+      .eq("id_servicio", c.id_servicio)
+      .single();
+
+    const cap = conf.data?.cantidad || 5;
+
+    // SEARCH REAL
+    if(search){
+      const match =
+        (c.correo_cuenta||"").toLowerCase().includes(search) ||
+        (c.proveedor||"").toLowerCase().includes(search) ||
+        Object.values(clientes).some(n=>n.toLowerCase().includes(search));
+
+      if(!match) continue;
+    }
+
+    const provWA = proveedores[c.proveedor] || "";
 
     const card = document.createElement("div");
     card.className="card";
 
-    card.innerHTML=`
+    card.innerHTML = `
       <div class="card-header" onclick="toggle(this)">
         <div>
-          <h3>${c.plataforma||""} / ${c.servicio||""}</h3>
+          <h3>${conf.data?.plataforma || ""} / ${conf.data?.servicio || ""}</h3>
           <p>${c.correo_cuenta}</p>
-          <p>${c.proveedor||""}</p>
+          <p>${c.proveedor}</p>
           <p>${used}/${cap}</p>
-          <p>${c.fecha_vencimiento||""}</p>
+          <p>${c.fecha_vencimiento}</p>
         </div>
 
         <div class="dot ${used>=cap?'red':'green'}"></div>
       </div>
 
-      <!-- BOTONES PEQUEÑOS -->
       <div class="actions">
-        <button onclick="wa('${c.correo_cuenta}','${c.plataforma}')">WA</button>
-        <button onclick="editCorreo('${c.id_cuenta}','${c.correo_cuenta}')">C</button>
-        <button onclick="editFecha('${c.id_cuenta}')">F</button>
-        <button onclick="delCuenta('${c.id_cuenta}','${c.correo_cuenta}')">X</button>
+        <button onclick="wa('${provWA}','${c.correo_cuenta}')">WA</button>
+        <button onclick="editCorreo('${c.id_cuenta}')">Correo</button>
+        <button onclick="editFecha('${c.id_cuenta}')">Fecha</button>
+        <button onclick="delCuenta('${c.id_cuenta}')">Del</button>
       </div>
 
-      <!-- CLIENTES SOLO AL EXPAND -->
       <div class="body hidden">
-        ${await getClientesHTML(c.correo_cuenta)}
+
+        ${clienteVentas.data?.map(v=>`
+          <div class="row">
+            <span>${clientes[v.id_cliente] || v.id_cliente} - ${v.perfil}</span>
+            <button onclick="editCliente('${v.id_venta}')">E</button>
+            <button onclick="delCliente('${v.id_venta}')">X</button>
+          </div>
+        `).join("") || ""}
+
+        <button onclick="addCliente('${c.id_cuenta}','${c.id_servicio}','${c.correo_cuenta}')">
+          + Cliente
+        </button>
+
       </div>
     `;
 
@@ -106,78 +127,12 @@ async function render(){
   }
 }
 
-// ================= CLIENTES HTML =================
-async function getClientesHTML(correo){
-
-  const data = await safe(
-    supabase.from("ventas")
-    .select("*")
-    .eq("usuario_correo",correo)
-    .eq("tipo_venta","VCP")
-  );
-
-  if(!data.length) return "<p>Sin clientes</p>";
-
-  return data.map(v=>`
-    <div class="row">
-      <span>${clientesMap[v.id_cliente]||v.id_cliente} - ${v.perfil}</span>
-      <button onclick="editV('${v.id_venta}')">e</button>
-      <button onclick="delV('${v.id_venta}')">x</button>
-    </div>
-  `).join("");
-}
-
-// ================= USED =================
-async function getUsed(correo,id){
-
-  const {count} = await supabase
-    .from("ventas")
-    .select("*",{count:"exact",head:true})
-    .eq("usuario_correo",correo)
-    .eq("id_servicio",id);
-
-  return count||0;
-}
-
-// ================= CAP =================
-async function getCap(id){
-
-  const d = await safe(
-    supabase.from("conf_venta_cuenta_propia")
-    .select("cantidad")
-    .eq("id_servicio",id)
-    .single()
-  );
-
-  return d?.cantidad||5;
-}
-
 // ================= TOGGLE =================
-window.toggle=(el)=>{
+window.toggle = (el)=>{
   el.parentElement.querySelector(".body").classList.toggle("hidden");
 };
 
-// ================= SORT FIX =================
-window.sortBy=(type)=>{
-
-  if(type==="vencimiento"){
-    cuentas.sort((a,b)=>
-      new Date(a.fecha_vencimiento)-new Date(b.fecha_vencimiento)
-    );
-  }
-
-  if(type==="disponibilidad"){
-    cuentas.sort((a,b)=>
-      (a.id_cuenta>b.id_cuenta?1:-1)
-    );
-  }
-
-  render();
-};
-
 // ================= WHATSAPP =================
-window.wa=(correo,plataforma)=>{
-  window.open(`https://wa.me/?text=${encodeURIComponent(
-    `Hola Bull Streaming, renovación ${correo} ${plataforma}`
-  )}`);
+window.wa = (wa,correo)=>{
+  window.open(`https://wa.me/${wa}?text=Renovar ${correo}`);
 };
