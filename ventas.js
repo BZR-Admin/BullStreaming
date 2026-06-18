@@ -31,8 +31,12 @@ async function loadClientes() {
 // ================= PLATAFORMAS =================
 async function loadPlataformas() {
 
+  const table = (mode === "VI")
+    ? "conf_venta_independiente"
+    : "conf_venta_cuenta_propia";
+
   const { data } = await supabase
-    .from("conf_venta_cuenta_propia")
+    .from(table)
     .select("plataforma");
 
   const sel = document.getElementById("plataforma");
@@ -50,8 +54,12 @@ window.loadServicios = async () => {
 
   const plataforma = document.getElementById("plataforma").value;
 
+  const table = (mode === "VI")
+    ? "conf_venta_independiente"
+    : "conf_venta_cuenta_propia";
+
   const { data } = await supabase
-    .from("conf_venta_cuenta_propia")
+    .from(table)
     .select("*")
     .eq("plataforma", plataforma);
 
@@ -99,17 +107,23 @@ window.setMode = (m) => {
   const prov = document.getElementById("proveedor");
 
   prov.style.display = (m === "VCP") ? "block" : "none";
+
+  loadPlataformas();
 };
 
-// ================= PARSER (PEGA CUENTA) =================
+// ================= PARSER =================
 window.parseText = async () => {
 
   const text = document.getElementById("texto").value;
 
-  const correo = text.match(/[\w.-]+@[\w.-]+\.\w+/)?.[0];
+  // 🔥 EMAIL CORREGIDO (FULL MATCH)
+  const correo = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
+
   const perfil = text.match(/Perfil:\s*(.*)/i)?.[1];
+
   const plataforma = text.match(/DISNEY|NETFLIX|PRIME|HBO|APPLE|SPOTIFY/i)?.[0];
-  const venc = text.match(/Expira:\s*(.*)/i)?.[1];
+
+  const venc = text.match(/Expira\s*·\s*(.*)/i)?.[1];
 
   if (!correo) return alert("No se detectó correo");
 
@@ -126,11 +140,16 @@ window.parseText = async () => {
   }
 
   if (mode === "VCP") {
-    await validarCuenta(correo);
+    const ok = await validarCuenta(correo);
+
+    if (!ok) {
+      document.getElementById("correo").value = "";
+      document.getElementById("perfil").value = "";
+    }
   }
 };
 
-// ================= VALIDAR CUENTA VCP =================
+// ================= VALIDAR CUENTA =================
 async function validarCuenta(correo) {
 
   const { data: cuentas } = await supabase
@@ -139,7 +158,8 @@ async function validarCuenta(correo) {
     .eq("correo_cuenta", correo);
 
   if (!cuentas || cuentas.length === 0) {
-    return alert("❌ No se encontró la cuenta");
+    alert("❌ No se encontró la cuenta");
+    return false;
   }
 
   const cuenta = cuentas[0];
@@ -160,17 +180,26 @@ async function validarCuenta(correo) {
   const capacidad = conf?.cantidad || 5;
 
   if (count >= capacidad) {
-    return alert("❌ Cuenta detectada está llena");
+    alert("❌ Cuenta detectada está llena");
+    return false;
   }
 
   document.getElementById("perfil").value =
     `Perfil ${count + 1}`;
 
   alert("✅ Cuenta disponible");
+
+  return true;
 }
 
-// ================= SAVE VENTA =================
+// ================= SAVE =================
 window.saveVenta = async () => {
+
+  if (mode === "VCP") {
+    const correo = document.getElementById("correo").value;
+    const ok = await validarCuenta(correo);
+    if (!ok) return;
+  }
 
   const venta = {
     id_venta: crypto.randomUUID(),
