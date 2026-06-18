@@ -8,7 +8,7 @@ let serviciosMap = {};
 // cambia aquí el nombre, no en todo el código.
 const TABLAS_CONF_SERVICIOS = [
   "conf_venta_cuenta_propia",
-  "conf_venta_perfiles_independien"
+  "conf_venta_perfiles_independientes"
 ];
 
 // ===================== INIT =====================
