@@ -2,110 +2,95 @@ import { supabase } from "./supabase.js";
 
 let cuentas = [];
 let clientesMap = {};
-let sortState = {
-  vencimiento: "asc",
-  disponibilidad: "desc"
-};
+let sortState = { venc: true, disp: true };
 
 // ================= SAFE =================
-async function safe(q) {
-  const { data, error } = await q;
-  if (error) return [];
+async function safe(q){
+  const {data,error} = await q;
+  if(error) return [];
   return data || [];
 }
 
 // ================= INIT =================
 window.onload = async () => {
-  await loadClientesMap();
+  await loadClientes();
   await loadCuentas();
   await loadPlataformas();
 };
 
 // ================= CLIENTES MAP =================
-async function loadClientesMap() {
+async function loadClientes(){
 
   const data = await safe(
-    supabase.from("clientes").select("*")
+    supabase.from("Clientes").select("*")
   );
 
   clientesMap = {};
-  data.forEach(c => {
-    clientesMap[c.id_cliente] = c.nombre;
+  data.forEach(c=>{
+    clientesMap[c.id_cliente]=c.nombre;
   });
 }
 
 // ================= CUENTAS =================
-async function loadCuentas() {
+async function loadCuentas(){
 
   cuentas = await safe(
-    supabase.from("cuentas_propias").select("*")
+    supabase.from("Cuentas_Propias").select("*")
   );
 
   render();
 }
 
 // ================= RENDER =================
-async function render() {
+async function render(){
 
   const container = document.getElementById("container");
-  container.innerHTML = "";
+  container.innerHTML="";
 
-  const filter = document.getElementById("filterPlatform")?.value || "";
-  const search = document.getElementById("search")?.value?.toLowerCase() || "";
+  const search = document.getElementById("search").value.toLowerCase();
+  const filter = document.getElementById("filterPlatform").value;
 
-  for (const c of cuentas) {
+  for(const c of cuentas){
 
-    if (filter && c.plataforma !== filter) continue;
-    if (search && !c.correo_cuenta.toLowerCase().includes(search)) continue;
+    if(filter && c.plataforma !== filter) continue;
 
-    const usadas = await getUsadas(c.correo_cuenta, c.id_servicio);
-    const capacidad = await getCapacidad(c.id_servicio);
+    const used = await getUsed(c.correo_cuenta, c.id_servicio);
+    const cap = await getCap(c.id_servicio);
 
-    const disponibilidad = `${usadas}/${capacidad}`;
-
-    const clientes = await getClientes(c.correo_cuenta);
+    const clienteList = await getClientes(c.correo_cuenta);
 
     const card = document.createElement("div");
-    card.className = "card";
+    card.className="card";
 
-    card.innerHTML = `
-      <div class="card-header" onclick="toggleCard(this)">
-
+    card.innerHTML=`
+      <div class="card-header" onclick="toggle(this)">
         <div>
-          <h3>${c.plataforma}</h3>
-          <p>${c.servicio}</p>
+          <h3>${c.plataforma || ""}</h3>
+          <p>${c.servicio || ""}</p>
           <p>${c.correo_cuenta}</p>
-          <p>${c.proveedor}</p>
-          <p>${disponibilidad}</p>
+          <p>${c.proveedor || ""}</p>
+          <p>${used}/${cap}</p>
         </div>
 
-        <div class="status ${usadas >= capacidad ? 'red' : 'green'}"></div>
-
+        <div class="status ${used>=cap?'red':'green'}"></div>
       </div>
 
       <div class="card-actions">
-        <button onclick="whatsapp('${c.correo_cuenta}','${c.plataforma}')">WA</button>
-        <button onclick="editCorreo('${c.id_cuenta}','${c.correo_cuenta}')">E-Correo</button>
-        <button onclick="editFecha('${c.id_cuenta}')">E-Fecha</button>
-        <button onclick="deleteCuenta('${c.id_cuenta}','${c.correo_cuenta}')">Del</button>
+        <button onclick="wa('${c.whatsapp}','${c.correo_cuenta}','${c.plataforma}')">WA</button>
+        <button onclick="editCorreo('${c.id_cuenta}')">Correo</button>
+        <button onclick="editFecha('${c.id_cuenta}')">Fecha</button>
+        <button onclick="delCuenta('${c.id_cuenta}')">Del</button>
       </div>
 
       <div class="card-body hidden">
 
-        ${clientes.length === 0 ? "<p>Sin clientes</p>" : ""}
-
-        ${clientes.map(v => `
+        ${clienteList.map(v=>`
           <div class="cliente-row">
             <span>${clientesMap[v.id_cliente] || v.id_cliente} - ${v.perfil} - ${v.fecha_vencimiento}</span>
-
-            <button onclick="editCliente('${v.id_venta}')">E</button>
-            <button onclick="deleteCliente('${v.id_venta}')">X</button>
+            <button onclick="editV('${v.id_venta}')">E</button>
+            <button onclick="delV('${v.id_venta}')">X</button>
           </div>
         `).join("")}
-
-        <button onclick="addCliente('${c.id_cuenta}','${c.id_servicio}','${c.correo_cuenta}')">
-          + Cliente
-        </button>
 
       </div>
     `;
@@ -114,88 +99,40 @@ async function render() {
   }
 }
 
-// ================= CLIENTES DE CUENTA =================
-async function getClientes(correo) {
-
+// ================= CLIENTES =================
+async function getClientes(correo){
   return await safe(
-    supabase
-      .from("ventas")
-      .select("*")
-      .eq("usuario_correo", correo)
-      .eq("tipo_venta", "VCP")
+    supabase.from("Ventas")
+    .select("*")
+    .eq("usuario_correo",correo)
+    .eq("tipo_venta","VCP")
   );
 }
 
-// ================= USADAS =================
-async function getUsadas(correo, servicio) {
+// ================= USED =================
+async function getUsed(correo,id){
+  const {count} = await supabase
+  .from("Ventas")
+  .select("*",{count:"exact",head:true})
+  .eq("usuario_correo",correo)
+  .eq("id_servicio",id);
 
-  const { count } = await supabase
-    .from("ventas")
-    .select("*", { count: "exact", head: true })
-    .eq("usuario_correo", correo)
-    .eq("id_servicio", servicio)
-    .eq("tipo_venta", "VCP");
-
-  return count || 0;
+  return count||0;
 }
 
-// ================= CAPACIDAD =================
-async function getCapacidad(id) {
-
-  const data = await safe(
-    supabase
-      .from("conf_venta_cuenta_propia")
-      .select("cantidad")
-      .eq("id_servicio", id)
-      .single()
+// ================= CAP =================
+async function getCap(id){
+  const d = await safe(
+    supabase.from("Conf_Venta_Cuenta_Propia")
+    .select("cantidad")
+    .eq("id_servicio",id)
+    .single()
   );
 
-  return data?.cantidad || 5;
+  return d?.cantidad || 5;
 }
 
 // ================= TOGGLE =================
-window.toggleCard = (el) => {
-  const body = el.parentElement.querySelector(".card-body");
-  body.classList.toggle("hidden");
-};
-
-// ================= FILTER =================
-window.filterPlatform = () => render();
-
-document.getElementById("search")?.addEventListener("input", render);
-
-// ================= SORT =================
-window.sortBy = (type) => {
-
-  if (type === "vencimiento") {
-    cuentas.sort((a, b) =>
-      sortState.vencimiento === "asc"
-        ? new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
-        : new Date(b.fecha_vencimiento) - new Date(a.fecha_vencimiento)
-    );
-
-    sortState.vencimiento =
-      sortState.vencimiento === "asc" ? "desc" : "asc";
-  }
-
-  if (type === "disponibilidad") {
-    cuentas.sort((a, b) =>
-      sortState.disponibilidad === "asc"
-        ? a.id_cuenta.localeCompare(b.id_cuenta)
-        : b.id_cuenta.localeCompare(a.id_cuenta)
-    );
-
-    sortState.disponibilidad =
-      sortState.disponibilidad === "asc" ? "desc" : "asc";
-  }
-
-  render();
-};
-
-// ================= WHATSAPP =================
-window.whatsapp = (correo, plataforma) => {
-
-  const msg = `Hola, Bull Streaming desea renovar la cuenta ${correo} de ${plataforma}. ¿Puedo hacerlo?`;
-
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+window.toggle = (el)=>{
+  el.parentElement.querySelector(".card-body").classList.toggle("hidden");
 };
