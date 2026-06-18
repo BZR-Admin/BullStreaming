@@ -93,16 +93,6 @@ async function loadServicios() {
   });
 }
 
-async function loadVentas() {
-  const { data } = await supabase.from("ventas").select("*");
-  ventas = data || [];
-}
-
-async function loadCuentas() {
-  const { data } = await supabase.from("cuentas_propias").select("*");
-  cuentas = data || [];
-  applyView(); // SOLO AQUÍ SE RENDERIZA
-}
 
 /* =========================
    HELPERS CUENTA
@@ -296,7 +286,7 @@ function setupAgregarCliente() {
       perfil: perfil,
       fecha_registro: new Date().toISOString(),
       fecha_vencimiento: fecha,
-      ganancia: parseFloat(ganancia),
+      ganancia: parseFloat(ganancia || 0),
       estado: "activa"
     }]);
 
@@ -305,7 +295,7 @@ function setupAgregarCliente() {
     await loadVentas();
     applyView();
   });
-
+}
     document.getElementById("modalAgregarCliente").close();
 
     await loadVentas();
@@ -421,10 +411,10 @@ function applyView() {
 
   const sort = document.getElementById("sortBy")?.value;
 
-  if (sort === "plataforma") {
+ if (sort === "plataforma") {
   data.sort((a, b) => {
-    const sa = serviciosMap[a.id_servicio]?.plataforma || "";
-    const sb = serviciosMap[b.id_servicio]?.plataforma || "";
+    const sa = serviciosMap?.[a.id_servicio]?.plataforma || "";
+    const sb = serviciosMap?.[b.id_servicio]?.plataforma || "";
     return sa.localeCompare(sb);
   });
 }
