@@ -90,7 +90,7 @@ function render(data) {
 
         <div>
           <h3>${cliente.nombre}</h3>
-          <p>${v.plataforma} / ${v.servicio_nombre || v.id_servicio}</p>
+          <p>${v.plataforma} / ${v.servicio || v.id_servicio}</p>
           <p>${v.usuario_correo}</p>
           <p><b>Vence:</b> ${v.fecha_vencimiento}</p>
         </div>
