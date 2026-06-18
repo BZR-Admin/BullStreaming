@@ -281,33 +281,31 @@ function setupAgregarCliente() {
     const idCliente = document.getElementById("addCliente").value;
     const perfil = document.getElementById("addPerfil").value;
     const fecha = document.getElementById("addFechaVencimiento").value;
-     const ganancia = document.getElementById("addGanancia").value;
-      <label for="addGanancia">Ganancia</label>
-<input
-  id="addGanancia"
-  type="number"
-  step="0.01"
-  placeholder="Ej: 5 o 10.50"
-  required
-/>
-    const cuenta = cuentas.find(c => c.id_cuenta === idCuenta);
+    const ganancia = document.getElementById("addGanancia").value;
 
+    const cuenta = cuentas.find(c => c.id_cuenta === idCuenta);
     if (!cuenta) return;
 
-  await supabase.from("ventas").insert([{
-  id_venta: crypto.randomUUID(),
-  tipo_venta: "VCP",
-  id_cliente: idCliente,
-  plataforma: getPlataforma(cuenta),
-  id_servicio: cuenta.id_servicio,
-  usuario_correo: cuenta.correo_cuenta,
-  perfil: perfil,
-  fecha_registro: new Date().toISOString(),
-  fecha_vencimiento: fecha,
-  ganancia: parseFloat(ganancia),
-  estado: "activa"
-}]);
+    await supabase.from("ventas").insert([{
+      id_venta: crypto.randomUUID(),
+      tipo_venta: "VCP",
+      id_cliente: idCliente,
+      plataforma: getPlataforma(cuenta),
+      id_servicio: cuenta.id_servicio,
+      usuario_correo: cuenta.correo_cuenta,
+      perfil: perfil,
+      fecha_registro: new Date().toISOString(),
+      fecha_vencimiento: fecha,
+      ganancia: parseFloat(ganancia),
+      estado: "activa"
+    }]);
 
+    document.getElementById("modalAgregarCliente").close();
+
+    await loadVentas();
+    applyView();
+  });
+}
     document.getElementById("modalAgregarCliente").close();
 
     await loadVentas();
