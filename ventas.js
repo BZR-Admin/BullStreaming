@@ -32,7 +32,7 @@ async function loadClientes() {
 async function loadPlataformas() {
 
   const table = (mode === "VI")
-    ? "conf_venta_independiente"
+    ? "conf_venta_perfiles_independientes"
     : "conf_venta_cuenta_propia";
 
   const { data } = await supabase
