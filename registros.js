@@ -2,34 +2,102 @@ import { supabase } from "./supabase.js";
 
 let ventas = [];
 let clientesMap = {};
+let serviciosMap = {};
+
+// Si en Supabase tu segunda tabla tiene otro nombre exacto,
+// cambia aquí el nombre, no en todo el código.
+const TABLAS_CONF_SERVICIOS = [
+  "conf_venta_cuenta_propia",
+  "conf_venta_perfiles_independien"
+];
 
 // ===================== INIT =====================
-window.onload = async () => {
+window.addEventListener("DOMContentLoaded", async () => {
+  setupFilters();
 
   await loadClientes();
+  await loadServicios();
   await loadVentas();
+});
 
-  setupFilters();
-};
+// ===================== HELPERS =====================
+function safe(value) {
+  return value === null || value === undefined ? "" : String(value);
+}
+
+function normalizeId(value) {
+  return safe(value).trim();
+}
+
+function escapeHtml(value) {
+  return safe(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function getVentaById(id) {
+  return ventas.find(v => safe(v.id_venta) === safe(id));
+}
 
 // ===================== CLIENTES =====================
 async function loadClientes() {
+  const { data, error } = await supabase
+    .from("clientes")
+    .select("*");
 
-  const { data } = await supabase.from("clientes").select("*");
+  if (error) {
+    console.error("Error clientes:", error);
+    return;
+  }
+
+  clientesMap = {};
 
   if (!Array.isArray(data)) return;
 
   data.forEach(c => {
-    clientesMap[c.id_cliente] = {
-      nombre: c.nombre,
-      whatsapp: c.whatsapp
+    const id = normalizeId(c.id_cliente);
+
+    clientesMap[id] = {
+      nombre: safe(c.nombre) || "Sin cliente",
+      whatsapp: safe(c.whatsapp)
     };
   });
 }
 
+// ===================== SERVICIOS =====================
+async function loadServicios() {
+  serviciosMap = {};
+
+  for (const tabla of TABLAS_CONF_SERVICIOS) {
+    const { data, error } = await supabase
+      .from(tabla)
+      .select("id_servicio, plataforma, servicio");
+
+    if (error) {
+      console.warn(`No se pudo cargar la tabla ${tabla}:`, error.message);
+      continue;
+    }
+
+    if (!Array.isArray(data)) continue;
+
+    data.forEach(s => {
+      const id = normalizeId(s.id_servicio);
+
+      if (!id) return;
+
+      serviciosMap[id] = {
+        plataforma: safe(s.plataforma),
+        servicio: safe(s.servicio)
+      };
+    });
+  }
+}
+
 // ===================== VENTAS =====================
 async function loadVentas() {
-
   const { data, error } = await supabase
     .from("ventas")
     .select("*");
@@ -42,14 +110,19 @@ async function loadVentas() {
   ventas = Array.isArray(data) ? data : [];
 
   setupPlatformOptions();
-  render(ventas);
+
+  // IMPORTANTE:
+  // No hacemos render(ventas) directo.
+  // Así se conserva búsqueda, filtro y orden actual.
+  applyCurrentView();
 }
 
 // ===================== PLATAFORMAS =====================
 function setupPlatformOptions() {
-
   const select = document.getElementById("filterPlatform");
   if (!select) return;
+
+  const currentValue = select.value;
 
   const set = new Set();
 
@@ -59,77 +132,188 @@ function setupPlatformOptions() {
 
   select.innerHTML = `<option value="">Todas las plataformas</option>`;
 
-  [...set].forEach(p => {
-    select.innerHTML += `<option value="${p}">${p}</option>`;
+  [...set].sort().forEach(p => {
+    select.innerHTML += `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`;
   });
+
+  const exists = [...select.options].some(opt => opt.value === currentValue);
+
+  if (exists) {
+    select.value = currentValue;
+  }
+}
+
+// ===================== SERVICIO POR ID =====================
+function getServicioNombre(v) {
+  const idServicio = normalizeId(v.id_servicio);
+  const servicioDesdeConf = serviciosMap[idServicio]?.servicio;
+
+  return (
+    safe(v.servicio_nombre) ||
+    safe(v.servicio) ||
+    safe(v.plan) ||
+    safe(servicioDesdeConf) ||
+    safe(v.id_servicio) ||
+    "Servicio"
+  );
+}
+
+// ===================== CLIENTE POR ID =====================
+function getCliente(v) {
+  const idCliente = normalizeId(v.id_cliente);
+
+  return clientesMap[idCliente] || {
+    nombre: "Sin cliente",
+    whatsapp: ""
+  };
+}
+
+// ===================== FECHAS =====================
+function parseDate(value) {
+  if (!value) return null;
+
+  // Si viene como serial de Excel
+  if (typeof value === "number") {
+    const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+    return new Date(excelEpoch.getTime() + value * 86400000);
+  }
+
+  const text = String(value).trim();
+
+  // YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
+    const [y, m, d] = text.substring(0, 10).split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  const parsed = new Date(text);
+  return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatDate(value) {
+  const date = parseDate(value);
+
+  if (!date) return safe(value) || "-";
+
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+
+  return `${y}-${m}-${d}`;
+}
+
+function diffDays(value) {
+  const date = parseDate(value);
+
+  if (!date) return 9999;
+
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
+
+  return Math.ceil((date - today) / 86400000);
+}
+
+// ===================== COLOR =====================
+function getColor(dias) {
+  if (dias <= 0) return "red";
+  if (dias <= 2) return "yellow";
+  return "green";
+}
+
+function getDiasText(dias) {
+  if (dias < 0) return `Vencido hace ${Math.abs(dias)} día(s)`;
+  if (dias === 0) return "Vence hoy";
+  if (dias === 1) return "Falta 1 día";
+  return `Faltan ${dias} días`;
 }
 
 // ===================== RENDER =====================
 function render(data) {
-
   const container = document.getElementById("container");
+  if (!container) return;
+
   container.innerHTML = "";
 
+  if (!data.length) {
+    container.innerHTML = `
+      <div class="card">
+        <h3>Sin ventas encontradas</h3>
+        <p>No hay resultados para la búsqueda o filtro actual.</p>
+      </div>
+    `;
+    return;
+  }
+
   data.forEach(v => {
+    const cliente = getCliente(v);
+    const servicioNombre = getServicioNombre(v);
 
-    const cliente = clientesMap[v.id_cliente] || {
-      nombre: "Sin cliente",
-      whatsapp: ""
-    };
-
-    // 🔥 FIX SERVICIO (sin ID)
-    const servicioNombre =
-      v.servicio_nombre ||
-      v.servicio ||
-      v.plan ||
-      v.id_servicio ||
-      "Servicio";
-
-    const dias = diff(v.fecha_vencimiento);
+    const dias = diffDays(v.fecha_vencimiento);
     const color = getColor(dias);
+
+    const fechaVencimiento = formatDate(v.fecha_vencimiento);
 
     const card = document.createElement("div");
     card.className = `card ${color}`;
+    card.dataset.idVenta = safe(v.id_venta);
 
     card.innerHTML = `
-      <div class="card-header" onclick="toggleCard(this.parentElement)">
+      <div class="card-header">
 
         <div>
-          <h3>${cliente.nombre}</h3>
-          <p>${v.plataforma} / ${servicioNombre}</p>
-          <p>${v.usuario_correo || ""}</p>
-          <p><b>Vence:</b> ${v.fecha_vencimiento}</p>
+          <h3>${escapeHtml(cliente.nombre)}</h3>
+
+          <p>
+            ${escapeHtml(v.plataforma)}
+            /
+            ${escapeHtml(servicioNombre)}
+          </p>
+
+          <p>${escapeHtml(v.usuario_correo || "")}</p>
+
+          <p>
+            <b>Vence:</b>
+            ${escapeHtml(fechaVencimiento)}
+          </p>
         </div>
 
-        <div>
-          <span>${dias} días</span>
+        <div class="status-badge">
+          <span>${escapeHtml(getDiasText(dias))}</span>
         </div>
 
       </div>
 
       <div class="card-body hidden">
 
-        <p><b>Cliente:</b> ${cliente.nombre}</p>
-        <p><b>WhatsApp:</b> ${cliente.whatsapp || "-"}</p>
-        <p><b>Plataforma:</b> ${v.plataforma}</p>
-        <p><b>Servicio:</b> ${servicioNombre}</p>
-        <p><b>Usuario:</b> ${v.usuario_correo}</p>
-        <p><b>Perfil:</b> ${v.perfil}</p>
-        <p><b>Vencimiento:</b> ${v.fecha_vencimiento}</p>
+        <div class="info-grid">
+          <p><b>Cliente:</b> ${escapeHtml(cliente.nombre)}</p>
+          <p><b>WhatsApp:</b> ${escapeHtml(cliente.whatsapp || "-")}</p>
+          <p><b>Plataforma:</b> ${escapeHtml(v.plataforma)}</p>
+          <p><b>Servicio:</b> ${escapeHtml(servicioNombre)}</p>
+          <p><b>Usuario:</b> ${escapeHtml(v.usuario_correo)}</p>
+          <p><b>Perfil:</b> ${escapeHtml(v.perfil)}</p>
+          <p><b>Vencimiento:</b> ${escapeHtml(fechaVencimiento)}</p>
+        </div>
 
         <div class="btn-grid">
 
-          <button onclick="sendWhatsApp(
-            '${cliente.whatsapp}',
-            '${v.usuario_correo}',
-            '${v.perfil}',
-            '${v.fecha_vencimiento}',
-            '${v.plataforma}'
-          )">💬 WhatsApp</button>
+          <button type="button" data-action="whatsapp" data-id="${escapeHtml(v.id_venta)}">
+            💬 WhatsApp
+          </button>
 
-          <button onclick="renovar('${v.id_venta}')">🔁 Renovar</button>
-          <button onclick="editar('${v.id_venta}')">✏️ Editar</button>
-          <button onclick="eliminar('${v.id_venta}')">🗑️ Eliminar</button>
+          <button type="button" data-action="renovar" data-id="${escapeHtml(v.id_venta)}">
+            🔁 Renovar
+          </button>
+
+          <button type="button" data-action="editar" data-id="${escapeHtml(v.id_venta)}">
+            ✏️ Editar
+          </button>
+
+          <button type="button" data-action="eliminar" data-id="${escapeHtml(v.id_venta)}">
+            🗑️ Eliminar
+          </button>
 
         </div>
 
@@ -141,37 +325,39 @@ function render(data) {
 }
 
 // ===================== TOGGLE =====================
-window.toggleCard = (el) => {
-  const body = el.querySelector(".card-body");
+function toggleCard(card) {
+  if (!card) return;
+
+  const body = card.querySelector(".card-body");
   if (!body) return;
+
   body.classList.toggle("hidden");
-};
-
-// ===================== DIAS =====================
-function diff(date) {
-  return Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24));
 }
 
-// ===================== COLOR =====================
-function getColor(dias) {
-
-  if (dias <= 0) return "red";
-  if (dias <= 2) return "yellow";
-  return "green";
-}
+window.toggleCard = toggleCard;
 
 // ===================== WHATSAPP =====================
-window.sendWhatsApp = (tel, usuario, perfil, fecha, plataforma) => {
+window.sendWhatsApp = (idVenta) => {
+  const venta = getVentaById(idVenta);
+  if (!venta) return;
 
-  if (!tel) return;
+  const cliente = getCliente(venta);
+  const servicioNombre = getServicioNombre(venta);
 
-  const msg = `¡Hola! Bull Streaming te informa que está por vencer tu servicio de ${plataforma}.
+  const tel = safe(cliente.whatsapp).replace(/\D/g, "");
 
-Usuario: ${usuario}
-Perfil: ${perfil}
-Fecha de vencimiento: ${fecha}
+  if (!tel) {
+    alert("Este cliente no tiene WhatsApp registrado.");
+    return;
+  }
 
-¿Deseas renovar?`;
+  const msg = `¡Hola! Bull Streaming te informa que está por vencer tu servicio de ${servicioNombre}.
+
+Usuario: ${safe(venta.usuario_correo)}
+Perfil: ${safe(venta.perfil)}
+Fecha de vencimiento: ${formatDate(venta.fecha_vencimiento)}
+
+¿Puedes confirmar si deseas renovar?`;
 
   window.open(
     `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,
@@ -181,7 +367,6 @@ Fecha de vencimiento: ${fecha}
 
 // ===================== RENOVAR =====================
 window.renovar = async (id) => {
-
   const nueva = prompt("Nueva fecha (YYYY-MM-DD)");
   if (!nueva) return;
 
@@ -195,7 +380,6 @@ window.renovar = async (id) => {
 
 // ===================== EDITAR =====================
 window.editar = async (id) => {
-
   const campo = prompt("usuario / perfil / fecha");
   const valor = prompt("nuevo valor");
 
@@ -207,6 +391,11 @@ window.editar = async (id) => {
   if (campo === "perfil") update.perfil = valor;
   if (campo === "fecha") update.fecha_vencimiento = valor;
 
+  if (Object.keys(update).length === 0) {
+    alert("Campo no válido.");
+    return;
+  }
+
   await supabase
     .from("ventas")
     .update(update)
@@ -217,7 +406,6 @@ window.editar = async (id) => {
 
 // ===================== ELIMINAR =====================
 window.eliminar = async (id) => {
-
   if (!confirm("¿Eliminar venta?")) return;
 
   await supabase
@@ -230,57 +418,99 @@ window.eliminar = async (id) => {
 
 // ===================== FILTROS + SEARCH + SORT =====================
 function setupFilters() {
+  const search = document.getElementById("search");
+  const platform = document.getElementById("filterPlatform");
+  const sort = document.getElementById("sortBy");
+  const container = document.getElementById("container");
 
+  search?.addEventListener("input", applyCurrentView);
+  platform?.addEventListener("change", applyCurrentView);
+  sort?.addEventListener("change", applyCurrentView);
+
+  container?.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+
+    if (btn) {
+      e.stopPropagation();
+
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+
+      if (action === "whatsapp") window.sendWhatsApp(id);
+      if (action === "renovar") window.renovar(id);
+      if (action === "editar") window.editar(id);
+      if (action === "eliminar") window.eliminar(id);
+
+      return;
+    }
+
+    const header = e.target.closest(".card-header");
+
+    if (header) {
+      toggleCard(header.closest(".card"));
+    }
+  });
+}
+
+function applyCurrentView() {
   const search = document.getElementById("search");
   const platform = document.getElementById("filterPlatform");
   const sort = document.getElementById("sortBy");
 
-  function apply() {
+  let data = [...ventas];
 
-    let data = [...ventas];
+  const q = safe(search?.value).trim().toLowerCase();
 
-    // 🔍 SEARCH GLOBAL
-    const q = (search?.value || "").toLowerCase();
+  if (q) {
+    data = data.filter(v => {
+      const cliente = getCliente(v);
+      const servicioNombre = getServicioNombre(v);
 
-    if (q) {
-      data = data.filter(v => {
+      const texto = [
+        cliente.nombre,
+        cliente.whatsapp,
+        v.id_venta,
+        v.tipo_venta,
+        v.id_cliente,
+        v.plataforma,
+        v.id_servicio,
+        servicioNombre,
+        v.usuario_correo,
+        v.perfil,
+        formatDate(v.fecha_registro),
+        formatDate(v.fecha_vencimiento),
+        v.ganancia,
+        v.estado
+      ]
+        .map(safe)
+        .join(" ")
+        .toLowerCase();
 
-        const cliente = clientesMap[v.id_cliente]?.nombre || "";
-        const servicio = v.servicio || v.servicio_nombre || "";
-        const correo = v.usuario_correo || "";
-
-        return (
-          cliente.toLowerCase().includes(q) ||
-          servicio.toLowerCase().includes(q) ||
-          correo.toLowerCase().includes(q) ||
-          v.plataforma?.toLowerCase().includes(q) ||
-          v.perfil?.toLowerCase().includes(q)
-        );
-      });
-    }
-
-    // 🟦 FILTRO PLATAFORMA
-    if (platform?.value) {
-      data = data.filter(v => v.plataforma === platform.value);
-    }
-
-    // ⏳ SORT SOLO FECHAS
-    if (sort?.value === "fecha_vencimiento") {
-      data.sort((a, b) =>
-        new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
-      );
-    }
-
-    if (sort?.value === "fecha_registro") {
-      data.sort((a, b) =>
-        new Date(a.fecha_registro) - new Date(b.fecha_registro)
-      );
-    }
-
-    render(data);
+      return texto.includes(q);
+    });
   }
 
-  search?.addEventListener("input", apply);
-  platform?.addEventListener("change", apply);
-  sort?.addEventListener("change", apply);
+  if (platform?.value) {
+    data = data.filter(v => v.plataforma === platform.value);
+  }
+
+  if (sort?.value === "fecha_vencimiento") {
+    data.sort((a, b) => {
+      const da = parseDate(a.fecha_vencimiento);
+      const db = parseDate(b.fecha_vencimiento);
+
+      return (da?.getTime() || 0) - (db?.getTime() || 0);
+    });
+  }
+
+  if (sort?.value === "fecha_registro") {
+    data.sort((a, b) => {
+      const da = parseDate(a.fecha_registro);
+      const db = parseDate(b.fecha_registro);
+
+      return (da?.getTime() || 0) - (db?.getTime() || 0);
+    });
+  }
+
+  render(data);
 }
