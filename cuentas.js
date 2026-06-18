@@ -61,28 +61,19 @@ function colorByDate(v) {
 async function loadClientes() {
   const { data } = await supabase.from("clientes").select("*");
   clientes = data || [];
-
-  clientes.forEach(c => {
-    clientesMap[c.id_cliente] = c;
-  });
+  clientes.forEach(c => clientesMap[c.id_cliente] = c);
 }
 
 async function loadProveedores() {
-  const { data } = await supabase.from("proveedores").select("*");
+  const { data } = await supabase.from("proveedor").select("*");
   proveedores = data || [];
-
-  proveedores.forEach(p => {
-    proveedoresMap[p.proveedor] = p;
-  });
+  proveedores.forEach(p => proveedoresMap[p.proveedor] = p);
 }
 
 async function loadServicios() {
-  const { data } = await supabase.from("conf_venta_cuenta_propia").select("*");
+  const { data } = await supabase.from("conf_venta_puenta_propia").select("*");
   servicios = data || [];
-
-  servicios.forEach(s => {
-    serviciosMap[s.id_servicio] = s;
-  });
+  servicios.forEach(s => serviciosMap[s.id_servicio] = s);
 }
 
 async function loadVentas() {
@@ -93,7 +84,6 @@ async function loadVentas() {
 async function loadCuentas() {
   const { data } = await supabase.from("cuentas_propias").select("*");
   cuentas = data || [];
-
   applyView();
 }
 
@@ -112,45 +102,41 @@ function getServicio(c) {
 }
 
 /* =========================
-   CLIENTE NAME FIX
+   DISPONIBILIDAD REAL
 ========================= */
-function getClienteNombre(v) {
-  if (v.cliente) return v.cliente;
-  const cli = clientesMap[v.id_cliente];
-  return cli?.nombre || "Sin cliente";
-}
-
-/* =========================
-   DISPONIBILIDAD FIX (capacidad)
-========================= */
-function getDisponibilidad(cuenta) {
-  const correo = getCorreo(cuenta);
+function getDisponibilidad(c) {
+  const correo = getCorreo(c);
 
   const usadas = ventas.filter(v =>
     v.usuario_correo === correo
   ).length;
 
-  const servicio = getServicio(cuenta);
-
-  // 🔥 FIX: en tu Excel es capacidad o limite
-  const max = servicio?.capacidad || servicio?.limite || servicio?.cantidad || 0;
+  const max = getServicio(c)?.cantidad || 0;
 
   return {
     usadas,
     max,
+    free: max - usadas,
     full: usadas >= max
   };
 }
 
 /* =========================
-   CLIENTES POR CUENTA
+   CLIENTES
 ========================= */
-function getClientesCuenta(cuenta) {
-  const correo = getCorreo(cuenta);
+function getClientes(c) {
+  const correo = getCorreo(c);
 
   return ventas.filter(v =>
     v.usuario_correo === correo
   );
+}
+
+/* =========================
+   PLATAFORMA REAL
+========================= */
+function getPlataforma(c) {
+  return getServicio(c)?.plataforma || "";
 }
 
 /* =========================
@@ -160,15 +146,14 @@ function render(data) {
   const container = document.getElementById("container");
   container.innerHTML = "";
 
-  data.forEach(cuenta => {
+  data.forEach(c => {
 
-    const correo = getCorreo(cuenta);
-    const servicio = getServicio(cuenta);
+    const correo = getCorreo(c);
+    const servicio = getServicio(c);
+    const disp = getDisponibilidad(c);
+    const clientesCuenta = getClientes(c);
 
-    const disp = getDisponibilidad(cuenta);
-    const clientesCuenta = getClientesCuenta(cuenta);
-
-    const color = colorByDate(cuenta.fecha_vencimiento);
+    const color = colorByDate(c.fecha_vencimiento);
 
     const card = document.createElement("div");
     card.className = `card ${color}`;
@@ -179,8 +164,9 @@ function render(data) {
         <div>
           <h3>${servicio?.servicio || "Servicio"}</h3>
           <p><b>Correo:</b> ${correo}</p>
-          <p><b>Proveedor:</b> ${cuenta.proveedor || "-"}</p>
-          <p><b>Vence:</b> ${cuenta.fecha_vencimiento || "-"}</p>
+          <p><b>Proveedor:</b> ${c.proveedor}</p>
+          <p><b>Plataforma:</b> ${getPlataforma(c)}</p>
+          <p><b>Vence:</b> ${c.fecha_vencimiento}</p>
         </div>
 
         <div style="text-align:right;">
@@ -193,10 +179,10 @@ function render(data) {
       <div class="card-body hidden">
 
         <div class="btn-grid">
-          <button onclick="whatsappProveedor('${cuenta.id_cuenta}')">WhatsApp</button>
-          <button onclick="editarCorreo('${cuenta.id_cuenta}')">Editar correo</button>
-          <button onclick="editarFecha('${cuenta.id_cuenta}')">Editar fecha</button>
-          <button onclick="eliminarCuenta('${cuenta.id_cuenta}')">Eliminar</button>
+          <button onclick="whatsappProveedor('${c.id_cuenta}')">WhatsApp</button>
+          <button onclick="editarCorreo('${c.id_cuenta}')">Editar correo</button>
+          <button onclick="editarFecha('${c.id_cuenta}')">Editar fecha</button>
+          <button onclick="eliminarCuenta('${c.id_cuenta}')">Eliminar</button>
         </div>
 
         <hr>
@@ -206,8 +192,7 @@ function render(data) {
         ${
           clientesCuenta.map(v => `
             <div class="cliente-row">
-              <span>${getClienteNombre(v)} - ${v.perfil} - ${v.fecha_vencimiento}</span>
-
+              <span>${v.cliente} - ${v.perfil} - ${v.fecha_vencimiento}</span>
               <div>
                 <button onclick="editarVenta('${v.id_venta}')">Editar</button>
                 <button onclick="eliminarVenta('${v.id_venta}')">Eliminar</button>
@@ -217,7 +202,7 @@ function render(data) {
         }
 
         <button style="width:100%; margin-top:10px;"
-          onclick="abrirModal('${cuenta.id_cuenta}')">
+          onclick="abrirModal('${c.id_cuenta}')">
           + Agregar cliente
         </button>
 
@@ -246,61 +231,54 @@ function setupToggle() {
 ========================= */
 window.whatsappProveedor = (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
-  if (!c) return;
+  const p = proveedoresMap[c.proveedor];
 
-  const prov = proveedoresMap[c.proveedor];
-  const tel = safe(prov?.whatsapp).replace(/\D/g, "");
+  const tel = safe(p?.whatsapp).replace(/\D/g, "");
 
-  const msg = `Hola Bull Streaming desea renovar ${getCorreo(c)} - ${c.id_servicio}`;
+  if (!tel) return alert("Proveedor sin WhatsApp");
+
+  const msg = `Hola Bull Streaming desea renovar esta cuenta ${getCorreo(c)} de ${getServicio(c)?.servicio}`;
 
   window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
 };
 
 /* =========================
-   EDITAR CORREO (CASCADE)
+   EDITAR / ELIMINAR
 ========================= */
 window.editarCorreo = async (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
-  const nuevo = prompt("Nuevo correo:", getCorreo(c));
+  const nuevo = prompt("Nuevo correo", getCorreo(c));
   if (!nuevo) return;
-
-  const old = getCorreo(c);
 
   await supabase.from("ventas")
     .update({ usuario_correo: nuevo })
-    .eq("usuario_correo", old);
+    .eq("usuario_correo", getCorreo(c));
 
   await supabase.from("cuentas_propias")
     .update({ correo_cuenta: nuevo })
     .eq("id_cuenta", id);
 
-  await loadVentas();
   await loadCuentas();
+  await loadVentas();
 };
 
-/* =========================
-   ELIMINAR
-========================= */
 window.eliminarCuenta = async (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
 
-  const correo = getCorreo(c);
+  if (!confirm("Eliminar cuenta y clientes?")) return;
 
   await supabase.from("ventas")
     .delete()
-    .eq("usuario_correo", correo);
+    .eq("usuario_correo", getCorreo(c));
 
   await supabase.from("cuentas_propias")
     .delete()
     .eq("id_cuenta", id);
 
-  await loadVentas();
   await loadCuentas();
+  await loadVentas();
 };
 
-/* =========================
-   FECHA
-========================= */
 window.editarFecha = async (id) => {
   const nueva = prompt("YYYY-MM-DD");
   if (!nueva) return;
@@ -313,20 +291,20 @@ window.editarFecha = async (id) => {
 };
 
 /* =========================
-   VENTAS
+   EDITAR CLIENTES
 ========================= */
 window.editarVenta = async (id) => {
   const v = ventas.find(x => x.id_venta === id);
 
-  const perfil = prompt("Perfil:", v.perfil);
-  const fecha = prompt("Fecha:", v.fecha_vencimiento);
+  const perfil = prompt("Perfil", v.perfil);
+  const fecha = prompt("Fecha", v.fecha_vencimiento);
 
   await supabase.from("ventas")
     .update({ perfil, fecha_vencimiento: fecha })
     .eq("id_venta", id);
 
   await loadVentas();
-  loadCuentas();
+  applyView();
 };
 
 window.eliminarVenta = async (id) => {
@@ -335,21 +313,22 @@ window.eliminarVenta = async (id) => {
     .eq("id_venta", id);
 
   await loadVentas();
-  loadCuentas();
+  applyView();
 };
 
 /* =========================
    SEARCH + SORT FIX
 ========================= */
 function applyView() {
-  const q = (document.getElementById("search")?.value || "").toLowerCase();
-
   let data = [...cuentas];
+
+  const q = (document.getElementById("search")?.value || "").toLowerCase();
 
   if (q) {
     data = data.filter(c =>
       getCorreo(c).toLowerCase().includes(q) ||
-      (c.proveedor || "").toLowerCase().includes(q)
+      c.proveedor.toLowerCase().includes(q) ||
+      getPlataforma(c).toLowerCase().includes(q)
     );
   }
 
@@ -363,7 +342,7 @@ function applyView() {
 
   if (sort === "disponibilidad") {
     data.sort((a,b) =>
-      getDisponibilidad(b).usadas - getDisponibilidad(a).usadas
+      getDisponibilidad(b).free - getDisponibilidad(a).free
     );
   }
 
