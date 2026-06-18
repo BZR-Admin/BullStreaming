@@ -468,3 +468,16 @@ select {
 .dot{width:10px;height:10px;border-radius:50%}
 .red{background:red}.green{background:limegreen}
 .hidden{display:none}
+
+.actions{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:4px;
+  padding:6px;
+}
+
+.actions button{
+  font-size:9px;
+  padding:4px;
+  border-radius:6px;
+}
