@@ -27,8 +27,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     loadServicios()
   ]);
 
-  await loadVentas();
-  await loadCuentas();
+await loadVentas();
+await loadCuentas();
 });
 
 /* =========================
@@ -281,20 +281,32 @@ function setupAgregarCliente() {
     const idCliente = document.getElementById("addCliente").value;
     const perfil = document.getElementById("addPerfil").value;
     const fecha = document.getElementById("addFechaVencimiento").value;
-
+     const ganancia = document.getElementById("addGanancia").value;
+      <label for="addGanancia">Ganancia</label>
+<input
+  id="addGanancia"
+  type="number"
+  step="0.01"
+  placeholder="Ej: 5 o 10.50"
+  required
+/>
     const cuenta = cuentas.find(c => c.id_cuenta === idCuenta);
 
     if (!cuenta) return;
 
-    await supabase.from("ventas").insert([{
-      id_cliente: idCliente,
-      cliente: clientesMap[idCliente]?.nombre,
-      usuario_correo: cuenta.correo_cuenta,
-      plataforma: getPlataforma(cuenta),
-      id_servicio: cuenta.id_servicio,
-      perfil,
-      fecha_vencimiento: fecha
-    }]);
+  await supabase.from("ventas").insert([{
+  id_venta: crypto.randomUUID(),
+  tipo_venta: "VCP",
+  id_cliente: idCliente,
+  plataforma: getPlataforma(cuenta),
+  id_servicio: cuenta.id_servicio,
+  usuario_correo: cuenta.correo_cuenta,
+  perfil: perfil,
+  fecha_registro: new Date().toISOString(),
+  fecha_vencimiento: fecha,
+  ganancia: parseFloat(ganancia),
+  estado: "activa"
+}]);
 
     document.getElementById("modalAgregarCliente").close();
 
@@ -412,11 +424,12 @@ function applyView() {
   const sort = document.getElementById("sortBy")?.value;
 
   if (sort === "plataforma") {
-    data.sort((a, b) =>
-      getPlataforma(a).localeCompare(getPlataforma(b))
-    );
-  }
-
+  data.sort((a, b) => {
+    const sa = serviciosMap[a.id_servicio]?.plataforma || "";
+    const sb = serviciosMap[b.id_servicio]?.plataforma || "";
+    return sa.localeCompare(sb);
+  });
+}
   if (sort === "fecha_vencimiento") {
     data.sort((a, b) =>
       new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
