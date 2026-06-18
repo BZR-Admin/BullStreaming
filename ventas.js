@@ -32,7 +32,7 @@ async function loadClientes() {
 async function loadPlataformas() {
 
   const table = (mode === "VI")
-    ? "conf_venta_perfiles_independientes"
+    ? "conf_venta_perfiles_individuales"
     : "conf_venta_cuenta_propia";
 
   const { data } = await supabase
@@ -55,7 +55,7 @@ window.loadServicios = async () => {
   const plataforma = document.getElementById("plataforma").value;
 
   const table = (mode === "VI")
-    ? "conf_venta_perfiles_independientes"
+    ? "conf_venta_perfiles_individuales"
     : "conf_venta_cuenta_propia";
 
   const { data } = await supabase
@@ -109,6 +109,13 @@ window.setMode = (m) => {
   prov.style.display = (m === "VCP") ? "block" : "none";
 
   loadPlataformas();
+
+  // reset visual botones (si existen)
+  document.getElementById("btnVI")?.classList.remove("activeVI");
+  document.getElementById("btnVCP")?.classList.remove("activeVCP");
+
+  if (m === "VI") document.getElementById("btnVI")?.classList.add("activeVI");
+  if (m === "VCP") document.getElementById("btnVCP")?.classList.add("activeVCP");
 };
 
 // ================= PARSER =================
@@ -116,7 +123,7 @@ window.parseText = async () => {
 
   const text = document.getElementById("texto").value;
 
-  // 🔥 EMAIL CORREGIDO (FULL MATCH)
+  // EMAIL CORRECTO
   const correo = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
 
   const perfil = text.match(/Perfil:\s*(.*)/i)?.[1];
@@ -149,7 +156,7 @@ window.parseText = async () => {
   }
 };
 
-// ================= VALIDAR CUENTA =================
+// ================= VALIDAR CUENTA VCP =================
 async function validarCuenta(correo) {
 
   const { data: cuentas } = await supabase
@@ -173,7 +180,7 @@ async function validarCuenta(correo) {
 
   const { data: conf } = await supabase
     .from("conf_venta_cuenta_propia")
-    .select("cantidad")
+    .select("cantidad, plataforma, servicio")
     .eq("id_servicio", cuenta.id_servicio)
     .single();
 
@@ -183,6 +190,15 @@ async function validarCuenta(correo) {
     alert("❌ Cuenta detectada está llena");
     return false;
   }
+
+  // ================= AUTO FILL VCP =================
+  document.getElementById("plataforma").value = conf.plataforma;
+
+  await loadServicios();
+
+  document.getElementById("servicio").value = cuenta.id_servicio;
+
+  document.getElementById("proveedor").value = cuenta.proveedor;
 
   document.getElementById("perfil").value =
     `Perfil ${count + 1}`;
@@ -236,25 +252,3 @@ function limpiar() {
   document.getElementById("perfil").value = "";
   document.getElementById("ganancia").value = "";
 }
-
-window.setMode = (m) => {
-
-  mode = m;
-
-  const prov = document.getElementById("proveedor");
-
-  prov.style.display = (m === "VCP") ? "block" : "none";
-
-  // 🔥 RESET
-  document.getElementById("btnVI").classList.remove("activeVI");
-  document.getElementById("btnVCP").classList.remove("activeVCP");
-
-  // 🔥 ACTIVO
-  if (m === "VI") {
-    document.getElementById("btnVI").classList.add("activeVI");
-  }
-
-  if (m === "VCP") {
-    document.getElementById("btnVCP").classList.add("activeVCP");
-  }
-};
