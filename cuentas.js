@@ -42,8 +42,8 @@ function diffDays(v) {
   if (!d) return 9999;
 
   const today = new Date();
-  today.setHours(0,0,0,0);
-  d.setHours(0,0,0,0);
+  today.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
 
   return Math.ceil((d - today) / 86400000);
 }
@@ -56,24 +56,33 @@ function colorByDate(v) {
 }
 
 /* =========================
-   LOAD
+   LOAD DATA
 ========================= */
 async function loadClientes() {
   const { data } = await supabase.from("clientes").select("*");
   clientes = data || [];
-  clientes.forEach(c => clientesMap[c.id_cliente] = c);
+
+  clientes.forEach(c => {
+    clientesMap[c.id_cliente] = c;
+  });
 }
 
 async function loadProveedores() {
   const { data } = await supabase.from("proveedores").select("*");
   proveedores = data || [];
-  proveedores.forEach(p => proveedoresMap[p.proveedor] = p);
+
+  proveedores.forEach(p => {
+    proveedoresMap[p.proveedor] = p;
+  });
 }
 
 async function loadServicios() {
   const { data } = await supabase.from("conf_venta_cuenta_propia").select("*");
   servicios = data || [];
-  servicios.forEach(s => serviciosMap[s.id_servicio] = s);
+
+  servicios.forEach(s => {
+    serviciosMap[s.id_servicio] = s;
+  });
 }
 
 async function loadVentas() {
@@ -88,21 +97,22 @@ async function loadCuentas() {
 }
 
 /* =========================
-   CORREO REAL
+   HELPERS CUENTA
 ========================= */
 function getCorreo(c) {
   return safe(c.correo_cuenta);
 }
 
-/* =========================
-   SERVICIO
-========================= */
 function getServicio(c) {
   return serviciosMap[c.id_servicio];
 }
 
+function getPlataforma(c) {
+  return serviciosMap[c.id_servicio]?.plataforma || "";
+}
+
 /* =========================
-   DISPONIBILIDAD REAL
+   DISPONIBILIDAD
 ========================= */
 function getDisponibilidad(c) {
   const correo = getCorreo(c);
@@ -122,7 +132,7 @@ function getDisponibilidad(c) {
 }
 
 /* =========================
-   CLIENTES
+   CLIENTES CUENTA (FIX REAL)
 ========================= */
 function getClientes(c) {
   const correo = getCorreo(c);
@@ -130,13 +140,6 @@ function getClientes(c) {
   return ventas.filter(v =>
     v.usuario_correo === correo
   );
-}
-
-/* =========================
-   PLATAFORMA REAL
-========================= */
-function getPlataforma(c) {
-  return getServicio(c)?.plataforma || "";
 }
 
 /* =========================
@@ -192,7 +195,12 @@ function render(data) {
         ${
           clientesCuenta.map(v => `
             <div class="cliente-row">
-              <span>${v.cliente} - ${v.perfil} - ${v.fecha_vencimiento}</span>
+              <span>
+                ${clientesMap[v.id_cliente]?.nombre || "Sin cliente"}
+                - ${v.perfil}
+                - ${v.fecha_vencimiento}
+              </span>
+
               <div>
                 <button onclick="editarVenta('${v.id_venta}')">Editar</button>
                 <button onclick="eliminarVenta('${v.id_venta}')">Eliminar</button>
@@ -201,10 +209,12 @@ function render(data) {
           `).join("")
         }
 
-        <button style="width:100%; margin-top:10px;"
-          onclick="abrirModal('${c.id_cuenta}')">
-          + Agregar cliente
-        </button>
+        ${!disp.full ? `
+          <button style="width:100%; margin-top:10px;"
+            onclick="abrirModal('${c.id_cuenta}')">
+            + Agregar cliente
+          </button>
+        ` : ""}
 
       </div>
     `;
@@ -227,15 +237,15 @@ function setupToggle() {
 }
 
 /* =========================
-   WHATSAPP
+   WHATSAPP (FIX PROVEEDOR)
 ========================= */
 window.whatsappProveedor = (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
   const p = proveedoresMap[c.proveedor];
 
-  const tel = safe(p?.whatsapp).replace(/\D/g, "");
+  const tel = safe(p?.telefono || p?.celular || p?.whatsapp).replace(/\D/g, "");
 
-  if (!tel) return alert("Proveedor sin WhatsApp");
+  if (!tel) return alert("Proveedor sin número");
 
   const msg = `Hola Bull Streaming desea renovar esta cuenta ${getCorreo(c)} de ${getServicio(c)?.servicio}`;
 
@@ -243,25 +253,47 @@ window.whatsappProveedor = (id) => {
 };
 
 /* =========================
-   EDITAR / ELIMINAR
+   MODAL AGREGAR CLIENTE (FIX REAL)
+========================= */
+window.abrirModal = (idCuenta) => {
+  const modal = document.getElementById("modalAgregarCliente");
+
+  document.getElementById("addCuentaId").value = idCuenta;
+
+  const select = document.getElementById("addCliente");
+
+  select.innerHTML = clientes
+    .map(c => `<option value="${c.id_cliente}">${c.nombre}</option>`)
+    .join("");
+
+  modal.showModal();
+};
+
+/* =========================
+   EDITAR CORREO (CASCADE)
 ========================= */
 window.editarCorreo = async (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
   const nuevo = prompt("Nuevo correo", getCorreo(c));
   if (!nuevo) return;
 
+  const old = getCorreo(c);
+
   await supabase.from("ventas")
     .update({ usuario_correo: nuevo })
-    .eq("usuario_correo", getCorreo(c));
+    .eq("usuario_correo", old);
 
   await supabase.from("cuentas_propias")
     .update({ correo_cuenta: nuevo })
     .eq("id_cuenta", id);
 
-  await loadCuentas();
   await loadVentas();
+  await loadCuentas();
 };
 
+/* =========================
+   ELIMINAR CUENTA
+========================= */
 window.eliminarCuenta = async (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
 
@@ -275,10 +307,13 @@ window.eliminarCuenta = async (id) => {
     .delete()
     .eq("id_cuenta", id);
 
-  await loadCuentas();
   await loadVentas();
+  await loadCuentas();
 };
 
+/* =========================
+   EDITAR FECHA
+========================= */
 window.editarFecha = async (id) => {
   const nueva = prompt("YYYY-MM-DD");
   if (!nueva) return;
@@ -291,7 +326,7 @@ window.editarFecha = async (id) => {
 };
 
 /* =========================
-   EDITAR CLIENTES
+   CLIENTES EDIT / DELETE
 ========================= */
 window.editarVenta = async (id) => {
   const v = ventas.find(x => x.id_venta === id);
@@ -317,7 +352,7 @@ window.eliminarVenta = async (id) => {
 };
 
 /* =========================
-   SEARCH + SORT FIX
+   SEARCH + SORT FIX FINAL
 ========================= */
 function applyView() {
   let data = [...cuentas];
@@ -335,13 +370,13 @@ function applyView() {
   const sort = document.getElementById("sortBy")?.value;
 
   if (sort === "fecha_vencimiento") {
-    data.sort((a,b) =>
+    data.sort((a, b) =>
       new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
     );
   }
 
   if (sort === "disponibilidad") {
-    data.sort((a,b) =>
+    data.sort((a, b) =>
       getDisponibilidad(b).free - getDisponibilidad(a).free
     );
   }
