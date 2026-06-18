@@ -2,6 +2,16 @@ import { supabase } from "./supabase.js";
 
 let mode = "VI";
 
+// ================= SAFE FETCH =================
+async function safeQuery(query) {
+  const { data, error } = await query;
+  if (error) {
+    console.error("Supabase error:", error);
+    return [];
+  }
+  return data || [];
+}
+
 // ================= INIT =================
 window.onload = async () => {
   await loadClientes();
@@ -12,9 +22,9 @@ window.onload = async () => {
 // ================= CLIENTES =================
 async function loadClientes() {
 
-  const { data } = await supabase
-    .from("clientes")
-    .select("*");
+  const data = await safeQuery(
+    supabase.from("clientes").select("*")
+  );
 
   const sel = document.getElementById("cliente");
   sel.innerHTML = "<option value=''>Cliente</option>";
@@ -35,14 +45,14 @@ async function loadPlataformas() {
     ? "conf_venta_perfiles_individuales"
     : "conf_venta_cuenta_propia";
 
-  const { data } = await supabase
-    .from(table)
-    .select("plataforma");
+  const data = await safeQuery(
+    supabase.from(table).select("plataforma")
+  );
 
   const sel = document.getElementById("plataforma");
   sel.innerHTML = "<option value=''>Plataforma</option>";
 
-  const unique = [...new Set(data.map(d => d.plataforma))];
+  const unique = [...new Set(data.map(d => d.plataforma).filter(Boolean))];
 
   unique.forEach(p => {
     sel.innerHTML += `<option value="${p}">${p}</option>`;
@@ -58,18 +68,17 @@ window.loadServicios = async () => {
     ? "conf_venta_perfiles_individuales"
     : "conf_venta_cuenta_propia";
 
-  const { data } = await supabase
-    .from(table)
-    .select("*")
-    .eq("plataforma", plataforma);
+  const data = await safeQuery(
+    supabase
+      .from(table)
+      .select("*")
+      .eq("plataforma", plataforma)
+  );
 
   const sel = document.getElementById("servicio");
   sel.innerHTML = "<option value=''>Servicio</option>";
 
-  if (!data || data.length === 0) {
-    alert("No hay servicios para esta plataforma");
-    return;
-  }
+  if (!data.length) return;
 
   data.forEach(s => {
     sel.innerHTML += `
@@ -83,9 +92,9 @@ window.loadServicios = async () => {
 // ================= PROVEEDORES =================
 async function loadProveedores() {
 
-  const { data } = await supabase
-    .from("proveedores")
-    .select("*");
+  const data = await safeQuery(
+    supabase.from("proveedores").select("*")
+  );
 
   const sel = document.getElementById("proveedor");
   sel.innerHTML = "<option value=''>Proveedor</option>";
@@ -110,7 +119,6 @@ window.setMode = (m) => {
 
   loadPlataformas();
 
-  // reset visual botones (si existen)
   document.getElementById("btnVI")?.classList.remove("activeVI");
   document.getElementById("btnVCP")?.classList.remove("activeVCP");
 
@@ -123,7 +131,6 @@ window.parseText = async () => {
 
   const text = document.getElementById("texto").value;
 
-  // EMAIL CORRECTO
   const correo = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
 
   const perfil = text.match(/Perfil:\s*(.*)/i)?.[1];
@@ -148,7 +155,6 @@ window.parseText = async () => {
 
   if (mode === "VCP") {
     const ok = await validarCuenta(correo);
-
     if (!ok) {
       document.getElementById("correo").value = "";
       document.getElementById("perfil").value = "";
@@ -156,15 +162,17 @@ window.parseText = async () => {
   }
 };
 
-// ================= VALIDAR CUENTA VCP =================
+// ================= VALIDAR CUENTA =================
 async function validarCuenta(correo) {
 
-  const { data: cuentas } = await supabase
-    .from("cuentas_propias")
-    .select("*")
-    .eq("correo_cuenta", correo);
+  const cuentas = await safeQuery(
+    supabase
+      .from("cuentas_propias")
+      .select("*")
+      .eq("correo_cuenta", correo)
+  );
 
-  if (!cuentas || cuentas.length === 0) {
+  if (!cuentas.length) {
     alert("❌ No se encontró la cuenta");
     return false;
   }
@@ -178,27 +186,29 @@ async function validarCuenta(correo) {
     .eq("tipo_venta", "VCP")
     .eq("id_servicio", cuenta.id_servicio);
 
-  const { data: conf } = await supabase
-    .from("conf_venta_cuenta_propia")
-    .select("cantidad, plataforma, servicio")
-    .eq("id_servicio", cuenta.id_servicio)
-    .single();
+  const conf = await safeQuery(
+    supabase
+      .from("conf_venta_cuenta_propia")
+      .select("cantidad, plataforma, servicio")
+      .eq("id_servicio", cuenta.id_servicio)
+      .single()
+  );
 
   const capacidad = conf?.cantidad || 5;
 
   if (count >= capacidad) {
-    alert("❌ Cuenta detectada está llena");
+    alert("❌ Cuenta llena");
     return false;
   }
 
-  // ================= AUTO FILL VCP =================
+  // ================= AUTO FILL =================
   document.getElementById("plataforma").value = conf.plataforma;
 
   await loadServicios();
 
   document.getElementById("servicio").value = cuenta.id_servicio;
 
-  document.getElementById("proveedor").value = cuenta.proveedor;
+  document.getElementById("proveedor").value = cuenta.proveedor || "";
 
   document.getElementById("perfil").value =
     `Perfil ${count + 1}`;
