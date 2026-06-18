@@ -515,3 +515,113 @@ select {
 .info-grid p{
   margin:4px 0;
 }
+
+/* =========================
+   FIX VISUAL TARJETAS REGISTROS
+   Pegar al FINAL del style.css
+========================= */
+
+.card.red,
+.card.yellow,
+.card.green {
+  background: rgba(15, 23, 42, 0.96) !important;
+  color: white !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  border-left-width: 6px !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+}
+
+.card.red {
+  border-left-color: #ff4d4d !important;
+  box-shadow:
+    0 10px 28px rgba(0,0,0,0.28),
+    0 0 18px rgba(255,77,77,0.16);
+}
+
+.card.yellow {
+  border-left-color: #ffd60a !important;
+  box-shadow:
+    0 10px 28px rgba(0,0,0,0.28),
+    0 0 18px rgba(255,214,10,0.14);
+}
+
+.card.green {
+  border-left-color: #2cff88 !important;
+  box-shadow:
+    0 10px 28px rgba(0,0,0,0.28),
+    0 0 18px rgba(44,255,136,0.13);
+}
+
+.card.red:hover,
+.card.yellow:hover,
+.card.green:hover {
+  transform: translateY(-4px);
+  border-top-color: rgba(255,255,255,0.22) !important;
+  border-right-color: rgba(255,255,255,0.22) !important;
+  border-bottom-color: rgba(255,255,255,0.22) !important;
+}
+
+.card-header {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.card-header h3 {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.card-header p {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.status-badge {
+  min-width: 92px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 7px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: white;
+}
+
+.card.red .status-badge {
+  background: rgba(255,77,77,0.14);
+  border-color: rgba(255,77,77,0.32);
+}
+
+.card.yellow .status-badge {
+  background: rgba(255,214,10,0.14);
+  border-color: rgba(255,214,10,0.32);
+  color: #ffe88a;
+}
+
+.card.green .status-badge {
+  background: rgba(44,255,136,0.12);
+  border-color: rgba(44,255,136,0.30);
+  color: #b8ffd7;
+}
+
+.btn-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin-top: 12px !important;
+}
+
+.btn-grid button {
+  min-width: 0 !important;
+  width: 100% !important;
+  font-size: 12px !important;
+  padding: 10px 8px !important;
+  border-radius: 10px !important;
+}
+
+.card-body.hidden {
+  display: none !important;
+}
