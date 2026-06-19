@@ -14,22 +14,12 @@ let proveedoresMap = {};
 let serviciosMap = {};
 
 /* =========================
-   UI STATE (NUEVO)
-========================= */
-let uiState = {
-  scrollY: 0,
-  search: "",
-  platform: "",
-};
-
-/* =========================
    INIT
 ========================= */
 window.addEventListener("DOMContentLoaded", async () => {
   setupEvents();
   setupModalClose();
   setupAgregarCliente();
-  setupPlatformFilter(); // 🔥 NUEVO
 
   await Promise.all([
     loadClientes(),
@@ -100,16 +90,18 @@ async function loadServicios() {
   );
 }
 
-async function loadVentas() {
-  const { data } = await supabase.from("ventas").select("*");
-  ventas = data || [];
+async function loadCuentas() {
+  const { data } = await supabase.from("cuentas_propias").select("*");
+  cuentas = data || [];
+
+  setupPlatformOptions(); // 👈 AÑADIDO
+
+  applyView();
 }
 
 async function loadCuentas() {
   const { data } = await supabase.from("cuentas_propias").select("*");
   cuentas = data || [];
-
-  setupPlatformFilter(); // 🔥 actualizar filtro
   applyView();
 }
 
@@ -157,49 +149,6 @@ function getClientes(c) {
   return ventas.filter(v =>
     v.usuario_correo === correo
   );
-}
-
-/* =========================
-   FILTRO PLATAFORMA (NUEVO PRO)
-========================= */
-function setupPlatformFilter() {
-  const select = document.getElementById("filterPlatform");
-  if (!select) return;
-
-  const current = select.value;
-
-  const set = new Set();
-  cuentas.forEach(c => {
-    const p = getPlataforma(c);
-    if (p) set.add(p);
-  });
-
-  select.innerHTML = `<option value="">Todas las plataformas</option>`;
-
-  [...set].sort().forEach(p => {
-    select.innerHTML += `<option value="${p}">${p}</option>`;
-  });
-
-  select.value = current;
-}
-
-/* =========================
-   UI STATE SAVE/RESTORE
-========================= */
-function saveUIState() {
-  uiState.scrollY = window.scrollY;
-  uiState.search = document.getElementById("search")?.value || "";
-  uiState.platform = document.getElementById("filterPlatform")?.value || "";
-}
-
-function restoreUIState() {
-  window.scrollTo(0, uiState.scrollY);
-
-  const s = document.getElementById("search");
-  const p = document.getElementById("filterPlatform");
-
-  if (s) s.value = uiState.search;
-  if (p) p.value = uiState.platform;
 }
 
 /* =========================
@@ -294,15 +243,192 @@ function setupToggle() {
 }
 
 /* =========================
-   FILTER + SEARCH + SORT
+   MODAL OPEN
+========================= */
+window.abrirModal = (idCuenta) => {
+  document.getElementById("addCuentaId").value = idCuenta;
+
+  const select = document.getElementById("addCliente");
+  select.innerHTML = clientes.map(c =>
+    `<option value="${c.id_cliente}">${c.nombre}</option>`
+  ).join("");
+
+  document.getElementById("modalAgregarCliente").showModal();
+};
+
+/* =========================
+   MODAL CLOSE
+========================= */
+function setupModalClose() {
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-modal-close]");
+    if (!btn) return;
+
+    const modal = document.getElementById(btn.dataset.modalClose);
+    if (modal) modal.close();
+  });
+}
+
+/* =========================
+   AGREGAR CLIENTE (FIX FINAL)
+========================= */
+function setupAgregarCliente() {
+  const form = document.getElementById("formAgregarCliente");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const idCuenta = document.getElementById("addCuentaId").value;
+    const idCliente = document.getElementById("addCliente").value;
+    const perfil = document.getElementById("addPerfil").value;
+    const fecha = document.getElementById("addFechaVencimiento").value;
+    const ganancia = document.getElementById("addGanancia").value;
+
+    const cuenta = cuentas.find(c => c.id_cuenta === idCuenta);
+    if (!cuenta) return;
+
+    await supabase.from("ventas").insert([{
+      id_venta: crypto.randomUUID(),
+      tipo_venta: "VCP",
+      id_cliente: idCliente,
+      plataforma: getPlataforma(cuenta),
+      id_servicio: cuenta.id_servicio,
+      usuario_correo: cuenta.correo_cuenta,
+      perfil,
+      fecha_registro: new Date().toISOString(),
+      fecha_vencimiento: fecha,
+      ganancia: parseFloat(ganancia || 0),
+      estado: "activa"
+    }]);
+
+    document.getElementById("modalAgregarCliente").close();
+
+    await loadVentas();
+    applyView();
+  });
+}
+
+
+function setupPlatformOptions() {
+  const select = document.getElementById("filterPlatform");
+  if (!select) return;
+
+  const currentValue = select.value;
+
+  const set = new Set();
+
+  cuentas.forEach(c => {
+    const plataforma = getPlataforma(c);
+    if (plataforma) set.add(plataforma);
+  });
+
+  select.innerHTML = `<option value="">Todas las plataformas</option>`;
+
+  [...set].sort().forEach(p => {
+    select.innerHTML += `<option value="${p}">${p}</option>`;
+  });
+
+  const exists = [...select.options].some(opt => opt.value === currentValue);
+
+  if (exists) select.value = currentValue;
+}
+/* =========================
+   WHATSAPP
+========================= */
+window.whatsappProveedor = (id) => {
+  const c = cuentas.find(x => x.id_cuenta === id);
+  const p = proveedoresMap[c.proveedor];
+
+  const tel = safe(p?.telefono || p?.celular || p?.whatsapp).replace(/\D/g, "");
+
+  if (!tel) return alert("Proveedor sin número");
+
+  const msg = `Hola Bull Streaming desea renovar ${getCorreo(c)} (${getServicio(c)?.servicio})`;
+
+  window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
+};
+
+/* =========================
+   EDITAR / ELIMINAR CUENTA
+========================= */
+window.editarCorreo = async (id) => {
+  const c = cuentas.find(x => x.id_cuenta === id);
+  const nuevo = prompt("Nuevo correo", getCorreo(c));
+  if (!nuevo) return;
+
+  await supabase.from("ventas")
+    .update({ usuario_correo: nuevo })
+    .eq("usuario_correo", getCorreo(c));
+
+  await supabase.from("cuentas_propias")
+    .update({ correo_cuenta: nuevo })
+    .eq("id_cuenta", id);
+
+  await loadVentas();
+  await loadCuentas();
+};
+
+window.eliminarCuenta = async (id) => {
+  const c = cuentas.find(x => x.id_cuenta === id);
+
+  if (!confirm("Eliminar cuenta y clientes?")) return;
+
+  await supabase.from("ventas")
+    .delete()
+    .eq("usuario_correo", getCorreo(c));
+
+  await supabase.from("cuentas_propias")
+    .delete()
+    .eq("id_cuenta", id);
+
+  await loadVentas();
+  await loadCuentas();
+};
+
+window.editarFecha = async (id) => {
+  const nueva = prompt("YYYY-MM-DD");
+  if (!nueva) return;
+
+  await supabase.from("cuentas_propias")
+    .update({ fecha_vencimiento: nueva })
+    .eq("id_cuenta", id);
+
+  await loadCuentas();
+};
+
+/* =========================
+   CLIENTES EDIT
+========================= */
+window.editarVenta = async (id) => {
+  const v = ventas.find(x => x.id_venta === id);
+
+  const perfil = prompt("Perfil", v.perfil);
+  const fecha = prompt("Fecha", v.fecha_vencimiento);
+
+  await supabase.from("ventas")
+    .update({ perfil, fecha_vencimiento: fecha })
+    .eq("id_venta", id);
+
+  await loadVentas();
+  applyView();
+};
+
+window.eliminarVenta = async (id) => {
+  await supabase.from("ventas")
+    .delete()
+    .eq("id_venta", id);
+
+  await loadVentas();
+  applyView();
+};
+
+/* =========================
+   SEARCH + SORT
 ========================= */
 function applyView() {
-  saveUIState(); // 🔥 guardar posición
-
   let data = [...cuentas];
 
   const q = (document.getElementById("search")?.value || "").toLowerCase();
-  const platform = document.getElementById("filterPlatform")?.value;
 
   if (q) {
     data = data.filter(c =>
@@ -312,18 +438,19 @@ function applyView() {
     );
   }
 
-  if (platform) {
-    data = data.filter(c =>
-      getPlataforma(c) === platform
-    );
-  }
-
   const sort = document.getElementById("sortBy")?.value;
 
+const platform = document.getElementById("filterPlatform")?.value;
+
+if (platform) {
+  data = data.filter(c => getPlataforma(c) === platform);
+}
   if (sort === "plataforma") {
-    data.sort((a, b) =>
-      getPlataforma(a).localeCompare(getPlataforma(b))
-    );
+    data.sort((a, b) => {
+      const sa = serviciosMap[a.id_servicio]?.plataforma || "";
+      const sb = serviciosMap[b.id_servicio]?.plataforma || "";
+      return sa.localeCompare(sb);
+    });
   }
 
   if (sort === "fecha_vencimiento") {
@@ -339,7 +466,6 @@ function applyView() {
   }
 
   render(data);
-  restoreUIState(); // 🔥 volver al punto exacto
 }
 
 /* =========================
@@ -348,5 +474,5 @@ function applyView() {
 function setupEvents() {
   document.getElementById("search")?.addEventListener("input", applyView);
   document.getElementById("sortBy")?.addEventListener("change", applyView);
-  document.getElementById("filterPlatform")?.addEventListener("change", applyView);
+   document.getElementById("filterPlatform")?.addEventListener("change", applyView);
 }
