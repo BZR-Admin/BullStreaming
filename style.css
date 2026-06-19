@@ -818,3 +818,74 @@ div[style*="display:flex"] > select {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* =========================
+   FIX MODAL + CLIENT BUTTONS
+========================= */
+
+/* MODAL RESPONSIVE */
+#modalAgregarCliente, dialog#modalAgregarCliente {
+  width: min(92vw, 420px);
+  max-width: 420px;
+  border-radius: 16px;
+  padding: 18px;
+  background: rgba(10, 12, 25, 0.98);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* inputs inside modal (fix white-on-white issues) */
+#modalAgregarCliente input,
+#modalAgregarCliente select,
+#modalAgregarCliente textarea,
+dialog#modalAgregarCliente input,
+dialog#modalAgregarCliente select,
+dialog#modalAgregarCliente textarea {
+  background: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+}
+
+/* placeholder fix */
+#modalAgregarCliente input::placeholder {
+  color: rgba(255,255,255,0.5);
+}
+
+/* CLIENTE ROW BUTTON FIX */
+.cliente-row {
+  gap: 10px;
+  align-items: center;
+}
+
+.cliente-row button {
+  min-width: 70px;
+  padding: 7px 10px;
+  font-size: 11.5px;
+  border-radius: 8px;
+}
+
+/* EDIT button (first) */
+.cliente-row button:first-child {
+  background: linear-gradient(135deg, #ffd60a, #ffb703) !important;
+  color: #111 !important;
+  border: none;
+}
+
+/* DELETE button (last) */
+.cliente-row button:last-child {
+  background: linear-gradient(135deg, #ff4d4d, #b30000) !important;
+  color: #fff !important;
+  border: none;
+}
+
+/* mobile improvement */
+@media (max-width: 768px) {
+  #modalAgregarCliente, dialog#modalAgregarCliente {
+    width: 94vw;
+    padding: 14px;
+  }
+
+  .cliente-row button {
+    width: 100%;
+  }
+}
