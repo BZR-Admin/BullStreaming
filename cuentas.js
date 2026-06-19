@@ -174,10 +174,10 @@ function render(data) {
     card.innerHTML = `
       <div class="card-header">
         <div>
-          <h3>${servicio?.servicio || "Servicio"}</h3>
+          <h3>Plataforma:</b> ${getPlataforma(c)}</h3>
           <p><b>Correo:</b> ${correo}</p>
           <p><b>Proveedor:</b> ${c.proveedor}</p>
-          <p><b>Plataforma:</b> ${getPlataforma(c)}</p>
+          <p><b>${servicio?.servicio || "Servicio"}</p>
           <p><b>Vence:</b> ${c.fecha_vencimiento}</p>
         </div>
 
