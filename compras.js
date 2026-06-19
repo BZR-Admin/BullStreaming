@@ -19,13 +19,31 @@ window.addEventListener("DOMContentLoaded", async () => {
    LOAD DATA
 ========================= */
 async function loadServicios() {
-  const { data } = await supabase.from("conf_venta_cuenta_propia").select("*");
-  servicios = data || [];
+  try {
+    const { data, error } = await supabase
+      .from("conf_venta_cuenta_propia")
+      .select("*");
+
+    if (error) throw error;
+    servicios = data || [];
+  } catch (err) {
+    console.error("Error cargando servicios:", err);
+    servicios = [];
+    alert("No se pudieron cargar los servicios. Intenta recargar la página.");
+  }
 }
 
 async function loadProveedores() {
-  const { data } = await supabase.from("proveedores").select("*");
-  proveedores = data || [];
+  try {
+    const { data, error } = await supabase.from("proveedores").select("*");
+
+    if (error) throw error;
+    proveedores = data || [];
+  } catch (err) {
+    console.error("Error cargando proveedores:", err);
+    proveedores = [];
+    alert("No se pudieron cargar los proveedores. Intenta recargar la página.");
+  }
 }
 
 /* =========================
@@ -57,6 +75,10 @@ function setupServicios(plataforma) {
   select.innerHTML = `<option value="">Selecciona servicio</option>`;
   select.disabled = !plataforma;
 
+  // Siempre reseteamos proveedor al cambiar/borrar plataforma,
+  // antes de salir, para no dejar el select en un estado inconsistente.
+  resetSelect("proveedor", "Selecciona proveedor");
+
   if (!plataforma) return;
 
   const filtrados = servicios.filter(s => s.plataforma === plataforma);
@@ -69,11 +91,11 @@ function setupServicios(plataforma) {
   });
 
   // Si solo hay un servicio, seleccionarlo automáticamente
+  // y disparar el flujo de proveedores como si el usuario lo hubiera elegido.
   if (filtrados.length === 1) {
     select.value = filtrados[0].id_servicio;
+    setupProveedores();
   }
-
-  resetSelect("proveedor", "Selecciona proveedor");
 }
 
 /* =========================
@@ -104,6 +126,10 @@ function resetSelect(id, placeholder) {
   const select = document.getElementById(id);
   select.innerHTML = `<option value="">${placeholder}</option>`;
   select.disabled = true;
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 /* =========================
@@ -138,6 +164,10 @@ window.saveCompra = async () => {
     return alert("Por favor completa todos los campos.");
   }
 
+  if (!isValidEmail(correo)) {
+    return alert("Por favor ingresa un correo válido.");
+  }
+
   const compra = {
     id_cuenta: crypto.randomUUID(),
     id_servicio,
@@ -149,15 +179,16 @@ window.saveCompra = async () => {
     estado: "Activa"
   };
 
-  const { error } = await supabase.from("cuentas_propias").insert([compra]);
+  try {
+    const { error } = await supabase.from("cuentas_propias").insert([compra]);
+    if (error) throw error;
 
-  if (error) {
-    console.error(error);
-    return alert("Error al guardar la compra.");
+    alert("¡Compra registrada correctamente!");
+    limpiar();
+  } catch (err) {
+    console.error("Error al guardar la compra:", err);
+    alert("Error al guardar la compra. Intenta de nuevo.");
   }
-
-  alert("¡Compra registrada correctamente!");
-  limpiar();
 };
 
 /* =========================
@@ -166,7 +197,6 @@ window.saveCompra = async () => {
 function limpiar() {
   document.getElementById("plataforma").value = "";
   setupServicios("");
-  resetSelect("proveedor", "Selecciona proveedor");
   document.getElementById("correo").value = "";
   document.getElementById("vencimiento").value = "";
 }
