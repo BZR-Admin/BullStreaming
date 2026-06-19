@@ -14,13 +14,13 @@ let proveedoresMap = {};
 let serviciosMap = {};
 
 /* =========================
-   ESTADO UI (NUEVO)
+   UI STATE (NUEVO)
 ========================= */
-let currentSearch = "";
-let currentPlatform = "";
-let currentSort = "";
-let expandedCardId = null;
-let lastScroll = 0;
+let uiState = {
+  scrollY: 0,
+  search: "",
+  platform: "",
+};
 
 /* =========================
    INIT
@@ -29,6 +29,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   setupEvents();
   setupModalClose();
   setupAgregarCliente();
+  setupPlatformFilter(); // 🔥 NUEVO
 
   await Promise.all([
     loadClientes(),
@@ -41,7 +42,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 /* =========================
-   HELPERS
+   HELPERS GENERALES
 ========================= */
 const safe = (v) => (v ?? "").toString().trim();
 
@@ -108,33 +109,8 @@ async function loadCuentas() {
   const { data } = await supabase.from("cuentas_propias").select("*");
   cuentas = data || [];
 
-  setupPlatformOptions(); // 🔥 NUEVO
+  setupPlatformFilter(); // 🔥 actualizar filtro
   applyView();
-}
-
-/* =========================
-   PLATAFORMAS (FILTRO NUEVO)
-========================= */
-function setupPlatformOptions() {
-  const select = document.getElementById("filterPlatform");
-  if (!select) return;
-
-  const set = new Set();
-
-  cuentas.forEach(c => {
-    const p = getPlataforma(c);
-    if (p) set.add(p);
-  });
-
-  const current = currentPlatform;
-
-  select.innerHTML = `<option value="">Todas las plataformas</option>`;
-
-  [...set].sort().forEach(p => {
-    select.innerHTML += `<option value="${p}">${p}</option>`;
-  });
-
-  select.value = current;
 }
 
 /* =========================
@@ -173,7 +149,7 @@ function getDisponibilidad(c) {
 }
 
 /* =========================
-   CLIENTES
+   CLIENTES CUENTA
 ========================= */
 function getClientes(c) {
   const correo = getCorreo(c);
@@ -184,13 +160,53 @@ function getClientes(c) {
 }
 
 /* =========================
+   FILTRO PLATAFORMA (NUEVO PRO)
+========================= */
+function setupPlatformFilter() {
+  const select = document.getElementById("filterPlatform");
+  if (!select) return;
+
+  const current = select.value;
+
+  const set = new Set();
+  cuentas.forEach(c => {
+    const p = getPlataforma(c);
+    if (p) set.add(p);
+  });
+
+  select.innerHTML = `<option value="">Todas las plataformas</option>`;
+
+  [...set].sort().forEach(p => {
+    select.innerHTML += `<option value="${p}">${p}</option>`;
+  });
+
+  select.value = current;
+}
+
+/* =========================
+   UI STATE SAVE/RESTORE
+========================= */
+function saveUIState() {
+  uiState.scrollY = window.scrollY;
+  uiState.search = document.getElementById("search")?.value || "";
+  uiState.platform = document.getElementById("filterPlatform")?.value || "";
+}
+
+function restoreUIState() {
+  window.scrollTo(0, uiState.scrollY);
+
+  const s = document.getElementById("search");
+  const p = document.getElementById("filterPlatform");
+
+  if (s) s.value = uiState.search;
+  if (p) p.value = uiState.platform;
+}
+
+/* =========================
    RENDER
 ========================= */
 function render(data) {
   const container = document.getElementById("container");
-
-  lastScroll = window.scrollY;
-
   container.innerHTML = "";
 
   data.forEach(c => {
@@ -204,7 +220,6 @@ function render(data) {
 
     const card = document.createElement("div");
     card.className = `card ${color}`;
-    card.dataset.id = c.id_cuenta;
 
     card.innerHTML = `
       <div class="card-header">
@@ -264,29 +279,7 @@ function render(data) {
     container.appendChild(card);
   });
 
-  restoreUI();
-}
-
-/* =========================
-   RESTAURAR UI (NUEVO)
-========================= */
-function restoreUI() {
-  // filtro
-  const search = document.getElementById("search");
-  const platform = document.getElementById("filterPlatform");
-  const sort = document.getElementById("sortBy");
-
-  if (search) search.value = currentSearch;
-  if (platform) platform.value = currentPlatform;
-  if (sort) sort.value = currentSort;
-
-  // expandido
-  if (expandedCardId) {
-    const el = document.querySelector(`[data-id="${expandedCardId}"]`);
-    if (el) el.querySelector(".card-body")?.classList.remove("hidden");
-  }
-
-  window.scrollTo(0, lastScroll);
+  setupToggle();
 }
 
 /* =========================
@@ -295,120 +288,58 @@ function restoreUI() {
 function setupToggle() {
   document.querySelectorAll(".card-header").forEach(el => {
     el.onclick = () => {
-      const card = el.parentElement;
-      const id = card.dataset.id;
-
-      const body = card.querySelector(".card-body");
-      body.classList.toggle("hidden");
-
-      expandedCardId = id;
+      el.parentElement.querySelector(".card-body").classList.toggle("hidden");
     };
   });
 }
 
 /* =========================
-   MODAL
-========================= */
-window.abrirModal = (idCuenta) => {
-  document.getElementById("addCuentaId").value = idCuenta;
-
-  const select = document.getElementById("addCliente");
-  select.innerHTML = clientes.map(c =>
-    `<option value="${c.id_cliente}">${c.nombre}</option>`
-  ).join("");
-
-  document.getElementById("modalAgregarCliente").showModal();
-};
-
-function setupModalClose() {
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-modal-close]");
-    if (!btn) return;
-
-    const modal = document.getElementById(btn.dataset.modalClose);
-    if (modal) modal.close();
-  });
-}
-
-/* =========================
-   AGREGAR CLIENTE
-========================= */
-function setupAgregarCliente() {
-  const form = document.getElementById("formAgregarCliente");
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const idCuenta = document.getElementById("addCuentaId").value;
-    const idCliente = document.getElementById("addCliente").value;
-    const perfil = document.getElementById("addPerfil").value;
-    const fecha = document.getElementById("addFechaVencimiento").value;
-    const ganancia = document.getElementById("addGanancia").value;
-
-    const cuenta = cuentas.find(c => c.id_cuenta === idCuenta);
-    if (!cuenta) return;
-
-    await supabase.from("ventas").insert([{
-      id_venta: crypto.randomUUID(),
-      tipo_venta: "VCP",
-      id_cliente: idCliente,
-      plataforma: getPlataforma(cuenta),
-      id_servicio: cuenta.id_servicio,
-      usuario_correo: cuenta.correo_cuenta,
-      perfil,
-      fecha_registro: new Date().toISOString(),
-      fecha_vencimiento: fecha,
-      ganancia: parseFloat(ganancia || 0),
-      estado: "activa"
-    }]);
-
-    document.getElementById("modalAgregarCliente").close();
-
-    await loadVentas();
-    await loadCuentas();
-  });
-}
-
-/* =========================
-   FILTROS + SORT + SEARCH
+   FILTER + SEARCH + SORT
 ========================= */
 function applyView() {
-
-  const search = document.getElementById("search");
-  const platform = document.getElementById("filterPlatform");
-  const sort = document.getElementById("sortBy");
-
-  currentSearch = search?.value || "";
-  currentPlatform = platform?.value || "";
-  currentSort = sort?.value || "";
+  saveUIState(); // 🔥 guardar posición
 
   let data = [...cuentas];
 
-  if (currentSearch) {
+  const q = (document.getElementById("search")?.value || "").toLowerCase();
+  const platform = document.getElementById("filterPlatform")?.value;
+
+  if (q) {
     data = data.filter(c =>
-      getCorreo(c).toLowerCase().includes(currentSearch.toLowerCase()) ||
-      c.proveedor.toLowerCase().includes(currentSearch.toLowerCase()) ||
-      getPlataforma(c).toLowerCase().includes(currentSearch.toLowerCase())
+      getCorreo(c).toLowerCase().includes(q) ||
+      c.proveedor.toLowerCase().includes(q) ||
+      getPlataforma(c).toLowerCase().includes(q)
     );
   }
 
-  if (currentPlatform) {
-    data = data.filter(c => getPlataforma(c) === currentPlatform);
+  if (platform) {
+    data = data.filter(c =>
+      getPlataforma(c) === platform
+    );
   }
 
-  if (currentSort === "fecha_vencimiento") {
+  const sort = document.getElementById("sortBy")?.value;
+
+  if (sort === "plataforma") {
+    data.sort((a, b) =>
+      getPlataforma(a).localeCompare(getPlataforma(b))
+    );
+  }
+
+  if (sort === "fecha_vencimiento") {
     data.sort((a, b) =>
       new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
     );
   }
 
-  if (currentSort === "disponibilidad") {
+  if (sort === "disponibilidad") {
     data.sort((a, b) =>
       getDisponibilidad(b).free - getDisponibilidad(a).free
     );
   }
 
   render(data);
+  restoreUIState(); // 🔥 volver al punto exacto
 }
 
 /* =========================
