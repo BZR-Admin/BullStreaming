@@ -27,12 +27,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     loadServicios()
   ]);
 
-await loadVentas();
-await loadCuentas();
+  await loadVentas();
+  await loadCuentas();
 });
 
 /* =========================
-   HELPERS
+   HELPERS GENERALES
 ========================= */
 const safe = (v) => (v ?? "").toString().trim();
 
@@ -67,32 +67,39 @@ async function loadClientes() {
   const { data } = await supabase.from("clientes").select("*");
   clientes = data || [];
 
-  clientesMap = {};
-  clientes.forEach(c => {
-    clientesMap[c.id_cliente] = c;
-  });
+  clientesMap = Object.fromEntries(
+    clientes.map(c => [c.id_cliente, c])
+  );
 }
 
 async function loadProveedores() {
   const { data } = await supabase.from("proveedores").select("*");
   proveedores = data || [];
 
-  proveedoresMap = {};
-  proveedores.forEach(p => {
-    proveedoresMap[p.proveedor] = p;
-  });
+  proveedoresMap = Object.fromEntries(
+    proveedores.map(p => [p.proveedor, p])
+  );
 }
 
 async function loadServicios() {
   const { data } = await supabase.from("conf_venta_cuenta_propia").select("*");
   servicios = data || [];
 
-  serviciosMap = {};
-  servicios.forEach(s => {
-    serviciosMap[s.id_servicio] = s;
-  });
+  serviciosMap = Object.fromEntries(
+    servicios.map(s => [s.id_servicio, s])
+  );
 }
 
+async function loadVentas() {
+  const { data } = await supabase.from("ventas").select("*");
+  ventas = data || [];
+}
+
+async function loadCuentas() {
+  const { data } = await supabase.from("cuentas_propias").select("*");
+  cuentas = data || [];
+  applyView();
+}
 
 /* =========================
    HELPERS CUENTA
@@ -130,7 +137,7 @@ function getDisponibilidad(c) {
 }
 
 /* =========================
-   CLIENTES
+   CLIENTES CUENTA
 ========================= */
 function getClientes(c) {
   const correo = getCorreo(c);
@@ -246,7 +253,7 @@ window.abrirModal = (idCuenta) => {
 };
 
 /* =========================
-   MODAL CLOSE FIX
+   MODAL CLOSE
 ========================= */
 function setupModalClose() {
   document.addEventListener("click", (e) => {
@@ -259,7 +266,7 @@ function setupModalClose() {
 }
 
 /* =========================
-   🔥 FIX CRÍTICO: AGREGAR CLIENTE
+   AGREGAR CLIENTE (FIX FINAL)
 ========================= */
 function setupAgregarCliente() {
   const form = document.getElementById("formAgregarCliente");
@@ -283,19 +290,13 @@ function setupAgregarCliente() {
       plataforma: getPlataforma(cuenta),
       id_servicio: cuenta.id_servicio,
       usuario_correo: cuenta.correo_cuenta,
-      perfil: perfil,
+      perfil,
       fecha_registro: new Date().toISOString(),
       fecha_vencimiento: fecha,
       ganancia: parseFloat(ganancia || 0),
       estado: "activa"
     }]);
 
-    document.getElementById("modalAgregarCliente").close();
-
-    await loadVentas();
-    applyView();
-  });
-}
     document.getElementById("modalAgregarCliente").close();
 
     await loadVentas();
@@ -320,7 +321,7 @@ window.whatsappProveedor = (id) => {
 };
 
 /* =========================
-   EDIT / DELETE
+   EDITAR / ELIMINAR CUENTA
 ========================= */
 window.editarCorreo = async (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
@@ -411,13 +412,14 @@ function applyView() {
 
   const sort = document.getElementById("sortBy")?.value;
 
- if (sort === "plataforma") {
-  data.sort((a, b) => {
-    const sa = serviciosMap?.[a.id_servicio]?.plataforma || "";
-    const sb = serviciosMap?.[b.id_servicio]?.plataforma || "";
-    return sa.localeCompare(sb);
-  });
-}
+  if (sort === "plataforma") {
+    data.sort((a, b) => {
+      const sa = serviciosMap[a.id_servicio]?.plataforma || "";
+      const sb = serviciosMap[b.id_servicio]?.plataforma || "";
+      return sa.localeCompare(sb);
+    });
+  }
+
   if (sort === "fecha_vencimiento") {
     data.sort((a, b) =>
       new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
