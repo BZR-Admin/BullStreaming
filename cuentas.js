@@ -14,6 +14,15 @@ let proveedoresMap = {};
 let serviciosMap = {};
 
 /* =========================
+   ESTADO UI (NUEVO)
+========================= */
+let currentSearch = "";
+let currentPlatform = "";
+let currentSort = "";
+let expandedCardId = null;
+let lastScroll = 0;
+
+/* =========================
    INIT
 ========================= */
 window.addEventListener("DOMContentLoaded", async () => {
@@ -32,7 +41,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 /* =========================
-   HELPERS GENERALES
+   HELPERS
 ========================= */
 const safe = (v) => (v ?? "").toString().trim();
 
@@ -98,7 +107,34 @@ async function loadVentas() {
 async function loadCuentas() {
   const { data } = await supabase.from("cuentas_propias").select("*");
   cuentas = data || [];
+
+  setupPlatformOptions(); // 🔥 NUEVO
   applyView();
+}
+
+/* =========================
+   PLATAFORMAS (FILTRO NUEVO)
+========================= */
+function setupPlatformOptions() {
+  const select = document.getElementById("filterPlatform");
+  if (!select) return;
+
+  const set = new Set();
+
+  cuentas.forEach(c => {
+    const p = getPlataforma(c);
+    if (p) set.add(p);
+  });
+
+  const current = currentPlatform;
+
+  select.innerHTML = `<option value="">Todas las plataformas</option>`;
+
+  [...set].sort().forEach(p => {
+    select.innerHTML += `<option value="${p}">${p}</option>`;
+  });
+
+  select.value = current;
 }
 
 /* =========================
@@ -137,7 +173,7 @@ function getDisponibilidad(c) {
 }
 
 /* =========================
-   CLIENTES CUENTA
+   CLIENTES
 ========================= */
 function getClientes(c) {
   const correo = getCorreo(c);
@@ -152,6 +188,9 @@ function getClientes(c) {
 ========================= */
 function render(data) {
   const container = document.getElementById("container");
+
+  lastScroll = window.scrollY;
+
   container.innerHTML = "";
 
   data.forEach(c => {
@@ -165,6 +204,7 @@ function render(data) {
 
     const card = document.createElement("div");
     card.className = `card ${color}`;
+    card.dataset.id = c.id_cuenta;
 
     card.innerHTML = `
       <div class="card-header">
@@ -224,7 +264,29 @@ function render(data) {
     container.appendChild(card);
   });
 
-  setupToggle();
+  restoreUI();
+}
+
+/* =========================
+   RESTAURAR UI (NUEVO)
+========================= */
+function restoreUI() {
+  // filtro
+  const search = document.getElementById("search");
+  const platform = document.getElementById("filterPlatform");
+  const sort = document.getElementById("sortBy");
+
+  if (search) search.value = currentSearch;
+  if (platform) platform.value = currentPlatform;
+  if (sort) sort.value = currentSort;
+
+  // expandido
+  if (expandedCardId) {
+    const el = document.querySelector(`[data-id="${expandedCardId}"]`);
+    if (el) el.querySelector(".card-body")?.classList.remove("hidden");
+  }
+
+  window.scrollTo(0, lastScroll);
 }
 
 /* =========================
@@ -233,13 +295,19 @@ function render(data) {
 function setupToggle() {
   document.querySelectorAll(".card-header").forEach(el => {
     el.onclick = () => {
-      el.parentElement.querySelector(".card-body").classList.toggle("hidden");
+      const card = el.parentElement;
+      const id = card.dataset.id;
+
+      const body = card.querySelector(".card-body");
+      body.classList.toggle("hidden");
+
+      expandedCardId = id;
     };
   });
 }
 
 /* =========================
-   MODAL OPEN
+   MODAL
 ========================= */
 window.abrirModal = (idCuenta) => {
   document.getElementById("addCuentaId").value = idCuenta;
@@ -252,9 +320,6 @@ window.abrirModal = (idCuenta) => {
   document.getElementById("modalAgregarCliente").showModal();
 };
 
-/* =========================
-   MODAL CLOSE
-========================= */
 function setupModalClose() {
   document.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-modal-close]");
@@ -266,7 +331,7 @@ function setupModalClose() {
 }
 
 /* =========================
-   AGREGAR CLIENTE (FIX FINAL)
+   AGREGAR CLIENTE
 ========================= */
 function setupAgregarCliente() {
   const form = document.getElementById("formAgregarCliente");
@@ -300,133 +365,44 @@ function setupAgregarCliente() {
     document.getElementById("modalAgregarCliente").close();
 
     await loadVentas();
-    applyView();
+    await loadCuentas();
   });
 }
 
 /* =========================
-   WHATSAPP
-========================= */
-window.whatsappProveedor = (id) => {
-  const c = cuentas.find(x => x.id_cuenta === id);
-  const p = proveedoresMap[c.proveedor];
-
-  const tel = safe(p?.telefono || p?.celular || p?.whatsapp).replace(/\D/g, "");
-
-  if (!tel) return alert("Proveedor sin número");
-
-  const msg = `Hola Bull Streaming desea renovar ${getCorreo(c)} (${getServicio(c)?.servicio})`;
-
-  window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
-};
-
-/* =========================
-   EDITAR / ELIMINAR CUENTA
-========================= */
-window.editarCorreo = async (id) => {
-  const c = cuentas.find(x => x.id_cuenta === id);
-  const nuevo = prompt("Nuevo correo", getCorreo(c));
-  if (!nuevo) return;
-
-  await supabase.from("ventas")
-    .update({ usuario_correo: nuevo })
-    .eq("usuario_correo", getCorreo(c));
-
-  await supabase.from("cuentas_propias")
-    .update({ correo_cuenta: nuevo })
-    .eq("id_cuenta", id);
-
-  await loadVentas();
-  await loadCuentas();
-};
-
-window.eliminarCuenta = async (id) => {
-  const c = cuentas.find(x => x.id_cuenta === id);
-
-  if (!confirm("Eliminar cuenta y clientes?")) return;
-
-  await supabase.from("ventas")
-    .delete()
-    .eq("usuario_correo", getCorreo(c));
-
-  await supabase.from("cuentas_propias")
-    .delete()
-    .eq("id_cuenta", id);
-
-  await loadVentas();
-  await loadCuentas();
-};
-
-window.editarFecha = async (id) => {
-  const nueva = prompt("YYYY-MM-DD");
-  if (!nueva) return;
-
-  await supabase.from("cuentas_propias")
-    .update({ fecha_vencimiento: nueva })
-    .eq("id_cuenta", id);
-
-  await loadCuentas();
-};
-
-/* =========================
-   CLIENTES EDIT
-========================= */
-window.editarVenta = async (id) => {
-  const v = ventas.find(x => x.id_venta === id);
-
-  const perfil = prompt("Perfil", v.perfil);
-  const fecha = prompt("Fecha", v.fecha_vencimiento);
-
-  await supabase.from("ventas")
-    .update({ perfil, fecha_vencimiento: fecha })
-    .eq("id_venta", id);
-
-  await loadVentas();
-  applyView();
-};
-
-window.eliminarVenta = async (id) => {
-  await supabase.from("ventas")
-    .delete()
-    .eq("id_venta", id);
-
-  await loadVentas();
-  applyView();
-};
-
-/* =========================
-   SEARCH + SORT
+   FILTROS + SORT + SEARCH
 ========================= */
 function applyView() {
+
+  const search = document.getElementById("search");
+  const platform = document.getElementById("filterPlatform");
+  const sort = document.getElementById("sortBy");
+
+  currentSearch = search?.value || "";
+  currentPlatform = platform?.value || "";
+  currentSort = sort?.value || "";
+
   let data = [...cuentas];
 
-  const q = (document.getElementById("search")?.value || "").toLowerCase();
-
-  if (q) {
+  if (currentSearch) {
     data = data.filter(c =>
-      getCorreo(c).toLowerCase().includes(q) ||
-      c.proveedor.toLowerCase().includes(q) ||
-      getPlataforma(c).toLowerCase().includes(q)
+      getCorreo(c).toLowerCase().includes(currentSearch.toLowerCase()) ||
+      c.proveedor.toLowerCase().includes(currentSearch.toLowerCase()) ||
+      getPlataforma(c).toLowerCase().includes(currentSearch.toLowerCase())
     );
   }
 
-  const sort = document.getElementById("sortBy")?.value;
-
-  if (sort === "plataforma") {
-    data.sort((a, b) => {
-      const sa = serviciosMap[a.id_servicio]?.plataforma || "";
-      const sb = serviciosMap[b.id_servicio]?.plataforma || "";
-      return sa.localeCompare(sb);
-    });
+  if (currentPlatform) {
+    data = data.filter(c => getPlataforma(c) === currentPlatform);
   }
 
-  if (sort === "fecha_vencimiento") {
+  if (currentSort === "fecha_vencimiento") {
     data.sort((a, b) =>
       new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
     );
   }
 
-  if (sort === "disponibilidad") {
+  if (currentSort === "disponibilidad") {
     data.sort((a, b) =>
       getDisponibilidad(b).free - getDisponibilidad(a).free
     );
@@ -441,4 +417,5 @@ function applyView() {
 function setupEvents() {
   document.getElementById("search")?.addEventListener("input", applyView);
   document.getElementById("sortBy")?.addEventListener("change", applyView);
+  document.getElementById("filterPlatform")?.addEventListener("change", applyView);
 }
