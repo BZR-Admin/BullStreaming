@@ -94,14 +94,8 @@ async function loadCuentas() {
   const { data } = await supabase.from("cuentas_propias").select("*");
   cuentas = data || [];
 
-  setupPlatformOptions(); // 👈 AÑADIDO
+  setupPlatformOptions(); // importante para filtro por plataforma
 
-  applyView();
-}
-
-async function loadCuentas() {
-  const { data } = await supabase.from("cuentas_propias").select("*");
-  cuentas = data || [];
   applyView();
 }
 
