@@ -7,13 +7,10 @@
 
 <body>
 
-<div class="container">
-
-  <h1 class="title">Bull Streaming</h1>
-  <p class="subtitle">Panel de gestión</p>
-
-  <!-- GRID BOTONES -->
-  <div class="grid">
+<header class="app-header">
+  <h1>Bull Streaming</h1>
+  <p>Panel de gestión</p>
+</header>
 
     <button onclick="go('ventas.html')">➕ Nueva venta</button>
     <button onclick="go('compras.html')">📦 Nueva compra</button>
@@ -22,17 +19,27 @@
 
   </div>
 
-  <!-- MENÚ OPCIONES -->
-  <div class="card menu-card">
-
-    <label>Más opciones</label>
-
-    <select onchange="navigate(this.value)">
-      <option value="">Seleccionar</option>
-      <option value="clientes_proveedores.html">👥 Clientes / Proveedores</option>
-    </select>
-
+  <div class="grid">
+  <div class="menu-card" onclick="go('ventas.html')">
+    <span>➕</span>
+    <h3>Nueva venta</h3>
   </div>
+
+  <div class="menu-card" onclick="go('compras.html')">
+    <span>📦</span>
+    <h3>Nueva compra</h3>
+  </div>
+
+  <div class="menu-card" onclick="go('registros.html')">
+    <span>📊</span>
+    <h3>Registros</h3>
+  </div>
+
+  <div class="menu-card" onclick="go('cuentas.html')">
+    <span>🎬</span>
+    <h3>Cuentas</h3>
+  </div>
+</div>
 
 </div>
 
