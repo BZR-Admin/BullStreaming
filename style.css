@@ -928,3 +928,17 @@ dialog#modalAgregarCliente textarea {
   margin-top: 10px;
   font-size: 14px;
 }
+
+@media (max-width: 768px){
+  .menu-card{
+    display:flex;
+    flex-direction: column;
+    justify-content:center;
+    align-items:center;
+    height: 120px;
+  }
+}
+body{
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
