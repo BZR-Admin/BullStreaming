@@ -20,12 +20,13 @@ window.addEventListener("DOMContentLoaded", async () => {
   setupEvents();
   setupModalClose();
   setupAgregarCliente();
+  setupEditarCliente();
+  setupEditarCuentaFecha();
 
   await Promise.all([
     loadClientes(),
     loadProveedores(),
-    loadServicios(),
-     
+    loadServicios()
   ]);
 
   await loadVentas();
@@ -92,17 +93,17 @@ async function loadServicios() {
 }
 
 async function loadVentas() {
-  const { data, error } = await supabase
-    .from("ventas")
-    .select("*");
-
-  if (error) {
-    console.error("Error cargando ventas:", error);
-    ventas = [];
-    return;
-  }
-
+  const { data } = await supabase.from("ventas").select("*");
   ventas = data || [];
+}
+
+async function loadCuentas() {
+  const { data } = await supabase.from("cuentas_propias").select("*");
+  cuentas = data || [];
+
+  setupPlatformOptions();
+
+  applyView();
 }
 
 /* =========================
@@ -117,7 +118,7 @@ function getServicio(c) {
 }
 
 function getPlataforma(c) {
-  return safe(serviciosMap[c.id_servicio]?.plataforma);
+  return serviciosMap[c.id_servicio]?.plataforma || "";
 }
 
 /* =========================
@@ -243,15 +244,22 @@ function setupToggle() {
 }
 
 /* =========================
-   MODAL OPEN
+   MODAL OPEN — AGREGAR CLIENTE
 ========================= */
 window.abrirModal = (idCuenta) => {
   document.getElementById("addCuentaId").value = idCuenta;
 
+  // Clientes ordenados alfabéticamente
+  const clientesOrdenados = [...clientes].sort((a, b) =>
+    a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
+  );
+
   const select = document.getElementById("addCliente");
-  select.innerHTML = clientes.map(c =>
-    `<option value="${c.id_cliente}">${c.nombre}</option>`
-  ).join("");
+  select.innerHTML =
+    `<option value="">Selecciona un cliente</option>` +
+    clientesOrdenados.map(c =>
+      `<option value="${c.id_cliente}">${c.nombre}</option>`
+    ).join("");
 
   document.getElementById("modalAgregarCliente").showModal();
 };
@@ -270,7 +278,7 @@ function setupModalClose() {
 }
 
 /* =========================
-   AGREGAR CLIENTE (FIX FINAL)
+   AGREGAR CLIENTE
 ========================= */
 function setupAgregarCliente() {
   const form = document.getElementById("formAgregarCliente");
@@ -308,7 +316,76 @@ function setupAgregarCliente() {
   });
 }
 
+/* =========================
+   EDITAR CLIENTE/VENTA — usa modal
+========================= */
+function setupEditarCliente() {
+  const form = document.getElementById("formEditarCliente");
 
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById("editVentaId").value;
+    const perfil = document.getElementById("editPerfil").value;
+    const fecha = document.getElementById("editFechaVencimiento").value;
+
+    await supabase.from("ventas")
+      .update({ perfil, fecha_vencimiento: fecha })
+      .eq("id_venta", id);
+
+    document.getElementById("modalEditarCliente").close();
+
+    await loadVentas();
+    applyView();
+  });
+}
+
+window.editarVenta = (id) => {
+  const v = ventas.find(x => x.id_venta === id);
+  if (!v) return;
+
+  document.getElementById("editVentaId").value = id;
+  document.getElementById("editPerfil").value = v.perfil || "";
+  document.getElementById("editFechaVencimiento").value = v.fecha_vencimiento || "";
+
+  document.getElementById("modalEditarCliente").showModal();
+};
+
+/* =========================
+   EDITAR FECHA DE CUENTA — usa modal
+========================= */
+function setupEditarCuentaFecha() {
+  const form = document.getElementById("formEditarCuentaFecha");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById("editCuentaFechaId").value;
+    const fecha = document.getElementById("editCuentaFechaVencimiento").value;
+
+    await supabase.from("cuentas_propias")
+      .update({ fecha_vencimiento: fecha })
+      .eq("id_cuenta", id);
+
+    document.getElementById("modalEditarCuentaFecha").close();
+
+    await loadCuentas();
+  });
+}
+
+window.editarFecha = (id) => {
+  const c = cuentas.find(x => x.id_cuenta === id);
+  if (!c) return;
+
+  document.getElementById("editCuentaFechaId").value = id;
+  document.getElementById("editCuentaFechaVencimiento").value = c.fecha_vencimiento || "";
+
+  document.getElementById("modalEditarCuentaFecha").showModal();
+};
+
+/* =========================
+   FILTRO DE PLATAFORMA
+========================= */
 function setupPlatformOptions() {
   const select = document.getElementById("filterPlatform");
   if (!select) return;
@@ -329,9 +406,9 @@ function setupPlatformOptions() {
   });
 
   const exists = [...select.options].some(opt => opt.value === currentValue);
-
   if (exists) select.value = currentValue;
 }
+
 /* =========================
    WHATSAPP
 ========================= */
@@ -385,34 +462,6 @@ window.eliminarCuenta = async (id) => {
   await loadCuentas();
 };
 
-window.editarFecha = async (id) => {
-  const nueva = prompt("YYYY-MM-DD");
-  if (!nueva) return;
-
-  await supabase.from("cuentas_propias")
-    .update({ fecha_vencimiento: nueva })
-    .eq("id_cuenta", id);
-
-  await loadCuentas();
-};
-
-/* =========================
-   CLIENTES EDIT
-========================= */
-window.editarVenta = async (id) => {
-  const v = ventas.find(x => x.id_venta === id);
-
-  const perfil = prompt("Perfil", v.perfil);
-  const fecha = prompt("Fecha", v.fecha_vencimiento);
-
-  await supabase.from("ventas")
-    .update({ perfil, fecha_vencimiento: fecha })
-    .eq("id_venta", id);
-
-  await loadVentas();
-  applyView();
-};
-
 window.eliminarVenta = async (id) => {
   await supabase.from("ventas")
     .delete()
@@ -423,13 +472,13 @@ window.eliminarVenta = async (id) => {
 };
 
 /* =========================
-   SEARCH + SORT
+   SEARCH + FILTER + SORT
 ========================= */
 function applyView() {
   let data = [...cuentas];
 
+  // Búsqueda por texto
   const q = (document.getElementById("search")?.value || "").toLowerCase();
-
   if (q) {
     data = data.filter(c =>
       getCorreo(c).toLowerCase().includes(q) ||
@@ -438,13 +487,22 @@ function applyView() {
     );
   }
 
+  // Filtro por plataforma (aplicado ANTES del sort)
+  const platform = document.getElementById("filterPlatform")?.value;
+  if (platform) {
+    data = data.filter(c => getPlataforma(c) === platform);
+  }
+
+  // Ordenamiento
   const sort = document.getElementById("sortBy")?.value;
 
-const platform = safe(document.getElementById("filterPlatform")?.value);
-
-if (platform) {
-  data = data.filter(c => safe(getPlataforma(c)) === platform);
-}
+  if (sort === "plataforma") {
+    data.sort((a, b) => {
+      const sa = getPlataforma(a);
+      const sb = getPlataforma(b);
+      return sa.localeCompare(sb);
+    });
+  }
 
   if (sort === "fecha_vencimiento") {
     data.sort((a, b) =>
@@ -467,5 +525,5 @@ if (platform) {
 function setupEvents() {
   document.getElementById("search")?.addEventListener("input", applyView);
   document.getElementById("sortBy")?.addEventListener("change", applyView);
-   document.getElementById("filterPlatform")?.addEventListener("change", applyView);
+  document.getElementById("filterPlatform")?.addEventListener("change", applyView);
 }
