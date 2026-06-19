@@ -24,7 +24,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   await Promise.all([
     loadClientes(),
     loadProveedores(),
-    loadServicios()
+    loadServicios(),
+     
   ]);
 
   await loadVentas();
@@ -90,13 +91,18 @@ async function loadServicios() {
   );
 }
 
-async function loadCuentas() {
-  const { data } = await supabase.from("cuentas_propias").select("*");
-  cuentas = data || [];
+async function loadVentas() {
+  const { data, error } = await supabase
+    .from("ventas")
+    .select("*");
 
-  setupPlatformOptions(); // importante para filtro por plataforma
+  if (error) {
+    console.error("Error cargando ventas:", error);
+    ventas = [];
+    return;
+  }
 
-  applyView();
+  ventas = data || [];
 }
 
 /* =========================
@@ -111,7 +117,7 @@ function getServicio(c) {
 }
 
 function getPlataforma(c) {
-  return serviciosMap[c.id_servicio]?.plataforma || "";
+  return safe(serviciosMap[c.id_servicio]?.plataforma);
 }
 
 /* =========================
@@ -434,18 +440,11 @@ function applyView() {
 
   const sort = document.getElementById("sortBy")?.value;
 
-const platform = document.getElementById("filterPlatform")?.value;
+const platform = safe(document.getElementById("filterPlatform")?.value);
 
 if (platform) {
-  data = data.filter(c => getPlataforma(c) === platform);
+  data = data.filter(c => safe(getPlataforma(c)) === platform);
 }
-  if (sort === "plataforma") {
-    data.sort((a, b) => {
-      const sa = serviciosMap[a.id_servicio]?.plataforma || "";
-      const sb = serviciosMap[b.id_servicio]?.plataforma || "";
-      return sa.localeCompare(sb);
-    });
-  }
 
   if (sort === "fecha_vencimiento") {
     data.sort((a, b) =>
