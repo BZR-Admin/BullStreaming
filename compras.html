@@ -1,64 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Nueva Compra</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nueva Compra | Bull Streaming</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
-<!-- FLOAT MENU BUTTON -->
-<div id="fab" onclick="toggleMenu()">☰</div>
-
-<!-- MENU PANEL -->
-<div id="sideMenu" class="side-menu">
-
-  <button onclick="go('index.html')">➕ Inicio</button>
-  <button onclick="go('ventas.html')">➕ Nueva venta</button>
-  <button onclick="go('compras.html')">📦 Nueva compra</button>
-  <button onclick="go('cuentas.html')">🎬 Cuentas disponibles</button>
-  <button onclick="go('registros.html')">📊 Registros</button>
-  <button onclick="go('clientes_proveedores.html')">👥 Clientes / Proveedores</button>
-
-</div>
-  
 <body>
 
-<h2>Nueva Compra</h2>
+<!-- BOTÓN MENÚ -->
+<button id="fab" type="button">☰</button>
+
+<!-- MENÚ -->
+<nav id="sideMenu" class="side-menu">
+  <button type="button" onclick="location.href='index.html'">Inicio</button>
+  <button type="button" onclick="location.href='ventas.html'">Nueva venta</button>
+  <button type="button" onclick="location.href='compras.html'">Nueva compra</button>
+  <button type="button" onclick="location.href='cuentas.html'">Cuentas disponibles</button>
+  <button type="button" onclick="location.href='registros.html'">Registros</button>
+  <button type="button" onclick="location.href='clientes_proveedores.html'">Clientes / Proveedores</button>
+</nav>
+
+<header style="margin-bottom:15px;">
+  <h1>Nueva Compra</h1>
+</header>
 
 <div class="form">
 
-  <select id="servicio"></select>
+  <!-- STEP 1: Plataforma -->
+  <label for="plataforma">Plataforma</label>
+  <select id="plataforma">
+    <option value="">Selecciona plataforma</option>
+  </select>
 
-  <input id="proveedor" placeholder="Proveedor">
-  <input id="correo" placeholder="Usuario / Correo">
-  <input id="whatsapp" placeholder="WhatsApp proveedor">
-  <input id="vencimiento" type="date">
+  <!-- STEP 2: Servicio (se habilita al elegir plataforma) -->
+  <label for="servicio">Servicio</label>
+  <select id="servicio" disabled>
+    <option value="">Selecciona servicio</option>
+  </select>
 
-  <button onclick="saveCompra()">Guardar</button>
+  <!-- STEP 3: Proveedor (se habilita al elegir servicio) -->
+  <label for="proveedor">Proveedor</label>
+  <select id="proveedor" disabled>
+    <option value="">Selecciona proveedor</option>
+  </select>
+
+  <!-- STEP 4: Correo -->
+  <label for="correo">Correo / Usuario de la cuenta</label>
+  <input id="correo" type="email" placeholder="ejemplo@correo.com" autocomplete="off" />
+
+  <!-- STEP 5: Fecha vencimiento -->
+  <label for="vencimiento">Fecha de vencimiento</label>
+  <input id="vencimiento" type="date" />
+
+  <button onclick="saveCompra()">Guardar compra</button>
 
 </div>
 
 <script type="module" src="compras.js"></script>
 <script>
-window.toggleMenu = function () {
-  const menu = document.getElementById("sideMenu");
-  menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
-};
-
-window.go = function (page) {
-  window.location.href = page;
-};
-
-// cerrar si das click fuera
-document.addEventListener("click", function (e) {
-  const menu = document.getElementById("sideMenu");
   const fab = document.getElementById("fab");
+  const menu = document.getElementById("sideMenu");
 
-  if (!menu || !fab) return;
+  fab.onclick = () => {
+    menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+  };
 
-  if (!menu.contains(e.target) && !fab.contains(e.target)) {
-    menu.style.display = "none";
-  }
-});
+  document.addEventListener("click", (e) => {
+    if (!menu.contains(e.target) && !fab.contains(e.target)) {
+      menu.style.display = "none";
+    }
+  });
 </script>
+
 </body>
 </html>
