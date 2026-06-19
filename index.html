@@ -1,61 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bull Streaming</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header class="app-header">
-  <h1>Bull Streaming</h1>
-  <p>Panel de gestión</p>
-</header>
+  <!-- HEADER -->
+  <header class="app-header">
+    <h1>Bull Streaming</h1>
+    <p>Panel de gestión</p>
+  </header>
 
-   <nav class="bottom-nav">
-  <button onclick="go('index.html')">🏠</button>
-  <button onclick="go('ventas.html')">💰</button>
-  <button onclick="go('registros.html')">📊</button>
-  <button onclick="go('cuentas.html')">🎬</button>
-</nav>
+  <!-- CONTENIDO PRINCIPAL -->
+  <main>
 
-  </div>
+    <!-- GRID MENU -->
+    <div class="grid">
 
-  <div class="grid">
-  <div class="menu-card" onclick="go('ventas.html')">
-    <span>➕</span>
-    <h3>Nueva venta</h3>
-  </div>
+      <div class="menu-card" onclick="go('ventas.html')">
+        <span>➕</span>
+        <h3>Nueva venta</h3>
+      </div>
 
-  <div class="menu-card" onclick="go('compras.html')">
-    <span>📦</span>
-    <h3>Nueva compra</h3>
-  </div>
+      <div class="menu-card" onclick="go('compras.html')">
+        <span>📦</span>
+        <h3>Nueva compra</h3>
+      </div>
 
-  <div class="menu-card" onclick="go('registros.html')">
-    <span>📊</span>
-    <h3>Registros</h3>
-  </div>
+      <div class="menu-card" onclick="go('registros.html')">
+        <span>📊</span>
+        <h3>Registros</h3>
+      </div>
 
-  <div class="menu-card" onclick="go('cuentas.html')">
-    <span>🎬</span>
-    <h3>Cuentas</h3>
-  </div>
-</div>
+      <div class="menu-card" onclick="go('cuentas.html')">
+        <span>🎬</span>
+        <h3>Cuentas disponibles</h3>
+      </div>
 
-</div>
+    </div>
 
-<script>
-function go(page){
-  window.location.href = page;
-}
+  </main>
 
-function navigate(page){
-  if(page){
-    window.location.href = "clientes_proveedores.html";
-  }
-}
-</script>
+  <!-- BOTTOM NAV (APP STYLE) -->
+  <nav class="bottom-nav">
+    <button onclick="go('index.html')">🏠</button>
+    <button onclick="go('ventas.html')">💰</button>
+    <button onclick="go('registros.html')">📊</button>
+    <button onclick="go('cuentas.html')">🎬</button>
+  </nav>
+
+  <!-- SCRIPT -->
+  <script>
+    function go(page) {
+      window.location.href = page;
+    }
+  </script>
 
 </body>
+
 </html>
