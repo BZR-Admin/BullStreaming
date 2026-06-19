@@ -636,50 +636,120 @@ select {
     padding: 10px !important;
   }
 
-  /* 1 SOLO COLUMNA REAL */
+  /* TOOLBAR STACK */
+  div[style*="display:flex"] {
+    flex-direction: column !important;
+  }
+
+  div[style*="display:flex"] input,
+  div[style*="display:flex"] select {
+    width: 100% !important;
+  }
+
+  /* TARJETAS FULL WIDTH */
   #container {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
 
-  /* TARJETA MÁS GRANDE Y LEGIBLE */
   .card {
-    padding: 14px !important;
-    border-radius: 16px !important;
+    padding: 12px !important;
   }
 
-  /* TITULOS MÁS VISIBLES */
+  .card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
   .card-header h3 {
     font-size: 17px !important;
   }
 
   .card-header p {
-    font-size: 13px !important;
-    line-height: 1.4 !important;
-  }
-
-  /* BADGE MÁS GRANDE */
-  .status-badge {
-    font-size: 12px !important;
-    padding: 8px 10px !important;
-    min-width: 100px !important;
-  }
-
-  /* BOTONES MÁS TACTILES */
-  .btn-grid {
-    grid-template-columns: 1fr !important; /* 👈 CAMBIO CLAVE */
-    gap: 10px !important;
-  }
-
-  .btn-grid button {
     font-size: 14px !important;
-    padding: 14px !important;
-    border-radius: 12px !important;
   }
 
-  /* INFO MÁS LIMPIA */
-  .info-grid p {
-    font-size: 13px !important;
-    margin: 6px 0 !important;
+  /* BOTONES FULL WIDTH */
+  .btn-grid {
+    grid-template-columns: 1fr !important;
   }
+
+  button {
+    width: 100% !important;
+  }
+
+  .cliente-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+/* CONTENEDOR PRINCIPAL MÁS LIMPIO */
+#container {
+  padding: 10px 0;
+}
+
+/* TOOLBAR MÁS RESPONSIVE */
+div[style*="display:flex"] {
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+div[style*="display:flex"] input,
+div[style*="display:flex"] select {
+  flex: 1;
+  min-width: 180px;
+}
+
+.card {
+  padding: 14px !important;
+  margin: 0 !important;
+  border-radius: 16px !important;
+}
+
+.card-header {
+  padding: 10px 12px !important;
+  gap: 12px;
+}
+
+.card-header h3 {
+  font-size: 16px !important;
+}
+
+.card-header p {
+  font-size: 13px !important;
+  opacity: 0.85;
+}
+
+/* separador más limpio */
+.card-body hr {
+  border: none;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+  margin: 10px 0;
+}
+button {
+  font-size: 13px !important;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+}
+
+/* botones dentro de tarjetas */
+.btn-grid button {
+  font-size: 12px !important;
+  padding: 10px !important;
+}
+.cliente-row {
+  font-size: 13px !important;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.cliente-row span {
+  flex: 1;
 }
