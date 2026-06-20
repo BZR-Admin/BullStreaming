@@ -1,61 +1,284 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bull Streaming</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── INDEX: ESTILOS ESPECÍFICOS ── */
 
-  <link rel="stylesheet" href="style.css">
+    .hero {
+      text-align: center;
+      padding: clamp(28px, 6vw, 48px) 0 clamp(20px, 4vw, 32px);
+    }
+
+    .hero-logo {
+      width: clamp(56px, 12vw, 72px);
+      height: clamp(56px, 12vw, 72px);
+      margin: 0 auto 16px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(26px, 5vw, 34px);
+      box-shadow: 0 0 32px rgba(0,198,255,0.3);
+    }
+
+    .hero h1 {
+      font-size: clamp(26px, 6vw, 38px);
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .hero p {
+      font-size: clamp(13px, 2.5vw, 15px);
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    /* ── SECCIÓN ACCIONES ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 12px;
+      padding-left: 2px;
+    }
+
+    /* ── GRID PRINCIPAL 2x2 ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .action-card {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: 18px;
+      padding: clamp(18px, 4vw, 24px) clamp(16px, 3vw, 20px);
+      cursor: pointer;
+      transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .action-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0;
+      transition: opacity 0.22s ease;
+    }
+
+    .action-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .action-card:hover::before {
+      opacity: 1;
+    }
+
+    /* Colores por tarjeta */
+    .card-ventas { border-left: 3px solid var(--primary); }
+    .card-ventas::before { background: radial-gradient(circle at top left, rgba(0,198,255,0.07), transparent 60%); }
+    .card-ventas:hover { border-color: rgba(0,198,255,0.5); box-shadow: 0 8px 28px rgba(0,198,255,0.12); }
+
+    .card-compras { border-left: 3px solid var(--purple); }
+    .card-compras::before { background: radial-gradient(circle at top left, rgba(168,85,247,0.07), transparent 60%); }
+    .card-compras:hover { border-color: rgba(168,85,247,0.5); box-shadow: 0 8px 28px rgba(168,85,247,0.12); }
+
+    .card-cuentas { border-left: 3px solid #10b981; }
+    .card-cuentas::before { background: radial-gradient(circle at top left, rgba(16,185,129,0.07), transparent 60%); }
+    .card-cuentas:hover { border-color: rgba(16,185,129,0.5); box-shadow: 0 8px 28px rgba(16,185,129,0.12); }
+
+    .card-registros { border-left: 3px solid #f59e0b; }
+    .card-registros::before { background: radial-gradient(circle at top left, rgba(245,158,11,0.07), transparent 60%); }
+    .card-registros:hover { border-color: rgba(245,158,11,0.5); box-shadow: 0 8px 28px rgba(245,158,11,0.12); }
+
+    .card-icon {
+      font-size: clamp(26px, 5vw, 32px);
+      margin-bottom: 12px;
+      display: block;
+      line-height: 1;
+    }
+
+    .action-card h3 {
+      font-size: clamp(14px, 2.8vw, 16px);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+
+    .action-card p {
+      font-size: clamp(11px, 2.2vw, 12.5px);
+      color: rgba(255,255,255,0.4);
+      line-height: 1.4;
+    }
+
+    /* Flecha */
+    .card-arrow {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.2);
+      transition: color 0.2s, transform 0.2s;
+    }
+    .action-card:hover .card-arrow {
+      color: rgba(255,255,255,0.6);
+      transform: translate(2px, -2px);
+    }
+
+    /* ── FILA EXTRA (clientes) ── */
+    .extra-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .extra-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 14px;
+      padding: 16px 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .extra-card:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,255,255,0.18);
+    }
+
+    .extra-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .extra-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+
+    .extra-card p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.38);
+    }
+
+    .extra-card .card-arrow {
+      position: static;
+      margin-left: auto;
+      font-size: 16px;
+      flex-shrink: 0;
+      color: rgba(255,255,255,0.2);
+      transition: color 0.2s;
+    }
+    .extra-card:hover .card-arrow { color: rgba(255,255,255,0.5); }
+
+    /* ── FOOTER ── */
+    .page-footer {
+      text-align: center;
+      padding-bottom: 20px;
+    }
+    .page-footer p {
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 400px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .action-card { display: flex; align-items: center; gap: 14px; padding: 16px; }
+      .card-icon { font-size: 26px; margin-bottom: 0; flex-shrink: 0; }
+      .card-arrow { position: static; margin-left: auto; }
+    }
+  </style>
 </head>
-
 <body>
 
-  <!-- HEADER -->
-  <header class="app-header">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-logo">🐂</div>
     <h1>Bull Streaming</h1>
     <p>Panel de gestión</p>
-  </header>
+  </div>
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <main>
+  <!-- ACCIONES PRINCIPALES -->
+  <p class="section-label">Acciones principales</p>
 
-    <!-- GRID MENU -->
-    <div class="grid">
+  <div class="main-grid">
 
-      <div class="menu-card" onclick="go('ventas.html')">
-        <span>➕</span>
-        <h3>Nueva venta</h3>
-      </div>
-
-      <div class="menu-card" onclick="go('compras.html')">
-        <span>📦</span>
-        <h3>Nueva compra</h3>
-      </div>
-
-      <div class="menu-card" onclick="go('registros.html')">
-        <span>📊</span>
-        <h3>Registros</h3>
-      </div>
-
-      <div class="menu-card" onclick="go('cuentas.html')">
-        <span>🎬</span>
-        <h3>Cuentas disponibles</h3>
-      </div>
-
+    <div class="action-card card-ventas" onclick="go('ventas.html')">
+      <span class="card-arrow">↗</span>
+      <span class="card-icon">💰</span>
+      <h3>Nueva venta</h3>
+      <p>VI y cuenta propia</p>
     </div>
 
-  </main>
+    <div class="action-card card-compras" onclick="go('compras.html')">
+      <span class="card-arrow">↗</span>
+      <span class="card-icon">📦</span>
+      <h3>Nueva compra</h3>
+      <p>Registrar cuenta</p>
+    </div>
 
-  <!-- BOTTOM NAV (APP STYLE) -->
-  <nav class="bottom-nav">
-    <button onclick="go('index.html')">🏠</button>
-    <button onclick="go('ventas.html')">💰</button>
-    <button onclick="go('registros.html')">📊</button>
-    <button onclick="go('cuentas.html')">🎬</button>
-  </nav>
+    <div class="action-card card-cuentas" onclick="go('cuentas.html')">
+      <span class="card-arrow">↗</span>
+      <span class="card-icon">🎬</span>
+      <h3>Cuentas</h3>
+      <p>Disponibilidad</p>
+    </div>
 
-  <!-- SCRIPT -->
+    <div class="action-card card-registros" onclick="go('registros.html')">
+      <span class="card-arrow">↗</span>
+      <span class="card-icon">📊</span>
+      <h3>Registros</h3>
+      <p>Historial de ventas</p>
+    </div>
+
+  </div>
+
+  <!-- ACCESO RÁPIDO -->
+  <p class="section-label">Administración</p>
+
+  <div class="extra-grid">
+    <div class="extra-card" onclick="go('clientes_proveedores.html')">
+      <span class="extra-icon">👥</span>
+      <div>
+        <h3>Clientes y proveedores</h3>
+        <p>Gestionar contactos</p>
+      </div>
+      <span class="card-arrow">›</span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    <p>BULL STREAMING · PANEL INTERNO</p>
+  </div>
+
   <script>
     function go(page) {
       window.location.href = page;
@@ -63,5 +286,4 @@
   </script>
 
 </body>
-
 </html>
