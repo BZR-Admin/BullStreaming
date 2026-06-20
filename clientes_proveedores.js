@@ -1,50 +1,73 @@
 import { supabase } from "./supabase.js";
 
-let mode = "clientes";
+let mode = "clientes";       // "clientes" | "proveedores"
+let editingId = null;        // id del registro que se está editando, si hay alguno
+let currentData = [];        // último listado cargado, para poder buscar por id sin refetch
+
+const container = document.getElementById("container");
+const modal = document.getElementById("modalAgregarCliente");
+const btnClientes = document.getElementById("btnClientes");
+const btnProveedores = document.getElementById("btnProveedores");
+
+// =====================
+// HELPERS DE TABLA
+// =====================
+function tableName() {
+  return mode === "clientes" ? "clientes" : "proveedores";
+}
+
+function idField() {
+  return mode === "clientes" ? "id_cliente" : "id_proveedor";
+}
+
+function nameField() {
+  return mode === "clientes" ? "nombre" : "proveedor";
+}
+
+function escapeHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[c]));
+}
 
 // =====================
 // CAMBIAR MODO
 // =====================
 window.setMode = (m) => {
   mode = m;
+
+  btnClientes.classList.toggle("active-clientes", m === "clientes");
+  btnProveedores.classList.toggle("active-proveedores", m === "proveedores");
+
+  document.getElementById("nombre").value = "";
+  document.getElementById("whatsapp").value = "";
+
   load();
 };
 
 // =====================
-// GUARDAR
+// GUARDAR (ALTA)
 // =====================
 window.save = async () => {
-
-  const nombre = document.getElementById("nombre").value;
-  const whatsapp = document.getElementById("whatsapp").value;
+  const nombre = document.getElementById("nombre").value.trim();
+  const whatsapp = document.getElementById("whatsapp").value.trim();
 
   if (!nombre) return alert("Nombre requerido");
 
-  if (mode === "clientes") {
+  const payload = {
+    [idField()]: crypto.randomUUID(),
+    [nameField()]: nombre,
+    whatsapp,
+  };
+  if (mode === "clientes") payload.estado = "Activo";
 
-    const { error } = await supabase
-      .from("clientes")
-      .insert([{
-        id_cliente: crypto.randomUUID(),
-        nombre,
-        whatsapp,
-        estado: "Activo"
-      }]);
+  const { error } = await supabase.from(tableName()).insert([payload]);
 
-    if (error) return alert("Error");
-
-  } else {
-
-    const { error } = await supabase
-      .from("proveedores")
-      .insert([{
-        id_proveedor: crypto.randomUUID(),
-        proveedor: nombre,
-        whatsapp
-      }]);
-
-    if (error) return alert("Error");
-  }
+  if (error) return alert("Error al guardar: " + error.message);
 
   document.getElementById("nombre").value = "";
   document.getElementById("whatsapp").value = "";
@@ -56,64 +79,112 @@ window.save = async () => {
 // CARGAR LISTA
 // =====================
 async function load() {
+  container.innerHTML = `<div class="loader"></div>`;
 
-  const container = document.getElementById("container");
-  container.innerHTML = "";
+  const { data, error } = await supabase.from(tableName()).select("*");
 
-  let data;
-
-  if (mode === "clientes") {
-
-    const res = await supabase.from("clientes").select("*");
-    data = res.data || [];
-
-  } else {
-
-    const res = await supabase.from("proveedores").select("*");
-    data = res.data || [];
+  if (error) {
+    currentData = [];
+    container.innerHTML = `<p class="empty-state">Error al cargar: ${escapeHtml(error.message)}</p>`;
+    return;
   }
 
-  data.forEach(item => {
+  currentData = data || [];
 
-    const div = document.createElement("div");
-    div.className = "card";
+  if (currentData.length === 0) {
+    const label = mode === "clientes" ? "clientes" : "proveedores";
+    container.innerHTML = `<p class="empty-state">No hay ${label} registrados todavía.</p>`;
+    return;
+  }
 
-    div.innerHTML = `
-      <h3>${item.nombre || item.proveedor}</h3>
-      <p>${item.whatsapp}</p>
+  container.innerHTML = "";
 
-      <button onclick="deleteItem('${mode}','${item.id_cliente || item.id_proveedor}')">
-        Eliminar
-      </button>
+  currentData.forEach((item) => {
+    const id = item[idField()];
+    const nombre = item[nameField()] || "";
+    const whatsapp = item.whatsapp || "";
+
+    const row = document.createElement("div");
+    row.className = "cliente-row";
+    row.innerHTML = `
+      <span>${escapeHtml(nombre)}${whatsapp ? " — " + escapeHtml(whatsapp) : ""}</span>
+      <button type="button" onclick="openEdit('${id}')">✏️ Editar</button>
+      <button type="button" onclick="deleteItem('${id}')">🗑️ Eliminar</button>
     `;
 
-    container.appendChild(div);
+    container.appendChild(row);
   });
 }
 
 load();
 
 // =====================
+// EDITAR
+// =====================
+window.openEdit = (id) => {
+  const item = currentData.find((i) => i[idField()] === id);
+  if (!item) return;
+
+  editingId = id;
+
+  document.getElementById("editNombre").value = item[nameField()] || "";
+  document.getElementById("editWhatsapp").value = item.whatsapp || "";
+  document.getElementById("modalTitle").textContent =
+    mode === "clientes" ? "Editar cliente" : "Editar proveedor";
+
+  modal.showModal();
+};
+
+window.cancelEdit = () => {
+  modal.close();
+};
+
+window.confirmEdit = async () => {
+  const nombre = document.getElementById("editNombre").value.trim();
+  const whatsapp = document.getElementById("editWhatsapp").value.trim();
+
+  if (!nombre) return alert("Nombre requerido");
+  if (!editingId) return;
+
+  const payload = { [nameField()]: nombre, whatsapp };
+
+  const { error } = await supabase
+    .from(tableName())
+    .update(payload)
+    .eq(idField(), editingId);
+
+  if (error) return alert("Error al actualizar: " + error.message);
+
+  modal.close();
+  load();
+};
+
+// Cerrar el modal al hacer click afuera (sobre el ::backdrop nativo del <dialog>)
+modal.addEventListener("click", (e) => {
+  const rect = modal.getBoundingClientRect();
+  const dentro =
+    e.clientX >= rect.left &&
+    e.clientX <= rect.right &&
+    e.clientY >= rect.top &&
+    e.clientY <= rect.bottom;
+
+  if (!dentro) modal.close();
+});
+
+// Limpiar el id en edición sea cual sea la forma en que se cerró el modal
+modal.addEventListener("close", () => {
+  editingId = null;
+});
+
+// =====================
 // ELIMINAR
 // =====================
-window.deleteItem = async (type, id) => {
+window.deleteItem = async (id) => {
+  if (!confirm("¿Eliminar este registro?")) return;
 
-  if (!confirm("Eliminar registro?")) return;
+  const { error } = await supabase.from(tableName()).delete().eq(idField(), id);
 
-  if (type === "clientes") {
-
-    await supabase
-      .from("clientes")
-      .delete()
-      .eq("id_cliente", id);
-
-  } else {
-
-    await supabase
-      .from("proveedores")
-      .delete()
-      .eq("id_proveedor", id);
-  }
+  if (error) return alert("Error al eliminar: " + error.message);
 
   load();
 };
