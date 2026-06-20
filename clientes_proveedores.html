@@ -1,71 +1,267 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Clientes / Proveedores</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clientes / Proveedores | Bull Streaming</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── CLIENTES / PROVEEDORES: ESTILOS ESPECÍFICOS ── */
+
+    .page-header {
+      margin-bottom: 20px;
+    }
+    .page-header h2 {
+      margin-bottom: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .page-header p {
+      font-size: 13px;
+      opacity: 0.6;
+    }
+
+    /* Switch Clientes / Proveedores (mismo patrón que el switch VI/VCP de ventas.html) */
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      padding: 5px;
+    }
+    .mode-switch button {
+      min-width: 0;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      font-size: 13.5px;
+      font-weight: 600;
+      box-shadow: none;
+      transition: all 0.2s;
+    }
+    .mode-switch button:hover {
+      transform: none;
+      box-shadow: none;
+      color: white;
+      background: rgba(255,255,255,0.06);
+    }
+    .mode-switch button.active-clientes {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 0 16px rgba(0,198,255,0.3);
+    }
+    .mode-switch button.active-proveedores {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: white;
+      box-shadow: 0 0 16px rgba(168,85,247,0.3);
+    }
+
+    /* Tarjeta de formulario (alta de registros) */
+    .form-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: 18px;
+      padding: clamp(16px, 4vw, 24px);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(12px);
+      margin-bottom: 16px;
+    }
+    .form-card .grid {
+      gap: 12px;
+      margin-bottom: 0;
+    }
+    .form-card hr {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin: 18px 0 16px;
+    }
+    .btn-save {
+      width: 100%;
+      font-size: 15px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border: none;
+      border-radius: 12px;
+    }
+
+    /* Etiquetas, reutilizadas tanto en el form de alta como en el modal de edición */
+    .form-card label,
+    #modalAgregarCliente label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.45);
+      margin-top: 4px;
+      margin-bottom: 0;
+    }
+    .form-card input,
+    .form-card select,
+    #modalAgregarCliente input {
+      margin: 5px 0 0;
+    }
+
+    /* Tarjeta-lista: envuelve las filas de cliente/proveedor */
+    .list-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: 18px;
+      padding: clamp(10px, 3vw, 16px) clamp(16px, 4vw, 22px);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(12px);
+    }
+
+    /*
+      style.css define #container como una grilla de tarjetas (para usarlo
+      en otras pantallas tipo dashboard). Acá lo necesitamos como una
+      lista vertical simple de filas .cliente-row, así que sobreescribimos
+      el display localmente. Misma técnica que usamos en ventas.html para
+      no chocar con reglas globales pensadas para otra pantalla.
+    */
+    #container {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 0;
+      padding: 4px 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 10px;
+      opacity: 0.6;
+      font-size: 13.5px;
+    }
+
+    /*
+      MODAL DE EDICIÓN
+      Usamos el elemento nativo <dialog> en vez de un div + overlay manual.
+      style.css ya trae estilos para "#modalAgregarCliente, dialog#modalAgregarCliente"
+      (ancho, padding, fondo, borde) pero no define position/transform, así
+      que no compite con ninguna otra regla como pasaba con el modal viejo
+      de #parserBox. El navegador centra <dialog> automáticamente al
+      abrirlo con showModal(), tanto en desktop como en mobile.
+    */
+    dialog#modalAgregarCliente::backdrop {
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(4px);
+    }
+    dialog#modalAgregarCliente h3 {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: white;
+      box-shadow: none;
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      transform: none;
+      box-shadow: none;
+    }
+
+    @media (max-width: 420px) {
+      .modal-actions { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-
-<!-- FLOAT MENU BUTTON -->
-<div id="fab" onclick="toggleMenu()">☰</div>
-
-<!-- MENU PANEL -->
-<div id="sideMenu" class="side-menu">
-
-  <button onclick="go('index.html')">➕ Inicio</button>
-  <button onclick="go('ventas.html')">➕ Nueva venta</button>
-  <button onclick="go('compras.html')">📦 Nueva compra</button>
-  <button onclick="go('cuentas.html')">🎬 Cuentas disponibles</button>
-  <button onclick="go('registros.html')">📊 Registros</button>
-  <button onclick="go('clientes_proveedores.html')">👥 Clientes / Proveedores</button>
-
-
-</div>
-  
 <body>
 
-<h2>Clientes / Proveedores</h2>
+<!-- FAB -->
+<button id="fab" type="button">☰</button>
 
-<!-- SWITCH -->
-<div>
-  <button onclick="setMode('clientes')">Clientes</button>
-  <button onclick="setMode('proveedores')">Proveedores</button>
+<!-- SIDE MENU -->
+<nav id="sideMenu" class="side-menu">
+  <button type="button" onclick="location.href='index.html'">🏠 Inicio</button>
+  <button type="button" onclick="location.href='ventas.html'">🛒 Ventas</button>
+  <button type="button" onclick="location.href='compras.html'">📦 Compras</button>
+  <button type="button" onclick="location.href='cuentas.html'">🎬 Cuentas</button>
+  <button type="button" onclick="location.href='registros.html'">📊 Registros</button>
+  <button type="button" onclick="location.href='clientes_proveedores.html'">👥 Clientes</button>
+</nav>
+
+<!-- HEADER -->
+<div class="page-header">
+  <h2>Clientes / Proveedores</h2>
+  <p>Gestión de contactos</p>
 </div>
 
-<!-- FORM -->
-<div class="form">
+<!-- SWITCH -->
+<div class="mode-switch">
+  <button id="btnClientes" class="active-clientes" onclick="setMode('clientes')">👤 Clientes</button>
+  <button id="btnProveedores" onclick="setMode('proveedores')">🏷️ Proveedores</button>
+</div>
 
-  <input id="nombre" placeholder="Nombre">
-  <input id="whatsapp" placeholder="WhatsApp">
-
-  <button onclick="save()">Guardar</button>
-
+<!-- FORM: ALTA -->
+<div class="form-card">
+  <div class="grid">
+    <div>
+      <label>Nombre</label>
+      <input id="nombre" placeholder="Nombre" autocomplete="off" />
+    </div>
+    <div>
+      <label>WhatsApp</label>
+      <input id="whatsapp" type="tel" placeholder="WhatsApp" autocomplete="off" />
+    </div>
+  </div>
+  <hr />
+  <button id="btnSave" class="btn-save" type="button" onclick="save()">💾 Guardar</button>
 </div>
 
 <!-- LISTA -->
-<div id="container"></div>
+<div class="list-card">
+  <div id="container"></div>
+</div>
+
+<!-- MODAL DE EDICIÓN -->
+<dialog id="modalAgregarCliente">
+  <h3 id="modalTitle">Editar</h3>
+
+  <div>
+    <label>Nombre</label>
+    <input id="editNombre" placeholder="Nombre" autocomplete="off" />
+  </div>
+  <div>
+    <label>WhatsApp</label>
+    <input id="editWhatsapp" type="tel" placeholder="WhatsApp" autocomplete="off" />
+  </div>
+
+  <div class="modal-actions">
+    <button type="button" class="btn-secondary" onclick="cancelEdit()">✕ Cancelar</button>
+    <button type="button" class="btn-save" onclick="confirmEdit()">💾 Guardar cambios</button>
+  </div>
+</dialog>
 
 <script type="module" src="clientes_proveedores.js"></script>
+
 <script>
-window.toggleMenu = function () {
+  // FAB MENU
+  const fab  = document.getElementById("fab");
   const menu = document.getElementById("sideMenu");
-  menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
-};
 
-window.go = function (page) {
-  window.location.href = page;
-};
-
-// cerrar si das click fuera
-document.addEventListener("click", function (e) {
-  const menu = document.getElementById("sideMenu");
-  const fab = document.getElementById("fab");
-
-  if (!menu || !fab) return;
-
-  if (!menu.contains(e.target) && !fab.contains(e.target)) {
-    menu.style.display = "none";
-  }
-});
+  fab.onclick = () => {
+    menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+  };
+  document.addEventListener("click", (e) => {
+    if (!menu.contains(e.target) && !fab.contains(e.target)) {
+      menu.style.display = "none";
+    }
+  });
 </script>
+
 </body>
 </html>
