@@ -1,45 +1,256 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Nueva Venta</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nueva Venta | Bull Streaming</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── VENTAS: ESTILOS ESPECÍFICOS ── */
 
+    .page-header {
+      margin-bottom: 20px;
+    }
+    .page-header h2 {
+      margin-bottom: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .page-header p {
+      font-size: 13px;
+      opacity: 0.6;
+    }
+
+    /* Mode Switch */
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      padding: 5px;
+    }
+    .mode-switch button {
+      min-width: 0;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      font-size: 13.5px;
+      font-weight: 600;
+      box-shadow: none;
+      transition: all 0.2s;
+    }
+    .mode-switch button:hover {
+      transform: none;
+      box-shadow: none;
+      color: white;
+      background: rgba(255,255,255,0.06);
+    }
+    .mode-switch button.active-vi {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 0 16px rgba(0,198,255,0.3);
+    }
+    .mode-switch button.active-vcp {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: white;
+      box-shadow: 0 0 16px rgba(168,85,247,0.3);
+    }
+
+    /* Parser trigger */
+    .parser-trigger {
+      width: 100%;
+      margin-bottom: 16px;
+      background: transparent;
+      border: 1px dashed rgba(255,255,255,0.22);
+      color: rgba(255,255,255,0.55);
+      font-weight: 600;
+      font-size: 13.5px;
+      box-shadow: none;
+      border-radius: 12px;
+    }
+    .parser-trigger:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(0,198,255,0.05);
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Form Card */
+    .form-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: 18px;
+      padding: clamp(16px, 4vw, 24px);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(12px);
+    }
+    .form-card label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.45);
+      margin-top: 4px;
+      margin-bottom: 0;
+    }
+    .form-card input,
+    .form-card select {
+      margin: 5px 0 0;
+    }
+    .form-card .grid {
+      gap: 12px;
+      margin-bottom: 0;
+    }
+    .form-card hr {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin: 18px 0 16px;
+    }
+
+    /* Botón guardar */
+    .btn-save {
+      width: 100%;
+      font-size: 15px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border: none;
+      border-radius: 12px;
+    }
+    .btn-save.vcp-mode {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      box-shadow: 0 0 20px rgba(168,85,247,0.3);
+    }
+
+    /* Campo proveedor oculto por defecto */
+    #fieldProveedor { display: none; }
+
+    /* Badge modo */
+    .mode-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: rgba(0,198,255,0.15);
+      color: var(--primary);
+      border: 1px solid rgba(0,198,255,0.3);
+      margin-left: 10px;
+      vertical-align: middle;
+      letter-spacing: 0.04em;
+      -webkit-text-fill-color: var(--primary);
+    }
+    .mode-badge.vcp {
+      background: rgba(168,85,247,0.15);
+      color: var(--purple);
+      border-color: rgba(168,85,247,0.3);
+      -webkit-text-fill-color: var(--purple);
+    }
+
+    /* Parser overlay */
+    #parserBox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+    #parserBox.open { display: flex; }
+
+    .parser-inner {
+      background: rgba(10, 12, 25, 0.98);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 18px;
+      padding: clamp(16px, 4vw, 22px);
+      width: min(100%, 520px);
+      max-height: 88vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+    .parser-inner h3 {
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .parser-inner textarea {
+      margin: 0;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .parser-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .parser-actions button {
+      min-width: 0;
+      font-size: 13px;
+      padding: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: white;
+      box-shadow: none;
+    }
+    .parser-actions button:hover {
+      background: rgba(255,255,255,0.1);
+      transform: none;
+      box-shadow: none;
+    }
+    .parser-actions .btn-detect {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-color: transparent;
+      box-shadow: 0 0 16px rgba(0,198,255,0.25);
+    }
+    .parser-actions .btn-detect:hover { opacity: 0.9; }
+
+    @media (max-width: 420px) {
+      .parser-actions { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
 <body>
 
-<!-- MENU FLOTANTE -->
-<div id="fab" onclick="toggleMenu()">☰</div>
+<!-- FAB -->
+<button id="fab" type="button">☰</button>
 
-<div id="sideMenu" class="side-menu">
-  <button onclick="go('index.html')">Inicio</button>
-  <button onclick="go('ventas.html')">Ventas</button>
-  <button onclick="go('compras.html')">Compras</button>
-  <button onclick="go('cuentas.html')">Cuentas</button>
-  <button onclick="go('registros.html')">Registros</button>
-  <button onclick="go('clientes_proveedores.html')">Clientes</button>
-</div>
+<!-- SIDE MENU -->
+<nav id="sideMenu" class="side-menu">
+  <button type="button" onclick="location.href='index.html'">🏠 Inicio</button>
+  <button type="button" onclick="location.href='ventas.html'">🛒 Ventas</button>
+  <button type="button" onclick="location.href='compras.html'">📦 Compras</button>
+  <button type="button" onclick="location.href='cuentas.html'">🎬 Cuentas</button>
+  <button type="button" onclick="location.href='registros.html'">📊 Registros</button>
+  <button type="button" onclick="location.href='clientes_proveedores.html'">👥 Clientes</button>
+</nav>
 
 <!-- HEADER -->
-<div class="header">
-  <h2>Nueva Venta</h2>
-  <p class="subtitle">Gestión de ventas VI / VCP</p>
+<div class="page-header">
+  <h2>Nueva Venta <span id="modeBadge" class="mode-badge">VI</span></h2>
+  <p>Gestión de ventas VI / VCP</p>
 </div>
 
-<!-- SWITCH MODE -->
+<!-- MODE SWITCH -->
 <div class="mode-switch">
-<button id="btnVI" onclick="setMode('VI')">Venta Independiente</button>
-<button id="btnVCP" onclick="setMode('VCP')">Cuenta Propia</button>
-
+  <button id="btnVI" class="active-vi" onclick="setMode('VI')">Venta Independiente</button>
+  <button id="btnVCP" onclick="setMode('VCP')">Cuenta Propia</button>
 </div>
 
-<!-- BOTÓN PARSER -->
-<div class="parser-btn">
-  <button onclick="toggleParser()">📋 Insertar texto de cuenta</button>
-</div>
+<!-- PARSER TRIGGER -->
+<button class="parser-trigger" onclick="toggleParser()">📋 Insertar texto de cuenta</button>
 
 <!-- FORM CARD -->
 <div class="form-card">
-
   <div class="grid">
 
     <div>
@@ -59,80 +270,85 @@
 
     <div>
       <label>Usuario / Correo</label>
-      <input id="correo" placeholder="correo@ejemplo.com">
+      <input id="correo" type="email" placeholder="correo@ejemplo.com" autocomplete="off" />
     </div>
 
     <div>
       <label>Perfil</label>
-      <input id="perfil" placeholder="Perfil asignado">
+      <input id="perfil" placeholder="Perfil asignado" />
     </div>
 
     <div>
       <label>Fecha vencimiento</label>
-      <input id="vencimiento" type="date">
+      <input id="vencimiento" type="date" />
     </div>
 
-    <div>
-      <label>Proveedor (VCP)</label>
-      <select id="proveedor" style="display:none"></select>
+    <div id="fieldProveedor">
+      <label>Proveedor</label>
+      <select id="proveedor"></select>
     </div>
 
     <div>
       <label>Ganancia</label>
-      <input id="ganancia" placeholder="0.00">
+      <input id="ganancia" type="number" step="0.01" placeholder="0.00" />
     </div>
 
   </div>
 
-  <div class="actions">
-    <button class="primary" onclick="saveVenta()">💾 Guardar Venta</button>
-  </div>
+  <hr />
 
+  <button id="btnSave" class="btn-save" onclick="saveVenta()">💾 Guardar Venta</button>
 </div>
 
 <!-- PARSER MODAL -->
-<div id="parserBox" class="modal" style="display:none">
-
-  <div class="modal-content">
-
-    <h3>Insertar cuenta</h3>
-
-    <textarea id="texto" placeholder="Pega aquí la cuenta..."></textarea>
-
-    <div class="modal-actions">
+<div id="parserBox">
+  <div class="parser-inner">
+    <h3>📋 Insertar texto de cuenta</h3>
+    <textarea id="texto" placeholder="Pega aquí el texto de la cuenta..." rows="6"></textarea>
+    <div class="parser-actions">
       <button onclick="pasteText()">📋 Pegar</button>
       <button onclick="clearText()">🧹 Limpiar</button>
-      <button onclick="parseText()">🔍 Detectar</button>
-      <button onclick="toggleParser()">❌ Cerrar</button>
+      <button class="btn-detect" onclick="parseText()">🔍 Detectar datos</button>
+      <button onclick="toggleParser()">✕ Cerrar</button>
     </div>
-
   </div>
-
 </div>
 
 <script type="module" src="ventas.js"></script>
 
 <script>
-window.toggleMenu = () => {
-  const m = document.getElementById("sideMenu");
-  m.style.display = m.style.display === "flex" ? "none" : "flex";
-};
+  // FAB MENU
+  const fab  = document.getElementById("fab");
+  const menu = document.getElementById("sideMenu");
 
-window.go = (p) => location.href = p;
+  fab.onclick = () => {
+    menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+  };
+  document.addEventListener("click", (e) => {
+    if (!menu.contains(e.target) && !fab.contains(e.target)) {
+      menu.style.display = "none";
+    }
+  });
 
-window.toggleParser = () => {
-  const p = document.getElementById("parserBox");
-  p.style.display = p.style.display === "flex" ? "none" : "flex";
-};
+  // PARSER MODAL
+  window.toggleParser = () => {
+    document.getElementById("parserBox").classList.toggle("open");
+  };
+  document.getElementById("parserBox").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("parserBox")) toggleParser();
+  });
 
-window.pasteText = async () => {
-  const t = await navigator.clipboard.readText();
-  document.getElementById("texto").value = t;
-};
+  window.pasteText = async () => {
+    try {
+      document.getElementById("texto").value = await navigator.clipboard.readText();
+    } catch {
+      alert("No se pudo acceder al portapapeles.");
+    }
+  };
 
-window.clearText = () => {
-  document.getElementById("texto").value = "";
-};
+  window.clearText = () => {
+    document.getElementById("texto").value = "";
+  };
 </script>
 
 </body>
