@@ -152,8 +152,19 @@
       -webkit-text-fill-color: var(--purple);
     }
 
-    /* Parser overlay */
-    #parserBox {
+    /*
+      NOTA IMPORTANTE:
+      Este overlay usa un id propio ("parserOverlay") a propósito,
+      en vez de reutilizar "#parserBox". style.css ya define una
+      regla #parserBox (del modal viejo, centrado con top:50%/left:50%/
+      transform). Si reusábamos ese mismo id acá, las dos reglas se
+      mezclaban: el inset:0 de este bloque ganaba en top/left, pero el
+      transform: translate(-50%,-50%) de style.css seguía aplicando
+      sobre esos valores, y la caja terminaba desplazada media
+      anchura/altura hacia la esquina superior izquierda y cortada.
+      Con un id distinto, este overlay no hereda nada de esa regla.
+    */
+    #parserOverlay {
       display: none;
       position: fixed;
       inset: 0;
@@ -164,7 +175,7 @@
       padding: 16px;
       backdrop-filter: blur(4px);
     }
-    #parserBox.open { display: flex; }
+    #parserOverlay.open { display: flex; }
 
     .parser-inner {
       background: rgba(10, 12, 25, 0.98);
@@ -213,6 +224,11 @@
       box-shadow: 0 0 16px rgba(0,198,255,0.25);
     }
     .parser-actions .btn-detect:hover { opacity: 0.9; }
+
+    /* Evita que el fondo scrollee detrás del modal en celular */
+    body.modal-open {
+      overflow: hidden;
+    }
 
     @media (max-width: 420px) {
       .parser-actions { grid-template-columns: 1fr; }
@@ -300,8 +316,8 @@
   <button id="btnSave" class="btn-save" onclick="saveVenta()">💾 Guardar Venta</button>
 </div>
 
-<!-- PARSER MODAL -->
-<div id="parserBox">
+<!-- PARSER MODAL (overlay con id propio, ver nota en <style>) -->
+<div id="parserOverlay">
   <div class="parser-inner">
     <h3>📋 Insertar texto de cuenta</h3>
     <textarea id="texto" placeholder="Pega aquí el texto de la cuenta..." rows="6"></textarea>
@@ -331,11 +347,14 @@
   });
 
   // PARSER MODAL
+  const parserOverlay = document.getElementById("parserOverlay");
+
   window.toggleParser = () => {
-    document.getElementById("parserBox").classList.toggle("open");
+    parserOverlay.classList.toggle("open");
+    document.body.classList.toggle("modal-open", parserOverlay.classList.contains("open"));
   };
-  document.getElementById("parserBox").addEventListener("click", (e) => {
-    if (e.target === document.getElementById("parserBox")) toggleParser();
+  parserOverlay.addEventListener("click", (e) => {
+    if (e.target === parserOverlay) toggleParser();
   });
 
   window.pasteText = async () => {
