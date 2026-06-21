@@ -1,6 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <!-- 1. Manifest -->
+<link rel="manifest" href="/manifest.json" />
+
+<!-- 2. Color de barra del sistema en Android/Chrome -->
+<meta name="theme-color" content="#00c6ff" />
+
+<!-- 3. Ícono para iOS (por si acaso) -->
+<link rel="apple-touch-icon" href="/icon-192.png" />
+
+<!-- 4. Registrar Service Worker -->
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js")
+        .then(() => console.log("SW registrado ✓"))
+        .catch(e => console.warn("SW error:", e));
+    });
+  }
+</script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bull Streaming</title>
