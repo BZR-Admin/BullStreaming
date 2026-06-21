@@ -137,46 +137,87 @@ window.setMode = (m) => {
 };
 
 /* =========================
+   MATCH DE PLATAFORMA DETECTADA CONTRA LAS OPCIONES YA CARGADAS
+   El texto pegado trae la plataforma en mayúsculas/forma libre
+   ("NETFLIX", "Disney+", etc.), pero en la base puede estar guardada
+   con otro casing o formato ("Netflix", "Disney+"). Si comparáramos
+   el texto crudo contra la base con .eq(), no matchea nunca por ser
+   sensible a mayúsculas — por eso en VI no se detectaba nada.
+   Acá buscamos la opción real ya cargada en el <select>, normalizando
+   ambos lados (sin mayúsculas ni símbolos) y comparando por inclusión.
+========================= */
+function normalizar(str) {
+  return (str || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function matchPlataformaOption(selectEl, textoDetectado) {
+  if (!textoDetectado) return null;
+
+  const detectadoNorm = normalizar(textoDetectado);
+
+  return Array.from(selectEl.options).find(opt => {
+    if (!opt.value) return false;
+    const optNorm = normalizar(opt.value);
+    return optNorm.includes(detectadoNorm) || detectadoNorm.includes(optNorm);
+  }) || null;
+}
+
+/* =========================
+   SELECCIONAR PLATAFORMA + CARGAR SERVICIOS
+   Usado por el parser para modo VI. Usa siempre el valor REAL de la
+   opción encontrada (match.value) al consultar Supabase, nunca el
+   texto crudo detectado.
+========================= */
+async function seleccionarPlataformaPorTexto(textoDetectado, table) {
+  const selPlataforma = document.getElementById("plataforma");
+  const match = matchPlataformaOption(selPlataforma, textoDetectado);
+
+  const selServicio = document.getElementById("servicio");
+  selServicio.innerHTML = `<option value="">— Selecciona servicio —</option>`;
+
+  if (!match) return; // no hay ninguna plataforma cargada que coincida; el usuario la elige a mano
+
+  selPlataforma.value = match.value;
+
+  const data = await safeQuery(
+    supabase.from(table).select("*").eq("plataforma", match.value)
+  );
+
+  data.forEach(s => {
+    selServicio.innerHTML += `<option value="${s.id_servicio}">${s.servicio}</option>`;
+  });
+
+  if (data.length === 1) selServicio.value = data[0].id_servicio;
+}
+
+/* =========================
    PARSER DE TEXTO
 ========================= */
 window.parseText = async () => {
   const text = document.getElementById("texto").value;
 
-  const correo    = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
-  const perfil    = text.match(/Perfil:\s*(.*)/i)?.[1]?.trim();
-  const plataforma = text.match(/DISNEY|NETFLIX|PRIME|HBO|APPLE|SPOTIFY/i)?.[0]?.toUpperCase();
-  const venc      = text.match(/Expira\s*·\s*(.*)/i)?.[1];
+  const correo            = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
+  const perfil            = text.match(/Perfil:\s*(.*)/i)?.[1]?.trim();
+  const plataformaDetectada = text.match(/DISNEY|NETFLIX|PRIME|HBO|APPLE|SPOTIFY/i)?.[0];
+  const venc               = text.match(/Expira\s*·\s*(.*)/i)?.[1]?.trim();
 
   if (!correo) return alert("No se detectó correo en el texto.");
 
+  // ── CAMPOS COMUNES A AMBOS MODOS ──
   document.getElementById("correo").value = correo;
   document.getElementById("perfil").value = perfil || "";
 
+  if (venc) {
+    const d = new Date(venc);
+    if (!isNaN(d)) {
+      document.getElementById("vencimiento").value = d.toISOString().split("T")[0];
+    }
+  }
+
   // ── MODO VI ──
   if (mode === "VI") {
-    if (plataforma) {
-      document.getElementById("plataforma").value = plataforma;
-
-      const data = await safeQuery(
-        supabase
-          .from("conf_venta_perfiles_independientes")
-          .select("*")
-          .eq("plataforma", plataforma)
-      );
-
-      const sel = document.getElementById("servicio");
-      sel.innerHTML = `<option value="">— Selecciona servicio —</option>`;
-      data.forEach(s => {
-        sel.innerHTML += `<option value="${s.id_servicio}">${s.servicio}</option>`;
-      });
-      if (data.length === 1) sel.value = data[0].id_servicio;
-    }
-
-    if (venc) {
-      const d = new Date(venc);
-      if (!isNaN(d)) {
-        document.getElementById("vencimiento").value = d.toISOString().split("T")[0];
-      }
+    if (plataformaDetectada) {
+      await seleccionarPlataformaPorTexto(plataformaDetectada, "conf_venta_perfiles_independientes");
     }
 
     toggleParser();
@@ -188,6 +229,7 @@ window.parseText = async () => {
   if (!ok) {
     document.getElementById("correo").value = "";
     document.getElementById("perfil").value = "";
+    document.getElementById("vencimiento").value = "";
   } else {
     toggleParser();
   }
