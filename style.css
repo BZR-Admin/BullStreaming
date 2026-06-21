@@ -506,8 +506,7 @@ div[style*="display:flex"] > select {
 }
 
 /* Filas */
-.row,
-.cliente-row {
+.row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -517,12 +516,58 @@ div[style*="display:flex"] > select {
 }
 
 .cliente-row {
-  padding: 7px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: nowrap;
 }
 
+/* Texto del cliente — más llamativo */
 .cliente-row span {
   flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* Botones del cliente en una fila compacta */
+.cliente-row > div {
+  display: flex;
+  flex-direction: row !important;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.cliente-row button {
+  min-width: 0 !important;
+  width: auto !important;
+  min-height: 30px !important;
+  height: 30px;
+  padding: 0 10px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  border-radius: 7px !important;
+  line-height: 1;
+  box-shadow: none !important;
+}
+
+.cliente-row button:first-child {
+  background: linear-gradient(135deg, #ffd60a, #ffb703) !important;
+  color: #111 !important;
+  border: none !important;
+}
+
+.cliente-row button:last-child {
+  background: linear-gradient(135deg, #ff4d4d, #b30000) !important;
+  color: #fff !important;
+  border: none !important;
 }
 
 /* =========================================================
@@ -572,14 +617,42 @@ div[style*="display:flex"] > select {
   width: min(260px, calc(100vw - 32px));
   display: none;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 
   padding: 12px;
   border-radius: 16px;
-  background: rgba(10, 12, 25, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-soft);
+  background: rgba(6, 8, 20, 0.97);
+  border: 1px solid rgba(168, 85, 247, 0.30);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    var(--shadow-soft),
+    0 0 24px rgba(168, 85, 247, 0.15);
+}
+
+/* Botones del menú lateral — estilo propio, distinto al resto */
+.side-menu button {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(168, 85, 247, 0.25) !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  box-shadow: none !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+  border-radius: 10px !important;
+  min-height: 42px !important;
+  padding: 10px 14px !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease !important;
+}
+
+.side-menu button:hover {
+  background: rgba(168, 85, 247, 0.18) !important;
+  border-color: rgba(168, 85, 247, 0.55) !important;
+  color: white !important;
+  transform: translateX(-3px) !important;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.2) !important;
+  filter: none !important;
 }
 
 /* =========================================================
@@ -740,14 +813,7 @@ div[style*="display:flex"] > select {
 
   .row,
   .cliente-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
     font-size: 13.5px;
-  }
-
-  .cliente-row button {
-    width: 100%;
   }
 
   #fab,
@@ -851,42 +917,11 @@ dialog#modalAgregarCliente textarea {
   color: rgba(255,255,255,0.5);
 }
 
-/* CLIENTE ROW BUTTON FIX */
-.cliente-row {
-  gap: 10px;
-  align-items: center;
-}
-
-.cliente-row button {
-  min-width: 70px;
-  padding: 7px 10px;
-  font-size: 11.5px;
-  border-radius: 8px;
-}
-
-/* EDIT button (first) */
-.cliente-row button:first-child {
-  background: linear-gradient(135deg, #ffd60a, #ffb703) !important;
-  color: #111 !important;
-  border: none;
-}
-
-/* DELETE button (last) */
-.cliente-row button:last-child {
-  background: linear-gradient(135deg, #ff4d4d, #b30000) !important;
-  color: #fff !important;
-  border: none;
-}
-
 /* mobile improvement */
 @media (max-width: 768px) {
   #modalAgregarCliente, dialog#modalAgregarCliente {
     width: 94vw;
     padding: 14px;
-  }
-
-  .cliente-row button {
-    width: 100%;
   }
 }
 
