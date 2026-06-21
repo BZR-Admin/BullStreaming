@@ -2,19 +2,21 @@
 <html lang="es">
 <head>
   <!-- 1. Manifest -->
-<link rel="manifest" href="/manifest.json" />
+<link rel="manifest" href="./manifest.json" />
 
-<!-- 2. Color de barra del sistema en Android/Chrome -->
+<!-- 2. Ícono explícito (soluciona el logo en pantalla de inicio) -->
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+
+<!-- 3. Color de barra del sistema -->
 <meta name="theme-color" content="#00c6ff" />
-
-<!-- 3. Ícono para iOS (por si acaso) -->
-<link rel="apple-touch-icon" href="/icon-192.png" />
 
 <!-- 4. Registrar Service Worker -->
 <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js")
+      navigator.serviceWorker.register("./sw.js")
         .then(() => console.log("SW registrado ✓"))
         .catch(e => console.warn("SW error:", e));
     });
