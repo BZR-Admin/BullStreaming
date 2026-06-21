@@ -359,6 +359,7 @@
 
   window.pasteText = async () => {
     const campoTexto = document.getElementById("texto");
+    const valorPrevio = campoTexto.value;
 
     // En algunos WebView de Android (como el de AppMint), readText() no
     // rechaza ni tira error: se queda esperando para siempre, porque el
@@ -373,22 +374,32 @@
         );
       });
 
+    // 1) API moderna de portapapeles (funciona en navegador normal)
     try {
       if (navigator.clipboard && navigator.clipboard.readText) {
         campoTexto.value = await conLimiteDeTiempo(navigator.clipboard.readText(), 600);
         return;
       }
     } catch {
-      // sigue abajo al fallback, sea por falta de soporte, permiso denegado o timeout
+      // sigue al siguiente intento
     }
 
-    // Fallback para apps generadas con AppMint y otros WebView de Android:
-    // cualquier <textarea> dentro del WebView SÍ soporta pegar de forma
-    // nativa con mantener presionado, porque eso lo maneja Android
-    // directamente, sin pasar por la API de JS. Enfocamos el campo para
-    // que el usuario solo tenga que mantener presionado y tocar "Pegar".
+    // 2) Comando viejo del editor: en varios WebView de Android (como el
+    // de apps generadas con AppMint) esto sí logra pegar, aunque la API
+    // moderna falle, porque no pasa por el sistema de permisos nuevo.
     campoTexto.focus();
+    try {
+      document.execCommand("paste");
+    } catch {
+      // sigue al fallback final
+    }
+    if (campoTexto.value !== valorPrevio) return;
+
+    // 3) Fallback final: ninguno de los dos métodos por JS funcionó. Avisamos
+    // claramente qué hacer, en vez de quedar en silencio, y dejamos el campo
+    // enfocado y seleccionado listo para el pegado nativo.
     campoTexto.select();
+    alert("Mantén presionado el cuadro de texto y elegí \"Pegar\" del menú.");
   };
 
   window.clearText = () => {
