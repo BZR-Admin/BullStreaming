@@ -360,24 +360,33 @@
   window.pasteText = async () => {
     const campoTexto = document.getElementById("texto");
 
-    // En navegadores normales (Chrome/Safari de escritorio o móvil),
-    // la API de portapapeles funciona y pega directo.
+    // En algunos WebView de Android (como el de AppMint), readText() no
+    // rechaza ni tira error: se queda esperando para siempre, porque el
+    // WebView no tiene ninguna UI para resolver el permiso. Sin un límite
+    // de tiempo, ese "await" nunca termina y el botón parece no hacer nada.
+    const conLimiteDeTiempo = (promesa, ms) =>
+      new Promise((resolve, reject) => {
+        const aviso = setTimeout(() => reject(new Error("timeout")), ms);
+        promesa.then(
+          (valor) => { clearTimeout(aviso); resolve(valor); },
+          (err)   => { clearTimeout(aviso); reject(err); }
+        );
+      });
+
     try {
       if (navigator.clipboard && navigator.clipboard.readText) {
-        campoTexto.value = await navigator.clipboard.readText();
+        campoTexto.value = await conLimiteDeTiempo(navigator.clipboard.readText(), 600);
         return;
       }
     } catch {
-      // sigue abajo al fallback
+      // sigue abajo al fallback, sea por falta de soporte, permiso denegado o timeout
     }
 
     // Fallback para apps generadas con AppMint y otros WebView de Android:
-    // ahí navigator.clipboard.readText() no existe o nunca pide permiso
-    // (el WebView no implementa ese popup), así que no hay forma de leer
-    // el portapapeles por JS. En cambio, cualquier <textarea> dentro del
-    // WebView SÍ soporta pegar de forma nativa con mantener presionado,
-    // porque eso lo maneja Android directamente. Por eso, en vez de mostrar
-    // un error sin salida, enfocamos el campo para que el usuario pegue así.
+    // cualquier <textarea> dentro del WebView SÍ soporta pegar de forma
+    // nativa con mantener presionado, porque eso lo maneja Android
+    // directamente, sin pasar por la API de JS. Enfocamos el campo para
+    // que el usuario solo tenga que mantener presionado y tocar "Pegar".
     campoTexto.focus();
     campoTexto.select();
   };
