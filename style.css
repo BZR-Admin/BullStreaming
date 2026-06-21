@@ -982,6 +982,10 @@ body{
    DASHBOARD.CSS — estilos exclusivos del dashboard
    Complementa style.css sin modificarlo
 ========================================================= */
+/* =========================================================
+   DASHBOARD.CSS — estilos exclusivos del dashboard
+   Complementa style.css sin modificarlo
+========================================================= */
 
 /* ── Header ── */
 .dash-header {
@@ -1022,13 +1026,20 @@ body{
 /* ── KPI Grid ── */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 10px;
-  margin-bottom: 12px;
-}
-.kpi-grid-2 {
-  grid-template-columns: repeat(2, 1fr);
   margin-bottom: 20px;
+}
+/* kpi-grid-2 fusionado en kpi-grid — ocultar el div vacío si queda */
+.kpi-grid-2 {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 720px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* ── KPI Card ── */
