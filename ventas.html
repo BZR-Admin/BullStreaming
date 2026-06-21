@@ -320,7 +320,7 @@
 <div id="parserOverlay">
   <div class="parser-inner">
     <h3>📋 Insertar texto de cuenta</h3>
-    <textarea id="texto" placeholder="Pega aquí el texto de la cuenta..." rows="6"></textarea>
+    <textarea id="texto" placeholder="Pega aquí el texto de la cuenta... (en la app: mantén presionado aquí y elegí 'Pegar')" rows="6"></textarea>
     <div class="parser-actions">
       <button onclick="pasteText()">📋 Pegar</button>
       <button onclick="clearText()">🧹 Limpiar</button>
@@ -358,11 +358,28 @@
   });
 
   window.pasteText = async () => {
+    const campoTexto = document.getElementById("texto");
+
+    // En navegadores normales (Chrome/Safari de escritorio o móvil),
+    // la API de portapapeles funciona y pega directo.
     try {
-      document.getElementById("texto").value = await navigator.clipboard.readText();
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        campoTexto.value = await navigator.clipboard.readText();
+        return;
+      }
     } catch {
-      alert("No se pudo acceder al portapapeles.");
+      // sigue abajo al fallback
     }
+
+    // Fallback para apps generadas con AppMint y otros WebView de Android:
+    // ahí navigator.clipboard.readText() no existe o nunca pide permiso
+    // (el WebView no implementa ese popup), así que no hay forma de leer
+    // el portapapeles por JS. En cambio, cualquier <textarea> dentro del
+    // WebView SÍ soporta pegar de forma nativa con mantener presionado,
+    // porque eso lo maneja Android directamente. Por eso, en vez de mostrar
+    // un error sin salida, enfocamos el campo para que el usuario pegue así.
+    campoTexto.focus();
+    campoTexto.select();
   };
 
   window.clearText = () => {
