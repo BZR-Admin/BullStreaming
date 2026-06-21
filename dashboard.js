@@ -11,7 +11,8 @@ let modoActual = "7d";
    INIT
 ───────────────────────────────────────── */
 window.addEventListener("DOMContentLoaded", async () => {
-  const { data } = await supabase.from("ventas").select("*");
+  const { data, error } = await supabase.from("ventas").select("*");
+  if (error) { console.error("Supabase error:", error); return; }
   ventas = data || [];
 
   renderKPIs();
@@ -20,26 +21,32 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 /* ─────────────────────────────────────────
-   HELPERS DE FECHA
-   Las fechas en Supabase vienen como número
-   serial de Excel (días desde 1900-01-00).
-   Convertimos a Date de JS.
+   HELPER DE FECHA — maneja 3 formatos:
+   1. String ISO  "2026-04-15"  → directo
+   2. Serial Excel 46160        → convierte
+   3. null / undefined          → ""
 ───────────────────────────────────────── */
-function serialToDate(serial) {
-  if (!serial) return null;
-  // Excel erróneamente incluye 1900 como bisiesto; ajustamos
-  const MS_PER_DAY = 86400000;
-  const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-  return new Date(excelEpoch.getTime() + serial * MS_PER_DAY);
-}
+function fechaToYMD(valor) {
+  if (!valor && valor !== 0) return "";
 
-function toYMD(date) {
-  if (!date) return "";
-  return date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+  // Formato ISO o similar: "2026-04-15" / "2026-04-15T00:00:00"
+  if (typeof valor === "string" && /^\d{4}-\d{2}-\d{2}/.test(valor)) {
+    return valor.slice(0, 10);
+  }
+
+  // Serial numérico de Excel (número > 1000 para distinguirlo de días inválidos)
+  const n = parseFloat(valor);
+  if (!isNaN(n) && n > 1000) {
+    const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+    const date = new Date(excelEpoch.getTime() + n * 86400000);
+    if (!isNaN(date.getTime())) return date.toISOString().slice(0, 10);
+  }
+
+  return "";
 }
 
 function todayYMD() {
-  return toYMD(new Date());
+  return new Date().toISOString().slice(0, 10);
 }
 
 function firstDayOfMonthYMD() {
@@ -57,41 +64,37 @@ function renderKPIs() {
   // 1. Total ventas activas
   document.getElementById("kpiVentas").textContent = ventas.length;
 
-  // 2. Clientes únicos (sin repetir id_cliente)
+  // 2. Clientes únicos
   const clientesUnicos = new Set(ventas.map(v => v.id_cliente)).size;
   document.getElementById("kpiClientes").textContent = clientesUnicos;
 
-  // 3. Ventas registradas hoy
-  const hoy = ventas.filter(v => toYMD(serialToDate(v.fecha_registro)) === today).length;
+  // 3. Ventas hoy
+  const hoy = ventas.filter(v => fechaToYMD(v.fecha_registro) === today).length;
   document.getElementById("kpiHoy").textContent = hoy;
 
-  // 4. Ganancia del mes (desde el día 1 del mes actual)
+  // 4. Ganancia del mes
   const gananciaMes = ventas
-    .filter(v => toYMD(serialToDate(v.fecha_registro)) >= firstOfMonth)
+    .filter(v => fechaToYMD(v.fecha_registro) >= firstOfMonth)
     .reduce((acc, v) => acc + (parseFloat(v.ganancia) || 0), 0);
-  document.getElementById("kpiGananciaMes").textContent =
-    "$" + gananciaMes.toFixed(2);
+  document.getElementById("kpiGananciaMes").textContent = "$" + gananciaMes.toFixed(2);
 
   // 5. Ganancia de hoy
   const gananciaHoy = ventas
-    .filter(v => toYMD(serialToDate(v.fecha_registro)) === today)
+    .filter(v => fechaToYMD(v.fecha_registro) === today)
     .reduce((acc, v) => acc + (parseFloat(v.ganancia) || 0), 0);
-  document.getElementById("kpiGananciaHoy").textContent =
-    "$" + gananciaHoy.toFixed(2);
+  document.getElementById("kpiGananciaHoy").textContent = "$" + gananciaHoy.toFixed(2);
 }
 
 /* ─────────────────────────────────────────
    TOP PLATAFORMAS
 ───────────────────────────────────────── */
 function renderTopPlataformas() {
-  // Conteo por plataforma
   const conteo = {};
   ventas.forEach(v => {
     const p = (v.plataforma || "Sin nombre").trim();
     conteo[p] = (conteo[p] || 0) + 1;
   });
 
-  // Ordenar y tomar top 3
   const top3 = Object.entries(conteo)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3);
@@ -100,8 +103,7 @@ function renderTopPlataformas() {
   const ranks = ["gold", "silver", "bronze"];
   const medals = ["🥇", "🥈", "🥉"];
 
-  const container = document.getElementById("topPlataformas");
-  container.innerHTML = top3.map(([nombre, count], i) => `
+  document.getElementById("topPlataformas").innerHTML = top3.map(([nombre, count], i) => `
     <div class="platform-row">
       <span class="platform-rank ${ranks[i]}">${medals[i]}</span>
       <span class="platform-name">${nombre}</span>
@@ -129,8 +131,6 @@ function renderChart(modo) {
   if (chartInstance) chartInstance.destroy();
 
   const ctx = document.getElementById("chartVentas").getContext("2d");
-
-  // Gradiente de relleno
   const gradient = ctx.createLinearGradient(0, 0, 0, 200);
   gradient.addColorStop(0, "rgba(0,198,255,0.35)");
   gradient.addColorStop(1, "rgba(0,198,255,0)");
@@ -165,79 +165,52 @@ function renderChart(modo) {
           bodyColor: "rgba(255,255,255,0.8)",
           padding: 10,
           callbacks: {
-            label: ctx => ` ${ctx.parsed.y} venta${ctx.parsed.y !== 1 ? "s" : ""}`
+            label: c => ` ${c.parsed.y} venta${c.parsed.y !== 1 ? "s" : ""}`
           }
         }
       },
       scales: {
         x: {
           grid: { color: "rgba(255,255,255,0.05)" },
-          ticks: {
-            color: "rgba(255,255,255,0.45)",
-            font: { size: 11, weight: "600" },
-            maxRotation: 0,
-          }
+          ticks: { color: "rgba(255,255,255,0.45)", font: { size: 11, weight: "600" }, maxRotation: 0 }
         },
         y: {
           beginAtZero: true,
           grid: { color: "rgba(255,255,255,0.05)" },
-          ticks: {
-            color: "rgba(255,255,255,0.45)",
-            font: { size: 11 },
-            stepSize: 1,
-            precision: 0,
-          }
+          ticks: { color: "rgba(255,255,255,0.45)", font: { size: 11 }, stepSize: 1, precision: 0 }
         }
       }
     }
   });
 }
 
-/* Últimos 7 días */
 function getData7Dias() {
-  const dias = [];
-  const counts = [];
+  const labels = [], datos = [];
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
 
   for (let i = 6; i >= 0; i--) {
     const d = new Date(hoy);
     d.setDate(hoy.getDate() - i);
-    const ymd = toYMD(d);
-
-    const label = d.toLocaleDateString("es", { weekday: "short", day: "numeric" });
-    dias.push(label);
-
-    const count = ventas.filter(v =>
-      toYMD(serialToDate(v.fecha_registro)) === ymd
-    ).length;
-    counts.push(count);
+    const ymd = d.toISOString().slice(0, 10);
+    labels.push(d.toLocaleDateString("es", { weekday: "short", day: "numeric" }));
+    datos.push(ventas.filter(v => fechaToYMD(v.fecha_registro) === ymd).length);
   }
-
-  return { labels: dias, datos: counts };
+  return { labels, datos };
 }
 
-/* Por mes (últimos 6 meses) */
 function getDataMeses() {
-  const meses = [];
-  const counts = [];
+  const labels = [], datos = [];
   const hoy = new Date();
 
   for (let i = 5; i >= 0; i--) {
     const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const prefix = `${year}-${month}`;
-
-    const label = d.toLocaleDateString("es", { month: "short", year: "2-digit" });
-    meses.push(label);
-
-    const count = ventas.filter(v => {
-      const ymd = toYMD(serialToDate(v.fecha_registro));
+    const prefix = d.toISOString().slice(0, 7); // "YYYY-MM"
+    labels.push(d.toLocaleDateString("es", { month: "short", year: "2-digit" }));
+    datos.push(ventas.filter(v => {
+      const ymd = fechaToYMD(v.fecha_registro);
       return ymd && ymd.startsWith(prefix);
-    }).length;
-    counts.push(count);
+    }).length);
   }
-
-  return { labels: meses, datos: counts };
+  return { labels, datos };
 }
