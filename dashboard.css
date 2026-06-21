@@ -1,0 +1,264 @@
+/* =========================================================
+   DASHBOARD.CSS — estilos exclusivos del dashboard
+   Complementa style.css sin modificarlo
+========================================================= */
+/* =========================================================
+   DASHBOARD.CSS — estilos exclusivos del dashboard
+   Complementa style.css sin modificarlo
+========================================================= */
+
+/* ── Header ── */
+.dash-header {
+  margin-bottom: 20px;
+}
+.dash-header h2 {
+  font-size: clamp(22px, 5vw, 30px);
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+.dash-header p {
+  font-size: 13px;
+  opacity: 0.55;
+}
+.dash-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: rgba(44, 255, 136, 0.15);
+  border: 1px solid rgba(44, 255, 136, 0.35);
+  color: var(--green);
+  -webkit-text-fill-color: var(--green);
+  animation: pulse-badge 2.5s ease-in-out infinite;
+}
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+/* ── KPI Grid ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+/* kpi-grid-2 fusionado en kpi-grid — ocultar el div vacío si queda */
+.kpi-grid-2 {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 720px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── KPI Card ── */
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(12px);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.kpi-card:hover {
+  transform: translateY(-3px);
+}
+
+/* Colores de acento por tipo */
+.kpi-card.cyan   { border-left: 3px solid var(--primary); }
+.kpi-card.purple { border-left: 3px solid var(--purple); }
+.kpi-card.green  { border-left: 3px solid var(--green); }
+.kpi-card.yellow { border-left: 3px solid var(--yellow); }
+.kpi-card.pink   { border-left: 3px solid var(--pink); }
+
+.kpi-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.kpi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.kpi-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kpi-value {
+  font-size: clamp(18px, 4vw, 26px);
+  font-weight: 800;
+  color: white;
+  line-height: 1.1;
+}
+.kpi-card.cyan   .kpi-value { color: var(--primary); }
+.kpi-card.purple .kpi-value { color: var(--purple); }
+.kpi-card.green  .kpi-value { color: var(--green); }
+.kpi-card.yellow .kpi-value { color: var(--yellow); }
+.kpi-card.pink   .kpi-value { color: var(--pink); }
+
+/* ── Sections ── */
+.dash-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 12px;
+}
+
+/* ── Top Plataformas ── */
+.platform-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.platform-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.platform-rank {
+  font-size: 11px;
+  font-weight: 800;
+  width: 20px;
+  text-align: center;
+  color: rgba(255,255,255,0.35);
+  flex-shrink: 0;
+}
+.platform-rank.gold   { color: #ffd60a; }
+.platform-rank.silver { color: #c0c0c0; }
+.platform-rank.bronze { color: #cd7f32; }
+.platform-name {
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.platform-bar-wrap {
+  flex: 2;
+  background: rgba(255,255,255,0.07);
+  border-radius: 99px;
+  height: 7px;
+  overflow: hidden;
+}
+.platform-bar {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  transition: width 0.6s ease;
+}
+.platform-row:nth-child(2) .platform-bar {
+  background: linear-gradient(90deg, var(--purple), var(--pink));
+}
+.platform-row:nth-child(3) .platform-bar {
+  background: linear-gradient(90deg, var(--green), #00a854);
+}
+.platform-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.55);
+  flex-shrink: 0;
+  min-width: 28px;
+  text-align: right;
+}
+
+/* ── Chart ── */
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.chart-header .section-title {
+  margin-bottom: 0;
+}
+.chart-toggle {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 3px;
+}
+.toggle-btn {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 5px 12px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  border-radius: 7px !important;
+  border: none !important;
+  background: transparent !important;
+  color: rgba(255,255,255,0.45) !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: all 0.18s ease !important;
+}
+.toggle-btn:hover {
+  color: white !important;
+  transform: none !important;
+}
+.toggle-btn.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+  color: white !important;
+  box-shadow: 0 0 10px rgba(0,198,255,0.3) !important;
+}
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 200px;
+}
+.chart-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 420px) {
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .kpi-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 12px 10px;
+  }
+  .kpi-icon { font-size: 18px; }
+  .kpi-value { font-size: 20px; }
+  .kpi-label { font-size: 9px; }
+}
