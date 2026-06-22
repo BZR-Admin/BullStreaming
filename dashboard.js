@@ -45,13 +45,27 @@ function fechaToYMD(valor) {
   return "";
 }
 
+function localYMD(date) {
+  const pad = n => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+}
+
 function todayYMD() {
-  return new Date().toISOString().slice(0, 10);
+  return localYMD(new Date());
 }
 
 function firstDayOfMonthYMD() {
   const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  const pad = n => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth()+1)}-01`;
+}
+
+function lastDayOfMonthYMD() {
+  const now = new Date();
+  // día 0 del mes siguiente = último día del mes actual
+  const ultimo = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const pad = n => String(n).padStart(2, "0");
+  return `${ultimo.getFullYear()}-${pad(ultimo.getMonth()+1)}-${pad(ultimo.getDate())}`;
 }
 
 /* ─────────────────────────────────────────
@@ -72,9 +86,13 @@ function renderKPIs() {
   const hoy = ventas.filter(v => fechaToYMD(v.fecha_registro) === today).length;
   document.getElementById("kpiHoy").textContent = hoy;
 
-  // 4. Ganancia del mes
+  // 4. Ganancia del mes (día 01 hasta último día del mes actual)
+  const lastOfMonth = lastDayOfMonthYMD();
   const gananciaMes = ventas
-    .filter(v => fechaToYMD(v.fecha_registro) >= firstOfMonth)
+    .filter(v => {
+      const ymd = fechaToYMD(v.fecha_registro);
+      return ymd >= firstOfMonth && ymd <= lastOfMonth;
+    })
     .reduce((acc, v) => acc + (parseFloat(v.ganancia) || 0), 0);
   document.getElementById("kpiGananciaMes").textContent = "$" + gananciaMes.toFixed(2);
 
@@ -205,7 +223,8 @@ function getDataMeses() {
 
   for (let i = 5; i >= 0; i--) {
     const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
-    const prefix = d.toISOString().slice(0, 7); // "YYYY-MM"
+    const pad = n => String(n).padStart(2, "0");
+    const prefix = `${d.getFullYear()}-${pad(d.getMonth()+1)}`; // "YYYY-MM" local
     labels.push(d.toLocaleDateString("es", { month: "short", year: "2-digit" }));
     datos.push(ventas.filter(v => {
       const ymd = fechaToYMD(v.fecha_registro);
