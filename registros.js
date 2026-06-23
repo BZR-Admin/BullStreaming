@@ -364,7 +364,7 @@ Fecha de vencimiento: ${formatDate(venta.fecha_vencimiento)}
 ¿Puedes confirmar si deseas renovar?`;
 
   window.open(
-    `https://business.wa.me/${tel}?text=${encodeURIComponent(msg)}`,
+    `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,
     "_blank"
   );
 };
