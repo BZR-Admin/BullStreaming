@@ -3,16 +3,10 @@
 <head>
  <!-- 1. Manifest -->
 <link rel="manifest" href="./manifest.json" />
-
-<!-- 2. Ícono explícito (soluciona el logo en pantalla de inicio) -->
 <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
-
-<!-- 3. Color de barra del sistema -->
 <meta name="theme-color" content="#00c6ff" />
-
-<!-- 4. Registrar Service Worker -->
 <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
@@ -28,241 +22,159 @@
   <title>Nueva Venta | Bull Streaming</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* ── VENTAS: ESTILOS ESPECÍFICOS ── */
-
-    .page-header {
-      margin-bottom: 20px;
-    }
+    .page-header { margin-bottom: 20px; }
     .page-header h2 {
       margin-bottom: 2px;
       background: linear-gradient(90deg, var(--primary), var(--primary-dark));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .page-header p {
-      font-size: 13px;
-      opacity: 0.6;
-    }
+    .page-header p { font-size: 13px; opacity: 0.6; }
 
-    /* Mode Switch */
     .mode-switch {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 16px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 16px;
       background: rgba(255,255,255,0.04);
       border: 1px solid var(--border-soft);
-      border-radius: 14px;
-      padding: 5px;
+      border-radius: 14px; padding: 5px;
     }
     .mode-switch button {
-      min-width: 0;
-      border-radius: 10px;
-      border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.55);
-      font-size: 13.5px;
-      font-weight: 600;
-      box-shadow: none;
-      transition: all 0.2s;
+      min-width: 0; border-radius: 10px; border: none;
+      background: transparent; color: rgba(255,255,255,0.55);
+      font-size: 13.5px; font-weight: 600; box-shadow: none; transition: all 0.2s;
     }
-    .mode-switch button:hover {
-      transform: none;
-      box-shadow: none;
-      color: white;
-      background: rgba(255,255,255,0.06);
-    }
-    .mode-switch button.active-vi {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      box-shadow: 0 0 16px rgba(0,198,255,0.3);
-    }
-    .mode-switch button.active-vcp {
-      background: linear-gradient(135deg, var(--purple), var(--pink));
-      color: white;
-      box-shadow: 0 0 16px rgba(168,85,247,0.3);
-    }
+    .mode-switch button:hover { transform: none; box-shadow: none; color: white; background: rgba(255,255,255,0.06); }
+    .mode-switch button.active-vi  { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 0 16px rgba(0,198,255,0.3); }
+    .mode-switch button.active-vcp { background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; box-shadow: 0 0 16px rgba(168,85,247,0.3); }
 
-    /* Parser trigger */
     .parser-trigger {
-      width: 100%;
-      margin-bottom: 16px;
-      background: transparent;
-      border: 1px dashed rgba(255,255,255,0.22);
-      color: rgba(255,255,255,0.55);
-      font-weight: 600;
-      font-size: 13.5px;
-      box-shadow: none;
-      border-radius: 12px;
+      width: 100%; margin-bottom: 16px;
+      background: transparent; border: 1px dashed rgba(255,255,255,0.22);
+      color: rgba(255,255,255,0.55); font-weight: 600; font-size: 13.5px;
+      box-shadow: none; border-radius: 12px;
     }
-    .parser-trigger:hover {
-      border-color: var(--primary);
-      color: var(--primary);
-      background: rgba(0,198,255,0.05);
-      transform: none;
-      box-shadow: none;
-    }
+    .parser-trigger:hover { border-color: var(--primary); color: var(--primary); background: rgba(0,198,255,0.05); transform: none; box-shadow: none; }
 
-    /* Form Card */
     .form-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-soft);
-      border-radius: 18px;
-      padding: clamp(16px, 4vw, 24px);
-      box-shadow: var(--shadow-soft);
-      backdrop-filter: blur(12px);
+      background: var(--bg-card); border: 1px solid var(--border-soft);
+      border-radius: 18px; padding: clamp(16px, 4vw, 24px);
+      box-shadow: var(--shadow-soft); backdrop-filter: blur(12px);
     }
     .form-card label {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: rgba(255,255,255,0.45);
-      margin-top: 4px;
-      margin-bottom: 0;
+      display: block; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.45); margin-top: 4px; margin-bottom: 0;
     }
-    .form-card input,
-    .form-card select {
-      margin: 5px 0 0;
-    }
-    .form-card .grid {
-      gap: 12px;
-      margin-bottom: 0;
-    }
-    .form-card hr {
-      border: none;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      margin: 18px 0 16px;
-    }
+    .form-card input, .form-card select { margin: 5px 0 0; }
+    .form-card .grid { gap: 12px; margin-bottom: 0; }
+    .form-card hr { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 18px 0 16px; }
 
-    /* Botón guardar */
     .btn-save {
-      width: 100%;
-      font-size: 15px;
+      width: 100%; font-size: 15px;
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      border: none;
-      border-radius: 12px;
+      border: none; border-radius: 12px;
     }
-    .btn-save.vcp-mode {
-      background: linear-gradient(135deg, var(--purple), var(--pink));
-      box-shadow: 0 0 20px rgba(168,85,247,0.3);
-    }
+    .btn-save.vcp-mode { background: linear-gradient(135deg, var(--purple), var(--pink)); box-shadow: 0 0 20px rgba(168,85,247,0.3); }
 
-    /* Campo proveedor oculto por defecto */
     #fieldProveedor { display: none; }
 
-    /* Badge modo */
     .mode-badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 800;
-      padding: 3px 10px;
-      border-radius: 99px;
-      background: rgba(0,198,255,0.15);
-      color: var(--primary);
-      border: 1px solid rgba(0,198,255,0.3);
-      margin-left: 10px;
-      vertical-align: middle;
-      letter-spacing: 0.04em;
-      -webkit-text-fill-color: var(--primary);
+      display: inline-block; font-size: 11px; font-weight: 800;
+      padding: 3px 10px; border-radius: 99px;
+      background: rgba(0,198,255,0.15); color: var(--primary);
+      border: 1px solid rgba(0,198,255,0.3); margin-left: 10px;
+      vertical-align: middle; letter-spacing: 0.04em; -webkit-text-fill-color: var(--primary);
     }
-    .mode-badge.vcp {
-      background: rgba(168,85,247,0.15);
-      color: var(--purple);
-      border-color: rgba(168,85,247,0.3);
-      -webkit-text-fill-color: var(--purple);
-    }
+    .mode-badge.vcp { background: rgba(168,85,247,0.15); color: var(--purple); border-color: rgba(168,85,247,0.3); -webkit-text-fill-color: var(--purple); }
 
-    /*
-      NOTA IMPORTANTE:
-      Este overlay usa un id propio ("parserOverlay") a propósito,
-      en vez de reutilizar "#parserBox". style.css ya define una
-      regla #parserBox (del modal viejo, centrado con top:50%/left:50%/
-      transform). Si reusábamos ese mismo id acá, las dos reglas se
-      mezclaban: el inset:0 de este bloque ganaba en top/left, pero el
-      transform: translate(-50%,-50%) de style.css seguía aplicando
-      sobre esos valores, y la caja terminaba desplazada media
-      anchura/altura hacia la esquina superior izquierda y cortada.
-      Con un id distinto, este overlay no hereda nada de esa regla.
-    */
-    #parserOverlay {
+    /* ── BUSCADOR DE CLIENTE ── */
+    .cliente-search-wrap {
+      position: relative;
+    }
+    .cliente-search-wrap input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .cliente-dropdown {
       display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.65);
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      backdrop-filter: blur(4px);
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: rgba(10, 12, 28, 0.98);
+      border: 1px solid rgba(0,198,255,0.25);
+      border-radius: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      backdrop-filter: blur(12px);
+    }
+    .cliente-dropdown.open { display: block; }
+    .cliente-option {
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.82);
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.15s;
+    }
+    .cliente-option:last-child { border-bottom: none; }
+    .cliente-option:hover, .cliente-option.focused {
+      background: rgba(0,198,255,0.12);
+      color: white;
+    }
+    .cliente-option mark {
+      background: transparent;
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .cliente-empty {
+      padding: 12px 14px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.3);
+      text-align: center;
+    }
+    /* input con cliente seleccionado */
+    #clienteSearch.selected {
+      color: white;
+      border-color: rgba(0,198,255,0.4);
+    }
+    /* campo oculto que guarda el id real */
+    #cliente { display: none; }
+
+    #parserOverlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65); z-index: 10000;
+      align-items: center; justify-content: center;
+      padding: 16px; backdrop-filter: blur(4px);
     }
     #parserOverlay.open { display: flex; }
-
     .parser-inner {
-      background: rgba(10, 12, 25, 0.98);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 18px;
-      padding: clamp(16px, 4vw, 22px);
-      width: min(100%, 520px);
-      max-height: 88vh;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: var(--shadow-soft);
+      background: rgba(10, 12, 25, 0.98); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 18px; padding: clamp(16px, 4vw, 22px);
+      width: min(100%, 520px); max-height: 88vh; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-soft);
     }
-    .parser-inner h3 {
-      font-size: 16px;
-      font-weight: 800;
-    }
-    .parser-inner textarea {
-      margin: 0;
-      font-family: monospace;
-      font-size: 13px;
-    }
-    .parser-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
+    .parser-inner h3 { font-size: 16px; font-weight: 800; }
+    .parser-inner textarea { margin: 0; font-family: monospace; font-size: 13px; }
+    .parser-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .parser-actions button {
-      min-width: 0;
-      font-size: 13px;
-      padding: 10px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.14);
-      color: white;
-      box-shadow: none;
+      min-width: 0; font-size: 13px; padding: 10px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+      color: white; box-shadow: none;
     }
-    .parser-actions button:hover {
-      background: rgba(255,255,255,0.1);
-      transform: none;
-      box-shadow: none;
-    }
-    .parser-actions .btn-detect {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      border-color: transparent;
-      box-shadow: 0 0 16px rgba(0,198,255,0.25);
-    }
+    .parser-actions button:hover { background: rgba(255,255,255,0.1); transform: none; box-shadow: none; }
+    .parser-actions .btn-detect { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-color: transparent; box-shadow: 0 0 16px rgba(0,198,255,0.25); }
     .parser-actions .btn-detect:hover { opacity: 0.9; }
-
-    /* Evita que el fondo scrollee detrás del modal en celular */
-    body.modal-open {
-      overflow: hidden;
-    }
-
-    @media (max-width: 420px) {
-      .parser-actions { grid-template-columns: 1fr; }
-    }
+    body.modal-open { overflow: hidden; }
+    @media (max-width: 420px) { .parser-actions { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
-<!-- FAB -->
 <button id="fab" type="button">☰</button>
 
-<!-- SIDE MENU -->
 <nav id="sideMenu" class="side-menu">
   <button type="button" onclick="location.href='index.html'">🏠 Inicio</button>
   <button type="button" onclick="location.href='ventas.html'">🛒 Ventas</button>
@@ -273,28 +185,35 @@
   <button onclick="location.href='dashboard.html'">📈 Dashboard</button>
 </nav>
 
-<!-- HEADER -->
 <div class="page-header">
   <h2>Nueva Venta <span id="modeBadge" class="mode-badge">VI</span></h2>
   <p>Gestión de ventas VI / VCP</p>
 </div>
 
-<!-- MODE SWITCH -->
 <div class="mode-switch">
   <button id="btnVI" class="active-vi" onclick="setMode('VI')">Venta Independiente</button>
   <button id="btnVCP" onclick="setMode('VCP')">Cuenta Propia</button>
 </div>
 
-<!-- PARSER TRIGGER -->
 <button class="parser-trigger" onclick="toggleParser()">📋 Insertar texto de cuenta</button>
 
-<!-- FORM CARD -->
 <div class="form-card">
   <div class="grid">
 
     <div>
       <label>Cliente</label>
-      <select id="cliente"></select>
+      <!-- Buscador visible -->
+      <div class="cliente-search-wrap">
+        <input
+          id="clienteSearch"
+          type="text"
+          placeholder="Buscar cliente..."
+          autocomplete="off"
+        />
+        <div id="clienteDropdown" class="cliente-dropdown"></div>
+      </div>
+      <!-- Campo oculto con el id_cliente seleccionado -->
+      <input id="cliente" type="hidden" />
     </div>
 
     <div>
@@ -333,17 +252,14 @@
     </div>
 
   </div>
-
   <hr />
-
   <button id="btnSave" class="btn-save" onclick="saveVenta()">💾 Guardar Venta</button>
 </div>
 
-<!-- PARSER MODAL (overlay con id propio, ver nota en <style>) -->
 <div id="parserOverlay">
   <div class="parser-inner">
     <h3>📋 Insertar texto de cuenta</h3>
-    <textarea id="texto" placeholder="Pega aquí el texto de la cuenta... (en la app: mantén presionado aquí y elegí 'Pegar')" rows="6"></textarea>
+    <textarea id="texto" placeholder="Pega aquí el texto de la cuenta..." rows="6"></textarea>
     <div class="parser-actions">
       <button onclick="pasteText()">📋 Pegar</button>
       <button onclick="clearText()">🧹 Limpiar</button>
@@ -356,78 +272,43 @@
 <script type="module" src="ventas.js"></script>
 
 <script>
-  // FAB MENU
+  // FAB
   const fab  = document.getElementById("fab");
   const menu = document.getElementById("sideMenu");
-
-  fab.onclick = () => {
-    menu.style.display = menu.style.display === "flex" ? "none" : "flex";
-  };
+  fab.onclick = () => menu.style.display = menu.style.display === "flex" ? "none" : "flex";
   document.addEventListener("click", (e) => {
-    if (!menu.contains(e.target) && !fab.contains(e.target)) {
-      menu.style.display = "none";
-    }
+    if (!menu.contains(e.target) && !fab.contains(e.target)) menu.style.display = "none";
   });
 
-  // PARSER MODAL
+  // PARSER
   const parserOverlay = document.getElementById("parserOverlay");
-
   window.toggleParser = () => {
     parserOverlay.classList.toggle("open");
     document.body.classList.toggle("modal-open", parserOverlay.classList.contains("open"));
   };
-  parserOverlay.addEventListener("click", (e) => {
-    if (e.target === parserOverlay) toggleParser();
-  });
+  parserOverlay.addEventListener("click", (e) => { if (e.target === parserOverlay) toggleParser(); });
 
   window.pasteText = async () => {
     const campoTexto = document.getElementById("texto");
     const valorPrevio = campoTexto.value;
-
-    // En algunos WebView de Android (como el de AppMint), readText() no
-    // rechaza ni tira error: se queda esperando para siempre, porque el
-    // WebView no tiene ninguna UI para resolver el permiso. Sin un límite
-    // de tiempo, ese "await" nunca termina y el botón parece no hacer nada.
     const conLimiteDeTiempo = (promesa, ms) =>
       new Promise((resolve, reject) => {
         const aviso = setTimeout(() => reject(new Error("timeout")), ms);
-        promesa.then(
-          (valor) => { clearTimeout(aviso); resolve(valor); },
-          (err)   => { clearTimeout(aviso); reject(err); }
-        );
+        promesa.then(v => { clearTimeout(aviso); resolve(v); }, e => { clearTimeout(aviso); reject(e); });
       });
-
-    // 1) API moderna de portapapeles (funciona en navegador normal)
     try {
       if (navigator.clipboard && navigator.clipboard.readText) {
         campoTexto.value = await conLimiteDeTiempo(navigator.clipboard.readText(), 600);
         return;
       }
-    } catch {
-      // sigue al siguiente intento
-    }
-
-    // 2) Comando viejo del editor: en varios WebView de Android (como el
-    // de apps generadas con AppMint) esto sí logra pegar, aunque la API
-    // moderna falle, porque no pasa por el sistema de permisos nuevo.
+    } catch {}
     campoTexto.focus();
-    try {
-      document.execCommand("paste");
-    } catch {
-      // sigue al fallback final
-    }
+    try { document.execCommand("paste"); } catch {}
     if (campoTexto.value !== valorPrevio) return;
-
-    // 3) Fallback final: ninguno de los dos métodos por JS funcionó. Avisamos
-    // claramente qué hacer, en vez de quedar en silencio, y dejamos el campo
-    // enfocado y seleccionado listo para el pegado nativo.
     campoTexto.select();
     alert("Mantén presionado el cuadro de texto y elegí \"Pegar\" del menú.");
   };
-
-  window.clearText = () => {
-    document.getElementById("texto").value = "";
-  };
+  window.clearText = () => { document.getElementById("texto").value = ""; };
 </script>
 
 </body>
