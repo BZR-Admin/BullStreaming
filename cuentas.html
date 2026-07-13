@@ -27,6 +27,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cuentas propias | Bull Streaming</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Buscador de cliente (mismo estilo que ventas.html) ── */
+    .cliente-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: rgba(10, 12, 28, 0.98);
+      border: 1px solid rgba(0,198,255,0.25);
+      border-radius: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      backdrop-filter: blur(12px);
+    }
+    .cliente-dropdown.open { display: block; }
+    .cliente-option {
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.82);
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.15s;
+    }
+    .cliente-option:last-child { border-bottom: none; }
+    .cliente-option:hover { background: rgba(0,198,255,0.12); color: white; }
+    .cliente-option mark {
+      background: transparent;
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .cliente-empty {
+      padding: 12px 14px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.3);
+      text-align: center;
+    }
+    #addClienteSearch.selected {
+      border-color: rgba(0,198,255,0.4) !important;
+      color: white;
+    }
+  </style>
 </head>
 
 <body>
@@ -43,7 +87,6 @@
   <button type="button" onclick="location.href='cuentas.html'">🎬 Cuentas</button>
   <button type="button" onclick="location.href='registros.html'">📊 Registros</button>
   <button type="button" onclick="location.href='clientes_proveedores.html'">👥 Clientes</button>
-  <button onclick="location.href='dashboard.html'">📈 Dashboard</button>
 </nav>
 
 <!-- =========================
@@ -125,10 +168,19 @@
 
     <input id="addCuentaId" type="hidden" />
 
-    <label for="addCliente">Cliente</label>
-    <select id="addCliente" required>
-      <option value="">Selecciona un cliente</option>
-    </select>
+    <label for="addClienteSearch">Cliente</label>
+    <!-- Buscador con dropdown -->
+    <div class="cliente-search-wrap" style="position:relative;">
+      <input
+        id="addClienteSearch"
+        type="text"
+        placeholder="Buscar cliente..."
+        autocomplete="off"
+      />
+      <div id="addClienteDropdown" class="cliente-dropdown"></div>
+    </div>
+    <!-- Campo oculto con el id real seleccionado -->
+    <input id="addCliente" type="hidden" required />
 
     <label for="addPerfil">Perfil</label>
     <input
