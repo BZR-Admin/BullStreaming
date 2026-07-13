@@ -23,22 +23,104 @@ window.onload = async () => {
 };
 
 /* =========================
-   CLIENTES (orden alfabético)
+   CLIENTES — buscador con dropdown
 ========================= */
+let todosLosClientes = [];
+
 async function loadClientes() {
   const data = await safeQuery(supabase.from("clientes").select("*"));
 
-  const sorted = data.sort((a, b) =>
+  todosLosClientes = data.sort((a, b) =>
     a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
   );
 
-  const sel = document.getElementById("cliente");
-  sel.innerHTML = `<option value="">— Selecciona cliente —</option>`;
+  setupClienteSearch();
+}
 
-  sorted.forEach(c => {
-    sel.innerHTML += `<option value="${c.id_cliente}">${c.nombre}</option>`;
+function setupClienteSearch() {
+  const input    = document.getElementById("clienteSearch");
+  const dropdown = document.getElementById("clienteDropdown");
+  const hidden   = document.getElementById("cliente");
+
+  // Muestra opciones filtradas
+  function renderOpciones(lista, query) {
+    if (!lista.length) {
+      dropdown.innerHTML = `<div class="cliente-empty">Sin resultados</div>`;
+    } else {
+      dropdown.innerHTML = lista.map(c => {
+        // Resalta la coincidencia en el nombre
+        const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+        const nombre = query
+          ? c.nombre.replace(re, "<mark>$1</mark>")
+          : c.nombre;
+        return `<div class="cliente-option" data-id="${c.id_cliente}" data-nombre="${c.nombre}">${nombre}</div>`;
+      }).join("");
+
+      // Click en opción
+      dropdown.querySelectorAll(".cliente-option").forEach(el => {
+        el.addEventListener("mousedown", (e) => {
+          e.preventDefault(); // evita que el input pierda foco antes del click
+          seleccionarCliente(el.dataset.id, el.dataset.nombre);
+        });
+      });
+    }
+    dropdown.classList.add("open");
+  }
+
+  function seleccionarCliente(id, nombre) {
+    hidden.value = id;
+    input.value  = nombre;
+    input.classList.add("selected");
+    dropdown.classList.remove("open");
+  }
+
+  // Abre con todos los clientes al hacer foco
+  input.addEventListener("focus", () => {
+    const q = input.value.trim();
+    const lista = q
+      ? todosLosClientes.filter(c => c.nombre.toLowerCase().includes(q.toLowerCase()))
+      : todosLosClientes;
+    renderOpciones(lista, q);
+  });
+
+  // Filtra mientras escribe
+  input.addEventListener("input", () => {
+    hidden.value = "";                      // deselecciona si edita
+    input.classList.remove("selected");
+    const q = input.value.trim();
+    const lista = q
+      ? todosLosClientes.filter(c => c.nombre.toLowerCase().includes(q.toLowerCase()))
+      : todosLosClientes;
+    renderOpciones(lista, q);
+  });
+
+  // Cierra al perder foco (con pequeño delay para que el mousedown del item se ejecute primero)
+  input.addEventListener("blur", () => {
+    setTimeout(() => {
+      dropdown.classList.remove("open");
+      // Si no hay id seleccionado, limpia el texto para no dejar un nombre suelto
+      if (!hidden.value) input.value = "";
+    }, 150);
+  });
+
+  // Cierra si se hace click fuera
+  document.addEventListener("click", (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.remove("open");
+    }
   });
 }
+
+// Expuesto para que ventas.js pueda preseleccionar un cliente por id (ej: desde el parser)
+window.setClienteById = (id) => {
+  const c = todosLosClientes.find(x => x.id_cliente === id);
+  if (c) {
+    document.getElementById("cliente").value = id;
+    const input = document.getElementById("clienteSearch");
+    input.value = c.nombre;
+    input.classList.add("selected");
+  }
+};
 
 /* =========================
    PLATAFORMAS
@@ -304,12 +386,7 @@ window.saveVenta = async () => {
     fecha_vencimiento: document.getElementById("vencimiento").value,
     ganancia:         Number(document.getElementById("ganancia").value || 0),
     estado:           "Activa",
-    fecha_registro:   (() => {
-      const now = new Date();
-      const pad = n => String(n).padStart(2, "0");
-      return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T` +
-             `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-    })()
+    fecha_registro:   new Date().toISOString()
   };
 
   if (!venta.plataforma || !venta.id_servicio || !venta.usuario_correo || !venta.fecha_vencimiento) {
@@ -331,11 +408,14 @@ window.saveVenta = async () => {
    LIMPIAR FORM
 ========================= */
 function limpiar() {
-  document.getElementById("correo").value     = "";
-  document.getElementById("perfil").value     = "";
-  document.getElementById("ganancia").value   = "";
-  document.getElementById("vencimiento").value = "";
-  document.getElementById("plataforma").value = "";
+  const input = document.getElementById("clienteSearch");
+  if (input) { input.value = ""; input.classList.remove("selected"); }
+  document.getElementById("cliente").value      = "";
+  document.getElementById("correo").value       = "";
+  document.getElementById("perfil").value       = "";
+  document.getElementById("ganancia").value     = "";
+  document.getElementById("vencimiento").value  = "";
+  document.getElementById("plataforma").value   = "";
   document.getElementById("servicio").innerHTML =
     `<option value="">— Selecciona servicio —</option>`;
 }
