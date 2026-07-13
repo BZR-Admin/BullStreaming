@@ -249,20 +249,83 @@ function setupToggle() {
 window.abrirModal = (idCuenta) => {
   document.getElementById("addCuentaId").value = idCuenta;
 
-  // Clientes ordenados alfabéticamente
-  const clientesOrdenados = [...clientes].sort((a, b) =>
+  // Resetear buscador al abrir
+  const searchInput = document.getElementById("addClienteSearch");
+  const hiddenInput = document.getElementById("addCliente");
+  if (searchInput) {
+    searchInput.value = "";
+    searchInput.classList.remove("selected");
+  }
+  if (hiddenInput) hiddenInput.value = "";
+
+  document.getElementById("modalAgregarCliente").showModal();
+
+  // Focus al buscador con pequeño delay para que el modal termine de abrir
+  setTimeout(() => searchInput?.focus(), 80);
+};
+
+/* =========================
+   BUSCADOR DE CLIENTE EN MODAL
+========================= */
+function setupClienteSearchModal() {
+  const input    = document.getElementById("addClienteSearch");
+  const dropdown = document.getElementById("addClienteDropdown");
+  const hidden   = document.getElementById("addCliente");
+  if (!input) return;
+
+  const clientesOrdenados = () => [...clientes].sort((a, b) =>
     a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
   );
 
-  const select = document.getElementById("addCliente");
-  select.innerHTML =
-    `<option value="">Selecciona un cliente</option>` +
-    clientesOrdenados.map(c =>
-      `<option value="${c.id_cliente}">${c.nombre}</option>`
-    ).join("");
+  function renderOpciones(lista, query) {
+    if (!lista.length) {
+      dropdown.innerHTML = `<div class="cliente-empty">Sin resultados</div>`;
+    } else {
+      const re = query
+        ? new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi")
+        : null;
+      dropdown.innerHTML = lista.map(c => {
+        const nombre = re ? c.nombre.replace(re, "<mark>$1</mark>") : c.nombre;
+        return `<div class="cliente-option" data-id="${c.id_cliente}" data-nombre="${c.nombre}">${nombre}</div>`;
+      }).join("");
+      dropdown.querySelectorAll(".cliente-option").forEach(el => {
+        el.addEventListener("mousedown", e => {
+          e.preventDefault();
+          hidden.value = el.dataset.id;
+          input.value  = el.dataset.nombre;
+          input.classList.add("selected");
+          dropdown.classList.remove("open");
+        });
+      });
+    }
+    dropdown.classList.add("open");
+  }
 
-  document.getElementById("modalAgregarCliente").showModal();
-};
+  input.addEventListener("focus", () => {
+    const q = input.value.trim();
+    const lista = q
+      ? clientesOrdenados().filter(c => c.nombre.toLowerCase().includes(q.toLowerCase()))
+      : clientesOrdenados();
+    renderOpciones(lista, q);
+  });
+
+  input.addEventListener("input", () => {
+    hidden.value = "";
+    input.classList.remove("selected");
+    const q = input.value.trim();
+    const lista = q
+      ? clientesOrdenados().filter(c => c.nombre.toLowerCase().includes(q.toLowerCase()))
+      : clientesOrdenados();
+    renderOpciones(lista, q);
+  });
+
+  input.addEventListener("blur", () => {
+    setTimeout(() => {
+      dropdown.classList.remove("open");
+      if (!hidden.value) input.value = "";
+    }, 150);
+  });
+}
 
 /* =========================
    MODAL CLOSE
@@ -271,7 +334,6 @@ function setupModalClose() {
   document.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-modal-close]");
     if (!btn) return;
-
     const modal = document.getElementById(btn.dataset.modalClose);
     if (modal) modal.close();
   });
@@ -281,16 +343,21 @@ function setupModalClose() {
    AGREGAR CLIENTE
 ========================= */
 function setupAgregarCliente() {
+  // Inicializar el buscador del modal
+  setupClienteSearchModal();
+
   const form = document.getElementById("formAgregarCliente");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const idCuenta = document.getElementById("addCuentaId").value;
+    const idCuenta  = document.getElementById("addCuentaId").value;
     const idCliente = document.getElementById("addCliente").value;
-    const perfil = document.getElementById("addPerfil").value;
-    const fecha = document.getElementById("addFechaVencimiento").value;
-    const ganancia = document.getElementById("addGanancia").value;
+    const perfil    = document.getElementById("addPerfil").value;
+    const fecha     = document.getElementById("addFechaVencimiento").value;
+    const ganancia  = document.getElementById("addGanancia").value;
+
+    if (!idCliente) return alert("Seleccioná un cliente de la lista.");
 
     const cuenta = cuentas.find(c => c.id_cuenta === idCuenta);
     if (!cuenta) return;
