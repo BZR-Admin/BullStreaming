@@ -303,7 +303,7 @@ function setupAgregarCliente() {
       id_servicio: cuenta.id_servicio,
       usuario_correo: cuenta.correo_cuenta,
       perfil,
-      fecha_registro: new Date().toISOString(),
+      fecha_registro: (() => { const n = new Date(); const p = x => String(x).padStart(2,'0'); return `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}T${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`; })(),
       fecha_vencimiento: fecha,
       ganancia: parseFloat(ganancia || 0),
       estado: "activa"
