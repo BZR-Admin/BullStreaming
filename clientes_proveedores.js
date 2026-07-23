@@ -2,12 +2,14 @@ import { supabase } from "./supabase.js";
 
 let mode = "clientes";       // "clientes" | "proveedores"
 let editingId = null;        // id del registro que se está editando, si hay alguno
-let currentData = [];        // último listado cargado, para poder buscar por id sin refetch
+let currentData = [];        // último listado cargado desde Supabase (SIN filtrar), para poder buscar por id sin refetch
 
 const container = document.getElementById("container");
 const modal = document.getElementById("modalAgregarCliente");
 const btnClientes = document.getElementById("btnClientes");
 const btnProveedores = document.getElementById("btnProveedores");
+const buscador = document.getElementById("buscador");
+const btnLimpiarBusqueda = document.getElementById("btnLimpiarBusqueda");
 
 // =====================
 // HELPERS DE TABLA
@@ -34,6 +36,15 @@ function escapeHtml(str) {
   }[c]));
 }
 
+// Normaliza texto para comparar sin distinguir mayúsculas/acentos
+// (así "jose" encuentra "José" y "Perez" encuentra "Pérez")
+function normalizar(str) {
+  return String(str ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 // =====================
 // CAMBIAR MODO
 // =====================
@@ -45,6 +56,9 @@ window.setMode = (m) => {
 
   document.getElementById("nombre").value = "";
   document.getElementById("whatsapp").value = "";
+
+  buscador.value = "";
+  btnLimpiarBusqueda.classList.remove("visible");
 
   load();
 };
@@ -91,15 +105,54 @@ async function load() {
 
   currentData = data || [];
 
-  if (currentData.length === 0) {
+  renderList(currentData);
+}
+
+// =====================
+// FILTRAR (buscador)
+// =====================
+window.filtrar = () => {
+  const query = normalizar(buscador.value.trim());
+
+  btnLimpiarBusqueda.classList.toggle("visible", query.length > 0);
+
+  if (!query) {
+    renderList(currentData);
+    return;
+  }
+
+  const filtrados = currentData.filter((item) => {
+    const nombre = normalizar(item[nameField()]);
+    const whatsapp = normalizar(item.whatsapp);
+    return nombre.includes(query) || whatsapp.includes(query);
+  });
+
+  renderList(filtrados, query);
+};
+
+window.limpiarBusqueda = () => {
+  buscador.value = "";
+  btnLimpiarBusqueda.classList.remove("visible");
+  renderList(currentData);
+  buscador.focus();
+};
+
+// =====================
+// RENDER DE LA LISTA
+// =====================
+function renderList(data, query) {
+  if (!data || data.length === 0) {
     const label = mode === "clientes" ? "clientes" : "proveedores";
-    container.innerHTML = `<p class="empty-state">No hay ${label} registrados todavía.</p>`;
+    const msg = query
+      ? `No se encontraron ${label} que coincidan con "${escapeHtml(buscador.value.trim())}".`
+      : `No hay ${label} registrados todavía.`;
+    container.innerHTML = `<p class="empty-state">${msg}</p>`;
     return;
   }
 
   container.innerHTML = "";
 
-  currentData.forEach((item) => {
+  data.forEach((item) => {
     const id = item[idField()];
     const nombre = item[nameField()] || "";
     const whatsapp = item.whatsapp || "";
