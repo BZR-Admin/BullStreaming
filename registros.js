@@ -3,6 +3,7 @@ import { supabase } from "./supabase.js";
 let ventas = [];
 let clientesMap = {};
 let serviciosMap = {};
+let cuentasPropiasSet = new Set(); // 👈 NUEVO: correos que tienen cuenta propia
 
 // Si en Supabase tu segunda tabla tiene otro nombre exacto,
 // cambia aquí el nombre, no en todo el código.
@@ -17,6 +18,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   await loadClientes();
   await loadServicios();
+  await loadCuentasPropias(); // 👈 NUEVO
   await loadVentas();
 });
 
@@ -94,6 +96,31 @@ async function loadServicios() {
       };
     });
   }
+}
+
+// ===================== CUENTAS PROPIAS (para el enlace) =====================
+async function loadCuentasPropias() {
+  cuentasPropiasSet = new Set();
+
+  const { data, error } = await supabase
+    .from("cuentas_propias")
+    .select("correo_cuenta");
+
+  if (error) {
+    console.warn("No se pudo cargar cuentas_propias:", error.message);
+    return;
+  }
+
+  if (!Array.isArray(data)) return;
+
+  data.forEach(c => {
+    const correo = normalizeId(c.correo_cuenta).toLowerCase();
+    if (correo) cuentasPropiasSet.add(correo);
+  });
+}
+
+function esCuentaPropia(correo) {
+  return cuentasPropiasSet.has(normalizeId(correo).toLowerCase());
 }
 
 // ===================== VENTAS =====================
@@ -259,6 +286,13 @@ function render(data) {
 
     const fechaVencimiento = formatDate(v.fecha_vencimiento);
 
+    // 👇 NUEVO: si el correo tiene cuenta propia, lo mostramos como enlace
+    const correoHtml = esCuentaPropia(v.usuario_correo)
+      ? `<a href="cuentas.html?correo=${encodeURIComponent(normalizeId(v.usuario_correo))}"
+           onclick="event.stopPropagation()"
+           style="color:#00c6ff; text-decoration:none; font-weight:600;">${escapeHtml(v.usuario_correo)}</a>`
+      : escapeHtml(v.usuario_correo || "");
+
     const card = document.createElement("div");
     card.className = `card ${color}`;
     card.dataset.idVenta = safe(v.id_venta);
@@ -275,7 +309,7 @@ function render(data) {
             ${escapeHtml(servicioNombre)}
           </p>
 
-          <p>${escapeHtml(v.usuario_correo || "")}</p>
+          <p>${correoHtml}</p>
 
           <p>
             <b>Vence:</b>
@@ -296,7 +330,7 @@ function render(data) {
           <p><b>WhatsApp:</b> ${escapeHtml(cliente.whatsapp || "-")}</p>
           <p><b>Plataforma:</b> ${escapeHtml(v.plataforma)}</p>
           <p><b>Servicio:</b> ${escapeHtml(servicioNombre)}</p>
-          <p><b>Usuario:</b> ${escapeHtml(v.usuario_correo)}</p>
+          <p><b>Usuario:</b> ${correoHtml}</p>
           <p><b>Perfil:</b> ${escapeHtml(v.perfil)}</p>
           <p><b>Vencimiento:</b> ${escapeHtml(fechaVencimiento)}</p>
         </div>
