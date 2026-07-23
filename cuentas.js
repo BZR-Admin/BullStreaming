@@ -31,6 +31,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   await loadVentas();
   await loadCuentas();
+
+  handleDeepLink(); // 👈 NUEVO: si viene ?correo=... en la URL, abre y resalta esa cuenta
 });
 
 /* =========================
@@ -170,6 +172,7 @@ function render(data) {
 
     const card = document.createElement("div");
     card.className = `card ${color}`;
+    card.dataset.correo = correo.toLowerCase(); // 👈 NUEVO: para poder ubicarla desde registros.js
 
     card.innerHTML = `
       <div class="card-header">
@@ -230,6 +233,28 @@ function render(data) {
   });
 
   setupToggle();
+}
+
+/* =========================
+   DEEP LINK (viene desde registros.js) — NUEVO
+========================= */
+function handleDeepLink() {
+  const params = new URLSearchParams(location.search);
+  const correoParam = params.get("correo");
+  if (!correoParam) return;
+
+  const target = correoParam.trim().toLowerCase();
+
+  const card = [...document.querySelectorAll(".card")]
+    .find(el => el.dataset.correo === target);
+
+  if (!card) return;
+
+  card.querySelector(".card-body")?.classList.remove("hidden");
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.add("highlight");
+
+  setTimeout(() => card.classList.remove("highlight"), 2500);
 }
 
 /* =========================
