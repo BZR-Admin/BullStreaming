@@ -83,6 +83,46 @@
       box-shadow: 0 0 16px rgba(168,85,247,0.3);
     }
 
+    /* Barra de búsqueda */
+    .search-bar {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .search-bar input {
+      width: 100%;
+      padding-left: 40px;
+      margin: 0;
+    }
+    .search-bar .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 15px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .search-bar .clear-search {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      min-width: 0;
+      min-height: 28px;
+      height: 28px;
+      width: 28px;
+      padding: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: none;
+      box-shadow: none;
+      font-size: 13px;
+      display: none;
+    }
+    .search-bar .clear-search.visible {
+      display: inline-flex;
+    }
+
     /* Tarjeta de formulario (alta de registros) */
     .form-card {
       background: var(--bg-card);
@@ -227,6 +267,13 @@
 <div class="mode-switch">
   <button id="btnClientes" class="active-clientes" onclick="setMode('clientes')">👤 Clientes</button>
   <button id="btnProveedores" onclick="setMode('proveedores')">🏷️ Proveedores</button>
+</div>
+
+<!-- BUSCADOR -->
+<div class="search-bar">
+  <span class="search-icon">🔎</span>
+  <input id="buscador" type="text" placeholder="Buscar por nombre o WhatsApp..." autocomplete="off" oninput="filtrar()" />
+  <button type="button" id="btnLimpiarBusqueda" class="clear-search" onclick="limpiarBusqueda()">✕</button>
 </div>
 
 <!-- FORM: ALTA -->
