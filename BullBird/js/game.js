@@ -1,32 +1,31 @@
-// ===============================
+// =====================================
 // BULL BIRDS
-// Version 0.1.0
-// ===============================
+// Version 0.1.1
+// =====================================
 
 
-// Canvas
+// CANVAS
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 
-// Menu
+// MENU
 
 const menu = document.getElementById("menu");
 const startButton = document.getElementById("startButton");
 
 
-// Variables del juego
+// VARIABLES
 
 let gameRunning = false;
-
 let score = 0;
 
 
 
-// ===============================
-// BULL BIRD
-// ===============================
+// =====================================
+// BULL BIRD TEMPORAL
+// =====================================
 
 
 let bird = {
@@ -39,28 +38,29 @@ let bird = {
 
     height:35,
 
-    gravity:0.5,
+    gravity:0.45,
 
     velocity:0,
 
-    jump:-8
+    jump:-7.5
 
 };
 
 
 
 
-// ===============================
+// =====================================
 // OBSTACULOS
-// ===============================
+// =====================================
 
 
 let pipes=[];
 
 
+
 function createPipe(){
 
-    let gap=170;
+    let gap = 170;
 
 
     let topHeight =
@@ -75,7 +75,9 @@ function createPipe(){
 
         top:topHeight,
 
-        bottom:720-topHeight-gap
+        bottom:720-topHeight-gap,
+
+        counted:false
 
     });
 
@@ -84,9 +86,9 @@ function createPipe(){
 
 
 
-// ===============================
-// INICIAR
-// ===============================
+// =====================================
+// INICIAR JUEGO
+// =====================================
 
 
 startButton.onclick=function(){
@@ -111,9 +113,9 @@ startButton.onclick=function(){
 
 
 
-// ===============================
-// RESET
-// ===============================
+// =====================================
+// REINICIAR
+// =====================================
 
 
 function resetGame(){
@@ -135,9 +137,10 @@ function resetGame(){
 
 
 
-// ===============================
-// CONTROL
-// ===============================
+
+// =====================================
+// CONTROLES
+// =====================================
 
 
 document.addEventListener(
@@ -145,7 +148,7 @@ document.addEventListener(
 function(e){
 
 
-    if(e.code==="Space"){
+    if(e.code==="Space" && gameRunning){
 
         bird.velocity=bird.jump;
 
@@ -160,24 +163,30 @@ canvas.addEventListener(
 "click",
 function(){
 
-    bird.velocity=bird.jump;
+
+    if(gameRunning){
+
+        bird.velocity=bird.jump;
+
+    }
+
 
 });
 
 
 
 
-
-
-// ===============================
-// DIBUJAR
-// ===============================
+// =====================================
+// DIBUJAR BIRD
+// =====================================
 
 
 function drawBird(){
 
 
-    ctx.fillStyle="#ff0000";
+    // cuerpo temporal
+
+    ctx.fillStyle="#e50914";
 
 
     ctx.fillRect(
@@ -193,19 +202,47 @@ function drawBird(){
     );
 
 
+    // ojo
+
+    ctx.fillStyle="white";
+
+    ctx.fillRect(
+
+        bird.x+22,
+
+        bird.y+8,
+
+        7,
+
+        7
+
+    );
+
+
 }
 
 
 
 
+
+// =====================================
+// DIBUJAR OBSTACULOS
+// =====================================
+
+
 function drawPipes(){
 
-
-    ctx.fillStyle="#111";
 
 
     pipes.forEach(pipe=>{
 
+
+        // cuerpo negro
+
+        ctx.fillStyle="#141414";
+
+
+        // superior
 
         ctx.fillRect(
 
@@ -218,6 +255,29 @@ function drawPipes(){
             pipe.top
 
         );
+
+
+        // detalle rojo superior
+
+        ctx.fillStyle="#e50914";
+
+        ctx.fillRect(
+
+            pipe.x,
+
+            0,
+
+            pipe.width,
+
+            10
+
+        );
+
+
+
+        // inferior
+
+        ctx.fillStyle="#141414";
 
 
         ctx.fillRect(
@@ -233,13 +293,38 @@ function drawPipes(){
         );
 
 
-    });
+        // detalle rojo inferior
 
+        ctx.fillStyle="#e50914";
+
+
+        ctx.fillRect(
+
+            pipe.x,
+
+            710-pipe.bottom,
+
+            pipe.width,
+
+            10
+
+        );
+
+
+
+    });
 
 
 }
 
 
+
+
+
+
+// =====================================
+// SCORE
+// =====================================
 
 
 function drawScore(){
@@ -267,13 +352,16 @@ function drawScore(){
 
 
 
-// ===============================
-// UPDATE
-// ===============================
+// =====================================
+// ACTUALIZAR JUEGO
+// =====================================
 
 
 function update(){
 
+
+
+    // gravedad
 
     bird.velocity += bird.gravity;
 
@@ -282,28 +370,49 @@ function update(){
 
 
 
+
+    // mover obstáculos
+
     pipes.forEach(pipe=>{
 
 
-        pipe.x-=3;
+        pipe.x -= 3;
 
 
 
-        if(pipe.x===100){
+        // sumar punto
+
+        if(
+
+            pipe.x + pipe.width < bird.x &&
+
+            pipe.counted === false
+
+        ){
+
 
             score++;
 
-        }
+            pipe.counted=true;
 
+
+        }
 
 
     });
 
 
 
+
+
+    // crear obstáculos
+
     if(
+
         pipes.length===0 ||
-        pipes[pipes.length-1].x<250
+
+        pipes[pipes.length-1].x < 250
+
     ){
 
         createPipe();
@@ -312,8 +421,8 @@ function update(){
 
 
 
-    collision();
 
+    collision();
 
 
 }
@@ -322,18 +431,25 @@ function update(){
 
 
 
-// ===============================
+
+// =====================================
 // COLISIONES
-// ===============================
+// =====================================
 
 
 function collision(){
 
 
 
+    // suelo y techo
+
+
     if(
-        bird.y<0 ||
-        bird.y+bird.height>720
+
+        bird.y < 0 ||
+
+        bird.y + bird.height > canvas.height
+
     ){
 
         gameOver();
@@ -342,29 +458,41 @@ function collision(){
 
 
 
+
+
+
+    // obstáculos
+
+
     pipes.forEach(pipe=>{
+
 
 
         if(
 
-            bird.x < pipe.x+pipe.width &&
 
-            bird.x+bird.width > pipe.x &&
+            bird.x < pipe.x + pipe.width &&
+
+
+            bird.x + bird.width > pipe.x &&
+
 
             (
 
                 bird.y < pipe.top ||
 
-                bird.y+bird.height > 720-pipe.bottom
+                bird.y + bird.height >
+
+                canvas.height - pipe.bottom
 
             )
+
 
         ){
 
             gameOver();
 
         }
-
 
 
     });
@@ -376,9 +504,11 @@ function collision(){
 
 
 
-// ===============================
+
+
+// =====================================
 // GAME OVER
-// ===============================
+// =====================================
 
 
 function gameOver(){
@@ -387,16 +517,22 @@ function gameOver(){
     gameRunning=false;
 
 
-    alert(
-
-        "GAME OVER\nPuntaje: "+score
-
-    );
+    setTimeout(()=>{
 
 
-    canvas.style.display="none";
+        alert(
 
-    menu.style.display="block";
+            "GAME OVER\nPuntaje: "+score
+
+        );
+
+
+        canvas.style.display="none";
+
+        menu.style.display="block";
+
+
+    },100);
 
 
 }
@@ -404,9 +540,11 @@ function gameOver(){
 
 
 
-// ===============================
-// LOOP
-// ===============================
+
+
+// =====================================
+// LOOP PRINCIPAL
+// =====================================
 
 
 function loop(){
@@ -415,7 +553,13 @@ function loop(){
     if(!gameRunning)return;
 
 
-    ctx.clearRect(
+
+    // fondo
+
+    ctx.fillStyle="#70c5ce";
+
+
+    ctx.fillRect(
 
         0,
 
@@ -429,18 +573,24 @@ function loop(){
 
 
 
+
     update();
+
 
 
     drawBird();
 
+
     drawPipes();
+
 
     drawScore();
 
 
 
+
     requestAnimationFrame(loop);
+
 
 
 }
