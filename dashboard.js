@@ -1,3 +1,8 @@
+// En cuentas.js, ventas.js, compras.js, registros.js — al inicio
+import { requireAuth } from "./auth.js";
+await requireAuth(); // si no hay sesión, redirige al login automáticamente
+
+// ... resto de tu código igual
 import { supabase } from "./supabase.js";
 
 /* ─────────────────────────────────────────
