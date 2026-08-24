@@ -1,34 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
- <!-- 1. Manifest -->
-<link rel="manifest" href="./manifest.json" />
-
-<!-- 2. Ícono explícito (soluciona el logo en pantalla de inicio) -->
-<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
-<link rel="apple-touch-icon" href="./icon-192.png" />
-
-<!-- 3. Color de barra del sistema -->
-<meta name="theme-color" content="#00c6ff" />
-
-<!-- 4. Registrar Service Worker -->
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js")
-        .then(() => console.log("SW registrado ✓"))
-        .catch(e => console.warn("SW error:", e));
-    });
-  }
-</script>
-
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <meta name="theme-color" content="#00c6ff" />
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+          .then(() => console.log("SW registrado ✓"))
+          .catch(e => console.warn("SW error:", e));
+      });
+    }
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cuentas propias | Bull Streaming</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* ── Buscador de cliente (mismo estilo que ventas.html) ── */
+    /* ── BUSCADOR DE CLIENTE EN MODAL ── */
     .cliente-dropdown {
       display: none;
       position: absolute;
@@ -70,6 +62,74 @@
       border-color: rgba(0,198,255,0.4) !important;
       color: white;
     }
+
+    /* ── BOOT BLOCK ── */
+    .boot-block {
+      background: rgba(0,198,255,0.05);
+      border: 1px solid rgba(0,198,255,0.15);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .boot-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .boot-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.4);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .boot-value-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+    .boot-value {
+      font-size: 15px;
+      font-weight: 700;
+      font-family: monospace;
+      color: var(--primary);
+      letter-spacing: 0.06em;
+    }
+    .btn-copy {
+      background: rgba(0,198,255,0.1);
+      border: 1px solid rgba(0,198,255,0.2);
+      border-radius: 6px;
+      padding: 4px 9px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--primary);
+      transition: background 0.15s;
+      line-height: 1;
+      min-height: unset;
+      box-shadow: none;
+    }
+    .btn-copy:hover {
+      background: rgba(0,198,255,0.22);
+      transform: none;
+      box-shadow: none;
+    }
+    .boot-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+      margin-left: auto;
+      opacity: 0.75;
+      transition: opacity 0.15s;
+    }
+    .boot-link:hover { opacity: 1; text-decoration: underline; }
   </style>
 </head>
 
@@ -80,77 +140,48 @@
 
 <!-- MENÚ -->
 <nav id="sideMenu" class="side-menu">
-
   <button type="button" onclick="location.href='index.html'">🏠 Inicio</button>
   <button type="button" onclick="location.href='ventas.html'">🛒 Ventas</button>
   <button type="button" onclick="location.href='compras.html'">📦 Compras</button>
   <button type="button" onclick="location.href='cuentas.html'">🎬 Cuentas</button>
   <button type="button" onclick="location.href='registros.html'">📊 Registros</button>
   <button type="button" onclick="location.href='clientes_proveedores.html'">👥 Clientes</button>
+  <button type="button" onclick="location.href='dashboard.html'">📈 Dashboard</button>
 </nav>
 
-<!-- =========================
-     TÍTULO
-========================= -->
 <header style="margin-bottom:15px;">
   <h1>Cuentas propias</h1>
 </header>
 
-<!-- =========================
-     CONTROLES
-========================= -->
+<!-- CONTROLES -->
 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
-
-  <!-- BUSCADOR -->
   <input
     id="search"
     type="text"
-    placeholder="Buscar plataforma, servicio, correo, proveedor..."
+    placeholder="Buscar plataforma, correo, proveedor..."
     style="flex:1; padding:10px; border-radius:10px;"
   />
-
-  <!-- FILTRO PLATAFORMA -->
   <select id="filterPlatform" style="padding:10px; border-radius:10px;">
     <option value="">Todas las plataformas</option>
   </select>
-
-  <!-- ORDEN -->
   <select id="sortBy" style="padding:10px; border-radius:10px;">
     <option value="fecha_vencimiento">Ordenar por vencimiento</option>
     <option value="disponibilidad">Ordenar por disponibilidad</option>
   </select>
-
 </div>
 
-
-<!-- =========================
-     CONTENEDOR DE TARJETAS
-     El JS renderizará aquí las cuentas_propias
-========================= -->
+<!-- CONTENEDOR DE TARJETAS -->
 <div id="container"></div>
 
-<!-- =========================
-     MODAL: EDITAR CLIENTE/VENTA
-     Se usará para editar perfil y fecha de vencimiento
-========================= -->
+<!-- MODAL: EDITAR CLIENTE/VENTA -->
 <dialog id="modalEditarCliente" class="app-modal">
   <form id="formEditarCliente" method="dialog">
     <h2>Editar cliente de la cuenta</h2>
-
     <input id="editVentaId" type="hidden" />
-
     <label for="editPerfil">Nuevo perfil</label>
-    <input
-      id="editPerfil"
-      type="text"
-      placeholder="Ejemplo: Bull A"
-      autocomplete="off"
-      required
-    />
-
+    <input id="editPerfil" type="text" placeholder="Ejemplo: Bull A" autocomplete="off" required />
     <label for="editFechaVencimiento">Nueva fecha de vencimiento</label>
     <input id="editFechaVencimiento" type="date" required />
-
     <div class="btn-grid">
       <button type="submit" value="guardar">Guardar cambios</button>
       <button type="button" data-modal-close="modalEditarCliente">Cancelar</button>
@@ -158,18 +189,13 @@
   </form>
 </dialog>
 
-<!-- =========================
-     MODAL: AGREGAR CLIENTE
-     Se usará para crear una venta VCP usando la cuenta seleccionada
-========================= -->
+<!-- MODAL: AGREGAR CLIENTE -->
 <dialog id="modalAgregarCliente" class="app-modal">
   <form id="formAgregarCliente" method="dialog">
     <h2>Agregar cliente</h2>
-
     <input id="addCuentaId" type="hidden" />
 
     <label for="addClienteSearch">Cliente</label>
-    <!-- Buscador con dropdown -->
     <div class="cliente-search-wrap" style="position:relative;">
       <input
         id="addClienteSearch"
@@ -179,28 +205,16 @@
       />
       <div id="addClienteDropdown" class="cliente-dropdown"></div>
     </div>
-    <!-- Campo oculto con el id real seleccionado -->
     <input id="addCliente" type="hidden" required />
 
     <label for="addPerfil">Perfil</label>
-    <input
-      id="addPerfil"
-      type="text"
-      placeholder="Ejemplo: Bull B"
-      autocomplete="off"
-      required
-    />
+    <input id="addPerfil" type="text" placeholder="Ejemplo: Bull B" autocomplete="off" required />
 
     <label for="addFechaVencimiento">Fecha de vencimiento</label>
     <input id="addFechaVencimiento" type="date" required />
+
     <label for="addGanancia">Ganancia</label>
-<input
-  id="addGanancia"
-  type="number"
-  step="0.01"
-  placeholder="Ej: 5 o 10.50"
-  required
-/>
+    <input id="addGanancia" type="number" step="0.01" placeholder="Ej: 5 o 10.50" required />
 
     <div class="btn-grid">
       <button type="submit" value="guardar">Agregar cliente</button>
@@ -209,18 +223,13 @@
   </form>
 </dialog>
 
-<!-- =========================
-     MODAL: EDITAR VENCIMIENTO DE CUENTA
-========================= -->
+<!-- MODAL: EDITAR VENCIMIENTO DE CUENTA -->
 <dialog id="modalEditarCuentaFecha" class="app-modal">
   <form id="formEditarCuentaFecha" method="dialog">
     <h2>Editar vencimiento de cuenta</h2>
-
     <input id="editCuentaFechaId" type="hidden" />
-
     <label for="editCuentaFechaVencimiento">Nueva fecha de vencimiento</label>
     <input id="editCuentaFechaVencimiento" type="date" required />
-
     <div class="btn-grid">
       <button type="submit" value="guardar">Guardar fecha</button>
       <button type="button" data-modal-close="modalEditarCuentaFecha">Cancelar</button>
@@ -233,12 +242,16 @@
 
 <!-- MENU SCRIPT -->
 <script>
-const fab = document.getElementById("fab");
-const menu = document.getElementById("sideMenu");
-
-fab.onclick = () => {
-  menu.style.display = menu.style.display === "flex" ? "none" : "flex";
-};
+  const fab  = document.getElementById("fab");
+  const menu = document.getElementById("sideMenu");
+  fab.onclick = () => {
+    menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+  };
+  document.addEventListener("click", (e) => {
+    if (!menu.contains(e.target) && !fab.contains(e.target)) {
+      menu.style.display = "none";
+    }
+  });
 </script>
 
 </body>
