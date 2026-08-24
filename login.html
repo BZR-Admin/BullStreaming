@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bull Streaming – Acceso</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div style="max-width:360px; margin:80px auto;">
+    <h2 style="text-align:center; margin-bottom:24px;">🐂 Bull Streaming</h2>
+    <div class="form-card">
+      <label>Correo</label>
+      <input id="email" type="email" placeholder="tu@correo.com"/>
+      <label>Contraseña</label>
+      <input id="password" type="password" placeholder="••••••••"/>
+      <button id="btnLogin" onclick="login()" style="width:100%; margin-top:12px;">
+        Ingresar
+      </button>
+      <p id="error" style="color:red; font-size:13px; text-align:center; margin-top:10px;"></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from "./supabase.js";
+
+    // Si ya tiene sesión activa, saltar el login directo
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) window.location.href = "index.html";
+
+    window.login = async () => {
+      const email    = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const btnLogin = document.getElementById("btnLogin");
+      const error    = document.getElementById("error");
+
+      btnLogin.disabled = true;
+      btnLogin.textContent = "Ingresando...";
+      error.textContent = "";
+
+      const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (err) {
+        error.textContent = "Correo o contraseña incorrectos.";
+        btnLogin.disabled = false;
+        btnLogin.textContent = "Ingresar";
+        return;
+      }
+
+      window.location.href = "index.html";
+    };
+
+    // Login con Enter
+    document.getElementById("password").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") window.login();
+    });
+  </script>
+</body>
+</html>
