@@ -1,8 +1,6 @@
-// En cuentas.js, ventas.js, compras.js, registros.js — al inicio
 import { requireAuth } from "./auth.js";
-await requireAuth(); // si no hay sesión, redirige al login automáticamente
+await requireAuth();
 
-// ... resto de tu código igual
 import { supabase } from "./supabase.js";
 
 /* =========================
@@ -10,12 +8,13 @@ import { supabase } from "./supabase.js";
 ========================= */
 let servicios = [];
 let proveedores = [];
+let boots = [];
 
 /* =========================
    INIT
 ========================= */
 window.addEventListener("DOMContentLoaded", async () => {
-  await Promise.all([loadServicios(), loadProveedores()]);
+  await Promise.all([loadServicios(), loadProveedores(), loadBoots()]);
   setupPlatformas();
   setupEvents();
 });
@@ -24,31 +23,18 @@ window.addEventListener("DOMContentLoaded", async () => {
    LOAD DATA
 ========================= */
 async function loadServicios() {
-  try {
-    const { data, error } = await supabase
-      .from("conf_venta_cuenta_propia")
-      .select("*");
-
-    if (error) throw error;
-    servicios = data || [];
-  } catch (err) {
-    console.error("Error cargando servicios:", err);
-    servicios = [];
-    alert("No se pudieron cargar los servicios. Intenta recargar la página.");
-  }
+  const { data } = await supabase.from("conf_venta_cuenta_propia").select("*");
+  servicios = data || [];
 }
 
 async function loadProveedores() {
-  try {
-    const { data, error } = await supabase.from("proveedores").select("*");
+  const { data } = await supabase.from("proveedores").select("*");
+  proveedores = data || [];
+}
 
-    if (error) throw error;
-    proveedores = data || [];
-  } catch (err) {
-    console.error("Error cargando proveedores:", err);
-    proveedores = [];
-    alert("No se pudieron cargar los proveedores. Intenta recargar la página.");
-  }
+async function loadBoots() {
+  const { data } = await supabase.from("proveedor_boots").select("*");
+  boots = data || [];
 }
 
 /* =========================
@@ -59,7 +45,6 @@ function setupPlatformas() {
   select.innerHTML = `<option value="">Selecciona plataforma</option>`;
 
   const plataformas = [...new Set(servicios.map(s => s.plataforma))].sort();
-
   plataformas.forEach(p => {
     const opt = document.createElement("option");
     opt.value = p;
@@ -67,27 +52,23 @@ function setupPlatformas() {
     select.appendChild(opt);
   });
 
-  // Resetear los siguientes pasos
   resetSelect("servicio", "Selecciona servicio");
   resetSelect("proveedor", "Selecciona proveedor");
 }
 
 /* =========================
-   STEP 2: SERVICIOS (filtrado por plataforma)
+   STEP 2: SERVICIOS
 ========================= */
 function setupServicios(plataforma) {
   const select = document.getElementById("servicio");
   select.innerHTML = `<option value="">Selecciona servicio</option>`;
   select.disabled = !plataforma;
 
-  // Siempre reseteamos proveedor al cambiar/borrar plataforma,
-  // antes de salir, para no dejar el select en un estado inconsistente.
   resetSelect("proveedor", "Selecciona proveedor");
 
   if (!plataforma) return;
 
   const filtrados = servicios.filter(s => s.plataforma === plataforma);
-
   filtrados.forEach(s => {
     const opt = document.createElement("option");
     opt.value = s.id_servicio;
@@ -95,8 +76,6 @@ function setupServicios(plataforma) {
     select.appendChild(opt);
   });
 
-  // Si solo hay un servicio, seleccionarlo automáticamente
-  // y disparar el flujo de proveedores como si el usuario lo hubiera elegido.
   if (filtrados.length === 1) {
     select.value = filtrados[0].id_servicio;
     setupProveedores();
@@ -117,7 +96,7 @@ function setupProveedores() {
 
   ordenados.forEach(p => {
     const opt = document.createElement("option");
-    opt.value = p.proveedor; // guardamos el nombre, igual que en cuentas_propias
+    opt.value = p.proveedor;
     opt.textContent = p.proveedor;
     opt.dataset.whatsapp = p.whatsapp || "";
     select.appendChild(opt);
@@ -125,16 +104,32 @@ function setupProveedores() {
 }
 
 /* =========================
-   HELPER
+   STEP 4: BOOTS (independiente, siempre visible)
+========================= */
+function setupBoots() {
+  const select = document.getElementById("boot");
+  select.innerHTML = `<option value="">Selecciona boot (opcional)</option>`;
+
+  const ordenados = [...boots].sort((a, b) =>
+    a.proveedor_boot.localeCompare(b.proveedor_boot, "es", { sensitivity: "base" })
+  );
+
+  ordenados.forEach(b => {
+    const opt = document.createElement("option");
+    opt.value = b.proveedor_boot;
+    opt.textContent = b.proveedor_boot;
+    opt.dataset.link = b.link_boot || "";
+    select.appendChild(opt);
+  });
+}
+
+/* =========================
+   HELPER RESET
 ========================= */
 function resetSelect(id, placeholder) {
   const select = document.getElementById(id);
   select.innerHTML = `<option value="">${placeholder}</option>`;
   select.disabled = true;
-}
-
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 /* =========================
@@ -146,62 +141,74 @@ function setupEvents() {
   });
 
   document.getElementById("servicio").addEventListener("change", (e) => {
-    if (e.target.value) {
-      setupProveedores();
-    } else {
-      resetSelect("proveedor", "Selecciona proveedor");
-    }
+    if (e.target.value) setupProveedores();
+    else resetSelect("proveedor", "Selecciona proveedor");
   });
+
+  // Al elegir boot, mostrar el link automáticamente
+  document.getElementById("boot").addEventListener("change", (e) => {
+    const sel = e.target;
+    const link = sel.selectedOptions[0]?.dataset.link || "";
+    document.getElementById("linkBoot").value = link;
+  });
+
+  // Inicializar boots (no dependen de nada más)
+  setupBoots();
 }
 
 /* =========================
    GUARDAR COMPRA
 ========================= */
 window.saveCompra = async () => {
-  const id_servicio = document.getElementById("servicio").value;
-  const proveedorSelect = document.getElementById("proveedor");
-  const proveedor = proveedorSelect.value;
-  const whatsapp = proveedorSelect.selectedOptions[0]?.dataset.whatsapp || "";
-  const correo = document.getElementById("correo").value.trim();
-  const vencimiento = document.getElementById("vencimiento").value;
+  const id_servicio    = document.getElementById("servicio").value;
+  const proveedorSel   = document.getElementById("proveedor");
+  const proveedor      = proveedorSel.value;
+  const whatsapp       = proveedorSel.selectedOptions[0]?.dataset.whatsapp || "";
+  const correo         = document.getElementById("correo").value.trim();
+  const vencimiento    = document.getElementById("vencimiento").value;
+  const proveedor_boot = document.getElementById("boot").value;
+  const link_boot      = document.getElementById("linkBoot").value.trim();
+  const id_boot        = document.getElementById("idBoot").value.trim();
 
   if (!id_servicio || !proveedor || !correo || !vencimiento) {
-    return alert("Por favor completa todos los campos.");
-  }
-
-  if (!isValidEmail(correo)) {
-    return alert("Por favor ingresa un correo válido.");
+    return alert("Por favor completa los campos obligatorios.");
   }
 
   const compra = {
-    id_cuenta: crypto.randomUUID(),
+    id_cuenta:       crypto.randomUUID(),
     id_servicio,
     proveedor,
     whatsapp,
-    correo_cuenta: correo,
-    fecha_compra: new Date().toISOString().split("T")[0],
+    correo_cuenta:   correo,
+    fecha_compra:    new Date().toISOString().split("T")[0],
     fecha_vencimiento: vencimiento,
-    estado: "Activa"
+    estado:          "Activa",
+    // Boot (opcionales)
+    proveedor_boot:  proveedor_boot || null,
+    link_boot:       link_boot      || null,
+    id_boot:         id_boot        || null,
   };
 
-  try {
-    const { error } = await supabase.from("cuentas_propias").insert([compra]);
-    if (error) throw error;
+  const { error } = await supabase.from("cuentas_propias").insert([compra]);
 
-    alert("¡Compra registrada correctamente!");
-    limpiar();
-  } catch (err) {
-    console.error("Error al guardar la compra:", err);
-    alert("Error al guardar la compra. Intenta de nuevo.");
+  if (error) {
+    console.error(error);
+    return alert("Error al guardar la compra.");
   }
+
+  alert("¡Compra registrada correctamente!");
+  limpiar();
 };
 
 /* =========================
    LIMPIAR
 ========================= */
 function limpiar() {
-  document.getElementById("plataforma").value = "";
+  document.getElementById("plataforma").value  = "";
   setupServicios("");
-  document.getElementById("correo").value = "";
+  document.getElementById("correo").value      = "";
   document.getElementById("vencimiento").value = "";
+  document.getElementById("boot").value        = "";
+  document.getElementById("linkBoot").value    = "";
+  document.getElementById("idBoot").value      = "";
 }
