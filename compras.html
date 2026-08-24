@@ -1,34 +1,79 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <!-- 1. Manifest -->
-<link rel="manifest" href="./manifest.json" />
-
-<!-- 2. Ícono explícito (soluciona el logo en pantalla de inicio) -->
-<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
-<link rel="apple-touch-icon" href="./icon-192.png" />
-
-<!-- 3. Color de barra del sistema -->
-<meta name="theme-color" content="#00c6ff" />
-
-<!-- 4. Registrar Service Worker -->
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js")
-        .then(() => console.log("SW registrado ✓"))
-        .catch(e => console.warn("SW error:", e));
-    });
-  }
-</script>
-
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <meta name="theme-color" content="#00c6ff" />
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+          .then(() => console.log("SW registrado ✓"))
+          .catch(e => console.warn("SW error:", e));
+      });
+    }
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nueva Compra | Bull Streaming</title>
   <link rel="stylesheet" href="style.css" />
-</head>
+  <style>
+    /* Separador de sección */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0 14px;
+    }
+    .section-divider span {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.35);
+      white-space: nowrap;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+    }
 
+    /* Campo de link — más pequeño y readonly */
+    #linkBoot {
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      background: rgba(255,255,255,0.03);
+      border-color: rgba(255,255,255,0.08);
+      cursor: default;
+    }
+    #linkBoot:focus {
+      border-color: rgba(255,255,255,0.15);
+      box-shadow: none;
+    }
+
+    /* Badge "opcional" */
+    .label-optional {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .label-optional::after {
+      content: 'opcional';
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      padding: 1px 6px;
+    }
+  </style>
+</head>
 <body>
 
 <!-- BOTÓN MENÚ -->
@@ -36,13 +81,13 @@
 
 <!-- MENÚ -->
 <nav id="sideMenu" class="side-menu">
- <button type="button" onclick="location.href='index.html'">🏠 Inicio</button>
+  <button type="button" onclick="location.href='index.html'">🏠 Inicio</button>
   <button type="button" onclick="location.href='ventas.html'">🛒 Ventas</button>
   <button type="button" onclick="location.href='compras.html'">📦 Compras</button>
   <button type="button" onclick="location.href='cuentas.html'">🎬 Cuentas</button>
   <button type="button" onclick="location.href='registros.html'">📊 Registros</button>
-  <button type="button" onclick="location.href='clientes_proveedores.html'">👥 Clientes</button
-  <button onclick="location.href='dashboard.html'">📈 Dashboard</button>                                                                                     
+  <button type="button" onclick="location.href='clientes_proveedores.html'">👥 Clientes</button>
+  <button type="button" onclick="location.href='dashboard.html'">📈 Dashboard</button>
 </nav>
 
 <header style="margin-bottom:15px;">
@@ -51,45 +96,55 @@
 
 <div class="form">
 
-  <!-- STEP 1: Plataforma -->
+  <!-- ── CUENTA ── -->
+  <div class="section-divider"><span>Cuenta</span></div>
+
   <label for="plataforma">Plataforma</label>
   <select id="plataforma">
     <option value="">Selecciona plataforma</option>
   </select>
 
-  <!-- STEP 2: Servicio (se habilita al elegir plataforma) -->
   <label for="servicio">Servicio</label>
   <select id="servicio" disabled>
     <option value="">Selecciona servicio</option>
   </select>
 
-  <!-- STEP 3: Proveedor (se habilita al elegir servicio) -->
   <label for="proveedor">Proveedor</label>
   <select id="proveedor" disabled>
     <option value="">Selecciona proveedor</option>
   </select>
 
-  <!-- STEP 4: Correo -->
-  <label for="correo">Correo / Usuario de la cuenta</label>
+  <label for="correo">Correo / Usuario</label>
   <input id="correo" type="email" placeholder="ejemplo@correo.com" autocomplete="off" />
 
-  <!-- STEP 5: Fecha vencimiento -->
   <label for="vencimiento">Fecha de vencimiento</label>
   <input id="vencimiento" type="date" />
 
-  <button onclick="saveCompra()">Guardar compra</button>
+  <!-- ── BOOT ── -->
+  <div class="section-divider"><span>Boot de códigos</span></div>
+
+  <label for="boot" class="label-optional">Boot</label>
+  <select id="boot">
+    <option value="">Selecciona boot (opcional)</option>
+  </select>
+
+  <label for="linkBoot" class="label-optional">Link del boot</label>
+  <input id="linkBoot" type="url" placeholder="Se completa al elegir boot" readonly />
+
+  <label for="idBoot" class="label-optional">ID en el boot</label>
+  <input id="idBoot" type="text" placeholder="Código que colocas en el boot" autocomplete="off" />
+
+  <button onclick="saveCompra()" style="margin-top:20px;">Guardar compra</button>
 
 </div>
 
 <script type="module" src="compras.js"></script>
 <script>
-  const fab = document.getElementById("fab");
+  const fab  = document.getElementById("fab");
   const menu = document.getElementById("sideMenu");
-
   fab.onclick = () => {
     menu.style.display = menu.style.display === "flex" ? "none" : "flex";
   };
-
   document.addEventListener("click", (e) => {
     if (!menu.contains(e.target) && !fab.contains(e.target)) {
       menu.style.display = "none";
