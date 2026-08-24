@@ -1,8 +1,6 @@
-// En cuentas.js, ventas.js, compras.js, registros.js — al inicio
 import { requireAuth } from "./auth.js";
-await requireAuth(); // si no hay sesión, redirige al login automáticamente
+await requireAuth();
 
-// ... resto de tu código igual
 import { supabase } from "./supabase.js";
 
 /* =========================
@@ -37,7 +35,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   await loadVentas();
   await loadCuentas();
 
-  handleDeepLink(); // 👈 NUEVO: si viene ?correo=... en la URL, abre y resalta esa cuenta
+  handleDeepLink();
 });
 
 /* =========================
@@ -54,11 +52,9 @@ function parseDate(v) {
 function diffDays(v) {
   const d = parseDate(v);
   if (!d) return 9999;
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   d.setHours(0, 0, 0, 0);
-
   return Math.ceil((d - today) / 86400000);
 }
 
@@ -75,28 +71,19 @@ function colorByDate(v) {
 async function loadClientes() {
   const { data } = await supabase.from("clientes").select("*");
   clientes = data || [];
-
-  clientesMap = Object.fromEntries(
-    clientes.map(c => [c.id_cliente, c])
-  );
+  clientesMap = Object.fromEntries(clientes.map(c => [c.id_cliente, c]));
 }
 
 async function loadProveedores() {
   const { data } = await supabase.from("proveedores").select("*");
   proveedores = data || [];
-
-  proveedoresMap = Object.fromEntries(
-    proveedores.map(p => [p.proveedor, p])
-  );
+  proveedoresMap = Object.fromEntries(proveedores.map(p => [p.proveedor, p]));
 }
 
 async function loadServicios() {
   const { data } = await supabase.from("conf_venta_cuenta_propia").select("*");
   servicios = data || [];
-
-  serviciosMap = Object.fromEntries(
-    servicios.map(s => [s.id_servicio, s])
-  );
+  serviciosMap = Object.fromEntries(servicios.map(s => [s.id_servicio, s]));
 }
 
 async function loadVentas() {
@@ -107,45 +94,25 @@ async function loadVentas() {
 async function loadCuentas() {
   const { data } = await supabase.from("cuentas_propias").select("*");
   cuentas = data || [];
-
   setupPlatformOptions();
-
   applyView();
 }
 
 /* =========================
    HELPERS CUENTA
 ========================= */
-function getCorreo(c) {
-  return safe(c.correo_cuenta);
-}
-
-function getServicio(c) {
-  return serviciosMap[c.id_servicio];
-}
-
-function getPlataforma(c) {
-  return serviciosMap[c.id_servicio]?.plataforma || "";
-}
+function getCorreo(c)    { return safe(c.correo_cuenta); }
+function getServicio(c)  { return serviciosMap[c.id_servicio]; }
+function getPlataforma(c){ return serviciosMap[c.id_servicio]?.plataforma || ""; }
 
 /* =========================
    DISPONIBILIDAD
 ========================= */
 function getDisponibilidad(c) {
   const correo = getCorreo(c);
-
-  const usadas = ventas.filter(v =>
-    v.usuario_correo === correo
-  ).length;
-
-  const max = getServicio(c)?.cantidad || 0;
-
-  return {
-    usadas,
-    max,
-    free: max - usadas,
-    full: usadas >= max
-  };
+  const usadas = ventas.filter(v => v.usuario_correo === correo).length;
+  const max    = getServicio(c)?.cantidad || 0;
+  return { usadas, max, free: max - usadas, full: usadas >= max };
 }
 
 /* =========================
@@ -153,10 +120,7 @@ function getDisponibilidad(c) {
 ========================= */
 function getClientes(c) {
   const correo = getCorreo(c);
-
-  return ventas.filter(v =>
-    v.usuario_correo === correo
-  );
+  return ventas.filter(v => v.usuario_correo === correo);
 }
 
 /* =========================
@@ -167,28 +131,54 @@ function render(data) {
   container.innerHTML = "";
 
   data.forEach(c => {
-
-    const correo = getCorreo(c);
-    const servicio = getServicio(c);
-    const disp = getDisponibilidad(c);
+    const correo         = getCorreo(c);
+    const servicio       = getServicio(c);
+    const disp           = getDisponibilidad(c);
     const clientesCuenta = getClientes(c);
+    const color          = colorByDate(c.fecha_vencimiento);
 
-    const color = colorByDate(c.fecha_vencimiento);
+    // Boot info
+    const idBoot       = safe(c.id_boot);
+    const linkBoot     = safe(c.link_boot);
+    const provBoot     = safe(c.proveedor_boot);
+
+    const bootHtml = (idBoot || linkBoot) ? `
+      <div class="boot-block">
+        ${idBoot ? `
+          <div class="boot-row">
+            <span class="boot-label">🔑 ID Boot</span>
+            <div class="boot-value-wrap">
+              <span class="boot-value">${idBoot}</span>
+              <button class="btn-copy" onclick="copyText('${idBoot}', this)" title="Copiar ID">
+                📋
+              </button>
+            </div>
+          </div>
+        ` : ""}
+        ${linkBoot ? `
+          <div class="boot-row">
+            <span class="boot-label">🔗 ${provBoot || "Boot"}</span>
+            <a class="boot-link" href="${linkBoot}" target="_blank" rel="noopener">
+              Abrir boot ↗
+            </a>
+          </div>
+        ` : ""}
+      </div>
+    ` : "";
 
     const card = document.createElement("div");
     card.className = `card ${color}`;
-    card.dataset.correo = correo.toLowerCase(); // 👈 NUEVO: para poder ubicarla desde registros.js
+    card.dataset.correo = correo.toLowerCase();
 
     card.innerHTML = `
       <div class="card-header">
         <div>
-          <h3></b> ${getPlataforma(c)}</h3>
+          <h3>${getPlataforma(c)}</h3>
           <p><b>Correo:</b> ${correo}</p>
           <p><b>Proveedor:</b> ${c.proveedor}</p>
-          <p><b>${servicio?.servicio || "Servicio"}</p>
+          <p>${servicio?.servicio || "Servicio"}</p>
           <p><b>Vence:</b> ${c.fecha_vencimiento}</p>
         </div>
-
         <div style="text-align:right;">
           <div class="status ${disp.full ? "red" : "green"}"></div>
           <p>${disp.usadas}/${disp.max}</p>
@@ -196,6 +186,8 @@ function render(data) {
       </div>
 
       <div class="card-body hidden">
+
+        ${bootHtml}
 
         <div class="btn-grid">
           <button onclick="whatsappProveedor('${c.id_cuenta}')">WhatsApp</button>
@@ -208,22 +200,19 @@ function render(data) {
 
         <h4>Clientes</h4>
 
-        ${
-          clientesCuenta.map(v => `
-            <div class="cliente-row">
-              <span>
-                ${clientesMap[v.id_cliente]?.nombre || "Sin cliente"}
-                - ${v.perfil}
-                - ${v.fecha_vencimiento}
-              </span>
-
-              <div>
-                <button onclick="editarVenta('${v.id_venta}')">Editar</button>
-                <button onclick="eliminarVenta('${v.id_venta}')">Eliminar</button>
-              </div>
+        ${clientesCuenta.map(v => `
+          <div class="cliente-row">
+            <span>
+              ${clientesMap[v.id_cliente]?.nombre || "Sin cliente"}
+              - ${v.perfil}
+              - ${v.fecha_vencimiento}
+            </span>
+            <div>
+              <button onclick="editarVenta('${v.id_venta}')">Editar</button>
+              <button onclick="eliminarVenta('${v.id_venta}')">Eliminar</button>
             </div>
-          `).join("")
-        }
+          </div>
+        `).join("")}
 
         ${!disp.full ? `
           <button onclick="abrirModal('${c.id_cuenta}')" style="width:100%; margin-top:10px;">
@@ -241,7 +230,21 @@ function render(data) {
 }
 
 /* =========================
-   DEEP LINK (viene desde registros.js) — NUEVO
+   COPY HELPER
+========================= */
+window.copyText = async (text, btn) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    const orig = btn.textContent;
+    btn.textContent = "✅";
+    setTimeout(() => btn.textContent = orig, 1500);
+  } catch {
+    alert("No se pudo copiar.");
+  }
+};
+
+/* =========================
+   DEEP LINK
 ========================= */
 function handleDeepLink() {
   const params = new URLSearchParams(location.search);
@@ -249,16 +252,13 @@ function handleDeepLink() {
   if (!correoParam) return;
 
   const target = correoParam.trim().toLowerCase();
-
   const card = [...document.querySelectorAll(".card")]
     .find(el => el.dataset.correo === target);
 
   if (!card) return;
-
   card.querySelector(".card-body")?.classList.remove("hidden");
   card.scrollIntoView({ behavior: "smooth", block: "center" });
   card.classList.add("highlight");
-
   setTimeout(() => card.classList.remove("highlight"), 2500);
 }
 
@@ -279,18 +279,12 @@ function setupToggle() {
 window.abrirModal = (idCuenta) => {
   document.getElementById("addCuentaId").value = idCuenta;
 
-  // Resetear buscador al abrir
   const searchInput = document.getElementById("addClienteSearch");
   const hiddenInput = document.getElementById("addCliente");
-  if (searchInput) {
-    searchInput.value = "";
-    searchInput.classList.remove("selected");
-  }
-  if (hiddenInput) hiddenInput.value = "";
+  if (searchInput) { searchInput.value = ""; searchInput.classList.remove("selected"); }
+  if (hiddenInput)  hiddenInput.value = "";
 
   document.getElementById("modalAgregarCliente").showModal();
-
-  // Focus al buscador con pequeño delay para que el modal termine de abrir
   setTimeout(() => searchInput?.focus(), 80);
 };
 
@@ -373,11 +367,9 @@ function setupModalClose() {
    AGREGAR CLIENTE
 ========================= */
 function setupAgregarCliente() {
-  // Inicializar el buscador del modal
   setupClienteSearchModal();
 
   const form = document.getElementById("formAgregarCliente");
-
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -393,45 +385,41 @@ function setupAgregarCliente() {
     if (!cuenta) return;
 
     await supabase.from("ventas").insert([{
-      id_venta: crypto.randomUUID(),
-      tipo_venta: "VCP",
-      id_cliente: idCliente,
-      plataforma: getPlataforma(cuenta),
-      id_servicio: cuenta.id_servicio,
-      usuario_correo: cuenta.correo_cuenta,
+      id_venta:          crypto.randomUUID(),
+      tipo_venta:        "VCP",
+      id_cliente:        idCliente,
+      plataforma:        getPlataforma(cuenta),
+      id_servicio:       cuenta.id_servicio,
+      usuario_correo:    cuenta.correo_cuenta,
       perfil,
-      fecha_registro: (() => { const n = new Date(); const p = x => String(x).padStart(2,'0'); return `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}T${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`; })(),
+      fecha_registro:    new Date().toISOString(),
       fecha_vencimiento: fecha,
-      ganancia: parseFloat(ganancia || 0),
-      estado: "activa"
+      ganancia:          parseFloat(ganancia || 0),
+      estado:            "activa"
     }]);
 
     document.getElementById("modalAgregarCliente").close();
-
     await loadVentas();
     applyView();
   });
 }
 
 /* =========================
-   EDITAR CLIENTE/VENTA — usa modal
+   EDITAR CLIENTE/VENTA
 ========================= */
 function setupEditarCliente() {
   const form = document.getElementById("formEditarCliente");
-
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    const id = document.getElementById("editVentaId").value;
+    const id     = document.getElementById("editVentaId").value;
     const perfil = document.getElementById("editPerfil").value;
-    const fecha = document.getElementById("editFechaVencimiento").value;
+    const fecha  = document.getElementById("editFechaVencimiento").value;
 
     await supabase.from("ventas")
       .update({ perfil, fecha_vencimiento: fecha })
       .eq("id_venta", id);
 
     document.getElementById("modalEditarCliente").close();
-
     await loadVentas();
     applyView();
   });
@@ -440,24 +428,20 @@ function setupEditarCliente() {
 window.editarVenta = (id) => {
   const v = ventas.find(x => x.id_venta === id);
   if (!v) return;
-
-  document.getElementById("editVentaId").value = id;
-  document.getElementById("editPerfil").value = v.perfil || "";
-  document.getElementById("editFechaVencimiento").value = v.fecha_vencimiento || "";
-
+  document.getElementById("editVentaId").value            = id;
+  document.getElementById("editPerfil").value             = v.perfil || "";
+  document.getElementById("editFechaVencimiento").value   = v.fecha_vencimiento || "";
   document.getElementById("modalEditarCliente").showModal();
 };
 
 /* =========================
-   EDITAR FECHA DE CUENTA — usa modal
+   EDITAR FECHA DE CUENTA
 ========================= */
 function setupEditarCuentaFecha() {
   const form = document.getElementById("formEditarCuentaFecha");
-
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    const id = document.getElementById("editCuentaFechaId").value;
+    const id    = document.getElementById("editCuentaFechaId").value;
     const fecha = document.getElementById("editCuentaFechaVencimiento").value;
 
     await supabase.from("cuentas_propias")
@@ -465,7 +449,6 @@ function setupEditarCuentaFecha() {
       .eq("id_cuenta", id);
 
     document.getElementById("modalEditarCuentaFecha").close();
-
     await loadCuentas();
   });
 }
@@ -473,10 +456,8 @@ function setupEditarCuentaFecha() {
 window.editarFecha = (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
   if (!c) return;
-
-  document.getElementById("editCuentaFechaId").value = id;
-  document.getElementById("editCuentaFechaVencimiento").value = c.fecha_vencimiento || "";
-
+  document.getElementById("editCuentaFechaId").value              = id;
+  document.getElementById("editCuentaFechaVencimiento").value     = c.fecha_vencimiento || "";
   document.getElementById("modalEditarCuentaFecha").showModal();
 };
 
@@ -488,16 +469,10 @@ function setupPlatformOptions() {
   if (!select) return;
 
   const currentValue = select.value;
-
   const set = new Set();
-
-  cuentas.forEach(c => {
-    const plataforma = getPlataforma(c);
-    if (plataforma) set.add(plataforma);
-  });
+  cuentas.forEach(c => { const p = getPlataforma(c); if (p) set.add(p); });
 
   select.innerHTML = `<option value="">Todas las plataformas</option>`;
-
   [...set].sort().forEach(p => {
     select.innerHTML += `<option value="${p}">${p}</option>`;
   });
@@ -512,13 +487,9 @@ function setupPlatformOptions() {
 window.whatsappProveedor = (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
   const p = proveedoresMap[c.proveedor];
-
   const tel = safe(p?.telefono || p?.celular || p?.whatsapp).replace(/\D/g, "");
-
   if (!tel) return alert("Proveedor sin número");
-
   const msg = `Hola Bull Streaming desea renovar ${getCorreo(c)} (${getServicio(c)?.servicio})`;
-
   window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
 };
 
@@ -544,26 +515,17 @@ window.editarCorreo = async (id) => {
 
 window.eliminarCuenta = async (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
-
   if (!confirm("Eliminar cuenta y clientes?")) return;
 
-  await supabase.from("ventas")
-    .delete()
-    .eq("usuario_correo", getCorreo(c));
-
-  await supabase.from("cuentas_propias")
-    .delete()
-    .eq("id_cuenta", id);
+  await supabase.from("ventas").delete().eq("usuario_correo", getCorreo(c));
+  await supabase.from("cuentas_propias").delete().eq("id_cuenta", id);
 
   await loadVentas();
   await loadCuentas();
 };
 
 window.eliminarVenta = async (id) => {
-  await supabase.from("ventas")
-    .delete()
-    .eq("id_venta", id);
-
+  await supabase.from("ventas").delete().eq("id_venta", id);
   await loadVentas();
   applyView();
 };
@@ -574,7 +536,6 @@ window.eliminarVenta = async (id) => {
 function applyView() {
   let data = [...cuentas];
 
-  // Búsqueda por texto
   const q = (document.getElementById("search")?.value || "").toLowerCase();
   if (q) {
     data = data.filter(c =>
@@ -584,33 +545,15 @@ function applyView() {
     );
   }
 
-  // Filtro por plataforma (aplicado ANTES del sort)
   const platform = document.getElementById("filterPlatform")?.value;
-  if (platform) {
-    data = data.filter(c => getPlataforma(c) === platform);
-  }
+  if (platform) data = data.filter(c => getPlataforma(c) === platform);
 
-  // Ordenamiento
   const sort = document.getElementById("sortBy")?.value;
-
-  if (sort === "plataforma") {
-    data.sort((a, b) => {
-      const sa = getPlataforma(a);
-      const sb = getPlataforma(b);
-      return sa.localeCompare(sb);
-    });
-  }
-
   if (sort === "fecha_vencimiento") {
-    data.sort((a, b) =>
-      new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento)
-    );
+    data.sort((a, b) => new Date(a.fecha_vencimiento) - new Date(b.fecha_vencimiento));
   }
-
   if (sort === "disponibilidad") {
-    data.sort((a, b) =>
-      getDisponibilidad(b).free - getDisponibilidad(a).free
-    );
+    data.sort((a, b) => getDisponibilidad(b).free - getDisponibilidad(a).free);
   }
 
   render(data);
