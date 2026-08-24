@@ -202,26 +202,4 @@
   </script>
 
 </body>
-</html>      btnLogin.disabled = true;
-      btnLogin.textContent = "Ingresando...";
-      error.textContent = "";
-
-      const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (err) {
-        error.textContent = "Correo o contraseña incorrectos.";
-        btnLogin.disabled = false;
-        btnLogin.textContent = "Ingresar";
-        return;
-      }
-
-      window.location.href = "index.html";
-    };
-
-    // Login con Enter
-    document.getElementById("password").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") window.login();
-    });
-  </script>
-</body>
-</html>
+</html>     
