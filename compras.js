@@ -16,6 +16,7 @@ let boots = [];
 window.addEventListener("DOMContentLoaded", async () => {
   await Promise.all([loadServicios(), loadProveedores(), loadBoots()]);
   setupPlatformas();
+  setupBoots();
   setupEvents();
 });
 
@@ -152,8 +153,6 @@ function setupEvents() {
     document.getElementById("linkBoot").value = link;
   });
 
-  // Inicializar boots (no dependen de nada más)
-  setupBoots();
 }
 
 /* =========================
