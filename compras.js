@@ -8,7 +8,7 @@ import { supabase } from "./supabase.js";
 ========================= */
 let servicios = [];
 let proveedores = [];
-let boots = [];
+let proveedor_boots = [];
 
 /* =========================
    INIT
