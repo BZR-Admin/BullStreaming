@@ -130,6 +130,19 @@
       transition: opacity 0.15s;
     }
     .boot-link:hover { opacity: 1; text-decoration: underline; }
+
+    /* link_boot readonly en modal */
+    #editBootLink {
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      background: rgba(255,255,255,0.03);
+      border-color: rgba(255,255,255,0.08);
+      cursor: default;
+    }
+    #editBootLink:focus {
+      border-color: rgba(255,255,255,0.15);
+      box-shadow: none;
+    }
   </style>
 </head>
 
@@ -178,9 +191,9 @@
   <form id="formEditarCliente" method="dialog">
     <h2>Editar cliente de la cuenta</h2>
     <input id="editVentaId" type="hidden" />
-    <label for="editPerfil">Nuevo perfil</label>
+    <label for="editPerfil">Perfil</label>
     <input id="editPerfil" type="text" placeholder="Ejemplo: Bull A" autocomplete="off" required />
-    <label for="editFechaVencimiento">Nueva fecha de vencimiento</label>
+    <label for="editFechaVencimiento">Fecha de vencimiento</label>
     <input id="editFechaVencimiento" type="date" required />
     <div class="btn-grid">
       <button type="submit" value="guardar">Guardar cambios</button>
@@ -233,6 +246,30 @@
     <div class="btn-grid">
       <button type="submit" value="guardar">Guardar fecha</button>
       <button type="button" data-modal-close="modalEditarCuentaFecha">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- MODAL: EDITAR BOOT -->
+<dialog id="modalEditarBoot" class="app-modal">
+  <form id="formEditarBoot" method="dialog">
+    <h2>Editar Boot</h2>
+    <input id="editBootCuentaId" type="hidden" />
+
+    <label for="editBootSelect">Boot</label>
+    <select id="editBootSelect">
+      <option value="">Sin boot</option>
+    </select>
+
+    <label for="editBootLink">Link del boot</label>
+    <input id="editBootLink" type="url" placeholder="Se completa al elegir boot" readonly />
+
+    <label for="editBootId">ID en el boot</label>
+    <input id="editBootId" type="text" placeholder="Código que colocas en el boot" autocomplete="off" />
+
+    <div class="btn-grid">
+      <button type="submit" value="guardar">Guardar</button>
+      <button type="button" data-modal-close="modalEditarBoot">Cancelar</button>
     </div>
   </form>
 </dialog>
