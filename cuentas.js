@@ -11,6 +11,7 @@ let ventas = [];
 let clientes = [];
 let proveedores = [];
 let servicios = [];
+let boots = [];
 
 let clientesMap = {};
 let proveedoresMap = {};
@@ -19,24 +20,28 @@ let serviciosMap = {};
 /* =========================
    INIT
 ========================= */
-window.addEventListener("DOMContentLoaded", async () => {
+async function init() {
   setupEvents();
   setupModalClose();
   setupAgregarCliente();
   setupEditarCliente();
   setupEditarCuentaFecha();
+  setupEditarBoot();
 
   await Promise.all([
     loadClientes(),
     loadProveedores(),
-    loadServicios()
+    loadServicios(),
+    loadBoots()
   ]);
 
   await loadVentas();
   await loadCuentas();
 
   handleDeepLink();
-});
+}
+
+init();
 
 /* =========================
    HELPERS GENERALES
@@ -91,6 +96,11 @@ async function loadVentas() {
   ventas = data || [];
 }
 
+async function loadBoots() {
+  const { data } = await supabase.from("proveedor_boots").select("*");
+  boots = data || [];
+}
+
 async function loadCuentas() {
   const { data } = await supabase.from("cuentas_propias").select("*");
   cuentas = data || [];
@@ -101,9 +111,9 @@ async function loadCuentas() {
 /* =========================
    HELPERS CUENTA
 ========================= */
-function getCorreo(c)    { return safe(c.correo_cuenta); }
-function getServicio(c)  { return serviciosMap[c.id_servicio]; }
-function getPlataforma(c){ return serviciosMap[c.id_servicio]?.plataforma || ""; }
+function getCorreo(c)     { return safe(c.correo_cuenta); }
+function getServicio(c)   { return serviciosMap[c.id_servicio]; }
+function getPlataforma(c) { return serviciosMap[c.id_servicio]?.plataforma || ""; }
 
 /* =========================
    DISPONIBILIDAD
@@ -119,8 +129,7 @@ function getDisponibilidad(c) {
    CLIENTES CUENTA
 ========================= */
 function getClientes(c) {
-  const correo = getCorreo(c);
-  return ventas.filter(v => v.usuario_correo === correo);
+  return ventas.filter(v => v.usuario_correo === getCorreo(c));
 }
 
 /* =========================
@@ -137,30 +146,31 @@ function render(data) {
     const clientesCuenta = getClientes(c);
     const color          = colorByDate(c.fecha_vencimiento);
 
-    // Boot info
-    const idBoot       = safe(c.id_boot);
-    const linkBoot     = safe(c.link_boot);
-    const provBoot     = safe(c.proveedor_boot);
+    const idBoot   = safe(c.id_boot);
+    const linkBoot = safe(c.link_boot);
+    const provBoot = safe(c.proveedor_boot);
 
-    const bootHtml = (idBoot || linkBoot) ? `
+    const bootHtml = (idBoot || linkBoot || provBoot) ? `
       <div class="boot-block">
+        ${provBoot ? `
+          <div class="boot-row">
+            <span class="boot-label">🖥️ Boot</span>
+            <span style="margin-left:auto; font-size:13px; font-weight:600; color:rgba(255,255,255,0.7);">${provBoot}</span>
+          </div>
+        ` : ""}
         ${idBoot ? `
           <div class="boot-row">
             <span class="boot-label">🔑 ID Boot</span>
             <div class="boot-value-wrap">
               <span class="boot-value">${idBoot}</span>
-              <button class="btn-copy" onclick="copyText('${idBoot}', this)" title="Copiar ID">
-                📋
-              </button>
+              <button class="btn-copy" onclick="copyText('${idBoot}', this)" title="Copiar ID">📋</button>
             </div>
           </div>
         ` : ""}
         ${linkBoot ? `
           <div class="boot-row">
-            <span class="boot-label">🔗 ${provBoot || "Boot"}</span>
-            <a class="boot-link" href="${linkBoot}" target="_blank" rel="noopener">
-              Abrir boot ↗
-            </a>
+            <span class="boot-label">🔗 Link</span>
+            <a class="boot-link" href="${linkBoot}" target="_blank" rel="noopener">Abrir boot ↗</a>
           </div>
         ` : ""}
       </div>
@@ -193,6 +203,7 @@ function render(data) {
           <button onclick="whatsappProveedor('${c.id_cuenta}')">WhatsApp</button>
           <button onclick="editarCorreo('${c.id_cuenta}')">Editar correo</button>
           <button onclick="editarFecha('${c.id_cuenta}')">Editar fecha</button>
+          <button onclick="editarBoot('${c.id_cuenta}')">Editar boot</button>
           <button onclick="eliminarCuenta('${c.id_cuenta}')">Eliminar</button>
         </div>
 
@@ -274,6 +285,77 @@ function setupToggle() {
 }
 
 /* =========================
+   EDITAR BOOT — abre modal
+========================= */
+window.editarBoot = (id) => {
+  const c = cuentas.find(x => x.id_cuenta === id);
+  if (!c) return;
+
+  // Guardar id de cuenta
+  document.getElementById("editBootCuentaId").value = id;
+
+  // Llenar select de boots
+  const sel = document.getElementById("editBootSelect");
+  sel.innerHTML = `<option value="" data-link="">Sin boot</option>`;
+  const ordenados = [...boots].sort((a, b) =>
+    a.proveedor_boot.localeCompare(b.proveedor_boot, "es", { sensitivity: "base" })
+  );
+  ordenados.forEach(b => {
+    const opt = document.createElement("option");
+    opt.value = b.proveedor_boot;
+    opt.textContent = b.proveedor_boot;
+    opt.dataset.link = b.link_boot || "";
+    sel.appendChild(opt);
+  });
+
+  // Preseleccionar el boot actual si existe
+  sel.value = safe(c.proveedor_boot);
+
+  // Precargar link actual
+  const selectedOpt = [...sel.options].find(o => o.value === sel.value);
+  document.getElementById("editBootLink").value = selectedOpt?.dataset.link || safe(c.link_boot);
+
+  // Precargar id_boot actual
+  document.getElementById("editBootId").value = safe(c.id_boot);
+
+  document.getElementById("modalEditarBoot").showModal();
+};
+
+/* =========================
+   SETUP EDITAR BOOT (form submit + select change)
+========================= */
+function setupEditarBoot() {
+  // Al cambiar el select de boot → autocompleta el link
+  document.getElementById("editBootSelect").addEventListener("change", (e) => {
+    const link = e.target.selectedOptions[0]?.dataset.link || "";
+    document.getElementById("editBootLink").value = link;
+  });
+
+  // Submit del form
+  document.getElementById("formEditarBoot").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const id             = document.getElementById("editBootCuentaId").value;
+    const proveedor_boot = document.getElementById("editBootSelect").value || null;
+    const link_boot      = document.getElementById("editBootLink").value.trim() || null;
+    const id_boot        = document.getElementById("editBootId").value.trim() || null;
+
+    const { error } = await supabase
+      .from("cuentas_propias")
+      .update({ proveedor_boot, link_boot, id_boot })
+      .eq("id_cuenta", id);
+
+    if (error) {
+      console.error(error);
+      return alert("Error al guardar el boot.");
+    }
+
+    document.getElementById("modalEditarBoot").close();
+    await loadCuentas();
+  });
+}
+
+/* =========================
    MODAL OPEN — AGREGAR CLIENTE
 ========================= */
 window.abrirModal = (idCuenta) => {
@@ -313,8 +395,8 @@ function setupClienteSearchModal() {
         return `<div class="cliente-option" data-id="${c.id_cliente}" data-nombre="${c.nombre}">${nombre}</div>`;
       }).join("");
       dropdown.querySelectorAll(".cliente-option").forEach(el => {
-        el.addEventListener("mousedown", e => {
-          e.preventDefault();
+        el.addEventListener("mousedown", ev => {
+          ev.preventDefault();
           hidden.value = el.dataset.id;
           input.value  = el.dataset.nombre;
           input.classList.add("selected");
@@ -428,9 +510,9 @@ function setupEditarCliente() {
 window.editarVenta = (id) => {
   const v = ventas.find(x => x.id_venta === id);
   if (!v) return;
-  document.getElementById("editVentaId").value            = id;
-  document.getElementById("editPerfil").value             = v.perfil || "";
-  document.getElementById("editFechaVencimiento").value   = v.fecha_vencimiento || "";
+  document.getElementById("editVentaId").value          = id;
+  document.getElementById("editPerfil").value           = v.perfil || "";
+  document.getElementById("editFechaVencimiento").value = v.fecha_vencimiento || "";
   document.getElementById("modalEditarCliente").showModal();
 };
 
@@ -456,8 +538,8 @@ function setupEditarCuentaFecha() {
 window.editarFecha = (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
   if (!c) return;
-  document.getElementById("editCuentaFechaId").value              = id;
-  document.getElementById("editCuentaFechaVencimiento").value     = c.fecha_vencimiento || "";
+  document.getElementById("editCuentaFechaId").value          = id;
+  document.getElementById("editCuentaFechaVencimiento").value = c.fecha_vencimiento || "";
   document.getElementById("modalEditarCuentaFecha").showModal();
 };
 
@@ -494,7 +576,7 @@ window.whatsappProveedor = (id) => {
 };
 
 /* =========================
-   EDITAR / ELIMINAR CUENTA
+   EDITAR CORREO
 ========================= */
 window.editarCorreo = async (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
@@ -513,6 +595,9 @@ window.editarCorreo = async (id) => {
   await loadCuentas();
 };
 
+/* =========================
+   ELIMINAR CUENTA
+========================= */
 window.eliminarCuenta = async (id) => {
   const c = cuentas.find(x => x.id_cuenta === id);
   if (!confirm("Eliminar cuenta y clientes?")) return;
