@@ -394,11 +394,11 @@ window.sendWhatsApp = (idVenta) => {
     return;
   }
 
-  const msg = `¡Hola! Bull Streaming te informa que está por vencer tu servicio de ${servicioNombre}.
+  const msg = `*¡Hola!* Bull Streaming te informa que está por vencer tu servicio de *${servicioNombre}*.
 
 Usuario: ${safe(venta.usuario_correo)}
 Perfil: ${safe(venta.perfil)}
-Fecha de vencimiento: ${formatDate(venta.fecha_vencimiento)}
+*Fecha de vencimiento: Hoy*
 
 ¿Puedes confirmar si deseas renovar?`;
 
